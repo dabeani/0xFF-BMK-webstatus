@@ -1,5 +1,5 @@
 Package: 0xFF-BMK-webstatus
-Version: 2.1
+Version: 2.2-git
 Section: base
 Priority: optional
 Architecture: mipsel

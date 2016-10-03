@@ -1,0 +1,106 @@
+#!/bin/sh
+
+# Exit on error
+set -e
+
+WEBSERVER_CHANGES=0
+
+if [ $(cat /var/www/php/app/views/login.php | grep 'cgi-bin-status.php' | wc -l) -eq 0 ]
+then
+	LINE=$(grep -n "End: Section Container" /var/www/php/app/views/login.php | cut -f1 -d:)
+	sed "$LINE i <h1 class=\"section-title\"><center><a href=\"/cgi-bin-status.php\"><button type=\"button\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary\" role=\"button\" aria-disabled=\"false\"><span class=\"ui-button-icon-primary ui-icon ui-icon-tag\"></span><span class=\"ui-button-text\">OLSRd / Node Status</span></button></a></CENTER></h1>" /var/www/php/app/views/login.php > /var/www/php/app/views/login.new
+	mv /var/www/php/app/views/login.php /var/www/php/app/views/login.old
+	mv /var/www/php/app/views/login.new /var/www/php/app/views/login.php
+fi
+
+if [ -x "/var/www/htdocs/cgi-bin-status.html" ]; then
+        WEBSERVER_CHANGES=1
+fi
+
+if [ $(cat /etc/lighttpd/lighttpd.conf | grep mod_cgi | wc -l) -eq 0 ]
+then
+	sed -i 's/"mod_websocket",/"mod_websocket",\n\t"mod_cgi",/g' /etc/lighttpd/lighttpd.conf >/dev/null
+	WEBSERVER_CHANGES=1
+fi
+
+if [ $(cat /etc/lighttpd/lighttpd.conf | grep '(/cgi-bin-status.php)' | wc -l) -eq 0 ]
+then
+	sed -i 's/url.rewrite-once = (/url.rewrite-once = (\n\t"^(\/cgi-bin-status.php)" => "$0",/g' /etc/lighttpd/lighttpd.conf >/dev/null
+	WEBSERVER_CHANGES=1
+fi
+
+if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|cgi-bin' | wc -l) -eq 0 ]
+then
+	sed -i 's/tests/tests|js|css|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
+	WEBSERVER_CHANGES=1
+fi
+
+if [ -a "/etc/lighttpd/conf-enabled/10-ssl.conf" ]
+then
+	if [ $(cat /etc/lighttpd/conf-enabled/10-ssl.conf | grep '/cgi-bin-status.php" {' | wc -l) -eq 0 ]
+	then
+	httpscheme=$(grep -n '$HTTP\["scheme' /etc/lighttpd/conf-enabled/10-ssl.conf | cut -d: -f1)
+	httpschemend=$(($httpscheme+8))
+	if [ ! -a "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
+		cp /etc/lighttpd/conf-enabled/10-ssl.conf /etc/lighttpd/conf-enabled/10-ssl.old
+	fi
+
+	sed -i "${httpscheme},${httpschemend}d" /etc/lighttpd/conf-enabled/10-ssl.conf >/dev/null
+	cat >> /etc/lighttpd/conf-enabled/10-ssl.conf <<'endconfig'
+$HTTP["scheme"] == "http" {
+	$HTTP["url"] !~ "^/index.php/error/" {
+		$HTTP["url"] !~ "^/cgi-bin-status.php" {
+		$HTTP["url"] !~ "^/cgi-bin/" {
+			$HTTP["host"] =~ "^([^\:]+)(\:.*)?$" {
+				url.redirect = (
+					 "^(.*)$" => "https://%1:443$1"
+				)
+			}
+		}
+		}
+	}
+}
+endconfig
+	WEBSERVER_CHANGES=1
+	fi
+fi
+
+if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'scheme' | wc -l) -eq 1 ]
+then
+	if [ $(cat /etc/lighttpd/lighttpd.conf | grep '/cgi-bin-status.php" {' | wc -l) -eq 0 ]
+	then
+	httpscheme=$(grep -n '$HTTP\["scheme' /etc/lighttpd/lighttpd.conf | cut -d: -f1)
+	httpschemend=$(($httpscheme+8))
+
+	if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then                                                                          
+                cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old                                            
+        fi
+	sed -i "${httpscheme},${httpschemend}d" /etc/lighttpd/lighttpd.conf >/dev/null
+	cat >> /etc/lighttpd/lighttpd.conf <<'endconfig'
+$HTTP["scheme"] == "http" {
+	$HTTP["url"] !~ "^/index.php/error/" {
+		$HTTP["url"] !~ "^/cgi-bin-status.php" {
+		$HTTP["url"] !~ "^/cgi-bin/" {
+			$HTTP["host"] =~ "^(.*)$" {
+				url.redirect = (
+					 "^(.*)$" => "https://%1$1"
+				)
+			}
+		}
+		}
+	}
+}
+cgi.assign = (
+	".sh"	=> "/bin/sh"
+)
+endconfig
+	WEBSERVER_CHANGES=1
+	fi
+fi
+
+if [ "$WEBSERVER_CHANGES" = 1 ]
+then
+	pkill -9 lighttpd >/dev/null; /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf >/dev/null
+fi
+
+exit 0

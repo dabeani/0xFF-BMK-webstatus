@@ -1,0 +1,9 @@
+Package: 0xFF-BMK-webstatus
+Version: 2.1
+Section: base
+Priority: optional
+Architecture: mipsel
+Maintainer: Bernhard Marker <bernhard@cybercomm.at>
+Description: EDGERouter Erweiterung damit OLSR-Status, Uptime,... dargestellt wird.      
+ Extension wurde mit PHP realisiert.
+ Tools fuer Scantools: https://{URL}/cgi-bin-status.php?get=status,https://{URL}/cgi-bin-status.php?get=phpinfo

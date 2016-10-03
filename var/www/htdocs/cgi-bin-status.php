@@ -199,18 +199,18 @@ if(isset($get)) {
 
 	// find discover_id for additional information
 	foreach ($devices as $dkey=>$dvalue) {
-	foreach ($discover[devices] as $key=>$value) {
-	if (strtolower($value['hwaddr'])==strtolower($dkey)) {
-	$devices[$dkey]['discover_id']=$key;
-	break;
-	}
-	foreach ($value['addresses'] as $akey=>$avalue) {
-	if (strtolower($avalue['hwaddr'])==strtolower($dkey)) {
-	$devices[$dkey]['discover_id']=$key;
-	break;
-	}
-	}
-	}
+		foreach ($discover[devices] as $key=>$value) {
+			if (strtolower($value['hwaddr'])==strtolower($dkey)) {
+				$devices[$dkey]['discover_id']=$key;
+				break;
+			}
+			foreach ($value['addresses'] as $akey=>$avalue) {
+				if (strtolower($avalue['hwaddr'])==strtolower($dkey)) {
+					$devices[$dkey]['discover_id']=$key;
+					break;
+				}
+			}
+		}
 	}
 	
 
@@ -251,22 +251,12 @@ if(isset($get)) {
 <!-- Tab panes -->
 				<div class="tab-content"> 
 					<div role="tabpanel" class="tab-pane active" id="table">
-
-<style>
-table{
-border-spacing: 16px 4px;
-}
-td {
- padding-left:10px; padding-right:10px;
- border: 1px solid black;
-}
-</style>
 <?php
  echo $APP["ip"];
  echo " - ";
  echo $APP["hostname"];
 ?><br>
-  <table border=1>
+  <table class="table table-bordered"><tbody>
  <?php
  	echo "<tr valign=top><td><b>Ports</b></td>";           foreach ($interfaces as $key=>$value) { echo "<td>".$key."</td>"; } echo "</tr>";
 	echo "<tr valign=top><td><b>Description</b></td>";     foreach ($interfaces as $key=>$value) { echo "<td>".$interfaces[$key]['desc']."</td>"; } echo "</tr>";
@@ -363,7 +353,7 @@ td {
 		echo "</tr>";
 	}
 																										
- 	echo "</table>";
+ 	echo "</tbody></table>";
  	//echo "\n<pre>";
  	//print_r($vlans);
  	//print_r($interfaces);
@@ -480,7 +470,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						  <dt>System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
 						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["host"].":".$APP["v4defaultrouteviaport"]."\"/>" . $APP["v4defaultrouteviaport"] . "</a> | <a href=\"http://".$APP["v4defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v4defaultrouteviaip"]."</a><br>"; ?></dd>
 						  <dt>Devices vlan 1100</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
-						  <dt>IPv4 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v4defaultrouteviaip"],"<mark><b>".$APP["v4defaultrouteviaip"]."</b></mark>",file_get_contents("http://127.0.0.1:2006/links"))); ?></pre></dd>
+						  <dt>IPv4 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v4defaultrouteviaip"],"<mark title='Default-Route'><b>".$APP["v4defaultrouteviaip"]."</b></mark>",file_get_contents("http://127.0.0.1:2006/links"))); ?></pre></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
 						  <dt>IPv6 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["host"].":".$APP["v6defaultrouteviaport"]."\"/>" . $APP["v6defaultrouteviaport"] . "</a> | <a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a><br>"; ?></dd>

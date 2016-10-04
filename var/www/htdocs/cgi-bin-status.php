@@ -1,4 +1,5 @@
-<?php
+<?php // v2.4
+// issues: blanks in interface-desc eth_desc
 
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
@@ -40,11 +41,15 @@ if(isset($get)) {
 	$eth_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet detail | grep -E \"^eth.|link/ether\" | awk '{if ($1~/^eth./) { print $1\",\";} else {print $2;}}' | sed 'N;s/\\n//'")));
 
 	// show interfaces | grep -E "^eth" | awk '{print $1","$4;}'
-	$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth\" | awk '{print $1\",\"$4\",\"$3\",\"$2;}'")));
+	//$eth_desc = explode("\n",trim(shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E "^eth|^br" | awk \'{printf $1",";{for(i=4;i<=NF;++i) printf($i)} print ","$3","$2;}\'')));
+	$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; printf($4); print \",\"$3\",\"$2;}'")));
+	// $eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; {for(i=4;i<=NF;++i) printf($i)} print \",\"$3\",\"$2;}'")));
+	//$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{print $1\",\"$4\",\"$3\",\"$2;}'")));
 	// achtung: blanks im interface-namen irgendwie beachten!
+	//echo "version 0";
 						
 	// show bridge br0 macs | awk '{print $3","$2","$1","$4}'
-	$br0_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge br0 macs | awk '{print $3\",\"$2\",\"$1\",\"$4}'"))); 
+	// spaeter: $br0_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge br0 macs | awk '{print $3\",\"$2\",\"$1\",\"$4}'"))); 
 	// skip 1st line?
 	// achtung: auch br1 koennte interessant sein --> hat eigene mac/ids
 									
@@ -95,16 +100,28 @@ if(isset($get)) {
 	}
 	
 	// add port description, state, maybe own IP
+	$bridges=array();
 	foreach ($eth_desc as $key=>$value) {
 		$int = explode(",", trim($value));
 		$v=explode(".",$int[0]);
+		if (substr($int[0],0,2)=="br") { 
+			if (!isset($v[1])) {
+				$bridges[$int[0]]['name']=$int[0];
+				$bridges[$int[0]]['desc'] = trim($int[1]);
+				$bridges[$int[0]]['state'] = $int[2];
+				$bridges[$int[0]]['own_ip'] = $int[3];
+			} else {
+				unset($v);
+			}
+			continue;
+		}		
 		if ($v[1]) {
 			// this is a vlan
 			$vlans[$v[0]][$v[1]]['name']=$int[1];
 			unset($v);
 			continue;
 		}
-		$interfaces[$int[0]]['desc'] = $int[1];
+		$interfaces[$int[0]]['desc'] = trim($int[1]);
 		$interfaces[$int[0]]['state'] = $int[2];
 		$interfaces[$int[0]]['own_ip'] = $int[3];
 	}
@@ -143,7 +160,12 @@ if(isset($get)) {
  		}
  	}
 
-	// add correct port_id for ethX from mac table
+	// NEW 5 loop all bridges br0,br1
+ 	$devices = array();
+	foreach ($bridges as $br=>$brdata) {
+	$br0_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge ".$br." macs | awk '{print $3\",\"$2\",\"$1\",\"$4}'"))); 
+
+	// 6 add correct port_id for ethX from mac table
  	foreach ($br0_macs as $key=>$value) {
  		$int = explode(",", trim($value));
  		if ($int[0] == "yes") {
@@ -155,8 +177,7 @@ if(isset($get)) {
 		}
 	}
 
-	// add mac addresses to correct ethX port from arp table
- 	$devices = array();
+	// 7 add mac addresses to correct ethX port from arp table
  	foreach ($br0_macs as $key=>$value) {
 		$int = explode(",", trim($value));
 		if ($int[0] == "no") {
@@ -170,8 +191,10 @@ if(isset($get)) {
  			$devices[$int[1]]['port_id']=$int[2];
  		}
  	}
+ 	foreach ($interfaces as $ikey=>$ivalue) { unset($interfaces[$ikey]['port_id']); }
+ 	} // end loop all bridges
 
- 	// add IP and bridge-name to devices
+ 	// 8 add IP and bridge-name to devices
  	$bridge_names = array();
  	foreach ($devices as $dkey=>$dvalue) {
  		foreach ($br0_ips as $key=>$value) {
@@ -199,18 +222,18 @@ if(isset($get)) {
 
 	// find discover_id for additional information
 	foreach ($devices as $dkey=>$dvalue) {
-		foreach ($discover[devices] as $key=>$value) {
-			if (strtolower($value['hwaddr'])==strtolower($dkey)) {
-				$devices[$dkey]['discover_id']=$key;
-				break;
-			}
-			foreach ($value['addresses'] as $akey=>$avalue) {
-				if (strtolower($avalue['hwaddr'])==strtolower($dkey)) {
-					$devices[$dkey]['discover_id']=$key;
-					break;
-				}
-			}
-		}
+	foreach ($discover[devices] as $key=>$value) {
+	if (strtolower($value['hwaddr'])==strtolower($dkey)) {
+	$devices[$dkey]['discover_id']=$key;
+	break;
+	}
+	foreach ($value['addresses'] as $akey=>$avalue) {
+	if (strtolower($avalue['hwaddr'])==strtolower($dkey)) {
+	$devices[$dkey]['discover_id']=$key;
+	break;
+	}
+	}
+	}
 	}
 	
 
@@ -251,12 +274,19 @@ if(isset($get)) {
 <!-- Tab panes -->
 				<div class="tab-content"> 
 					<div role="tabpanel" class="tab-pane active" id="table">
-<?php
- echo $APP["ip"];
- echo " - ";
- echo $APP["hostname"];
-?><br>
-  <table class="table table-bordered"><tbody>
+
+<style>
+table{
+border-spacing: 16px 4px;
+}
+td {
+ padding-left:10px; padding-right:10px;
+ border: 1px solid black;
+}
+</style>
+<h3><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></h3>
+<br>
+  <table border=1>
  <?php
  	echo "<tr valign=top><td><b>Ports</b></td>";           foreach ($interfaces as $key=>$value) { echo "<td>".$key."</td>"; } echo "</tr>";
 	echo "<tr valign=top><td><b>Description</b></td>";     foreach ($interfaces as $key=>$value) { echo "<td>".$interfaces[$key]['desc']."</td>"; } echo "</tr>";
@@ -297,7 +327,10 @@ if(isset($get)) {
 	} echo "</tr>";
 
  	foreach ($bridge_names as $bridge) {
- 		echo "<tr valign=top><td><b>Devices</b> ".$bridge."</td>";
+ 		echo "<tr valign=top><td><b>Devices</b> ".$bridge."<br>";
+ 		echo $bridges[$bridge]['desc']."<br>";
+ 		echo $bridges[$bridge]['own_ip']."<br>";
+ 		echo "</td>";
 		foreach ($interfaces as $key=>$value) {
  			echo "<td>";
 			foreach ($interfaces[$key]['devices'] as $d) {
@@ -353,8 +386,9 @@ if(isset($get)) {
 		echo "</tr>";
 	}
 																										
- 	echo "</tbody></table>";
+ 	echo "</table>";
  	//echo "\n<pre>";
+ 	//print_r($bridges);
  	//print_r($vlans);
  	//print_r($interfaces);
  	//print_r($bridge_names);
@@ -362,7 +396,7 @@ if(isset($get)) {
  	//print_r($devices);
 	//print_r($eth_speeds);
 	//print_r($discover);
-	//echo "</pre>";
+	echo "</pre>";
 	
 	?>
 					</div>
@@ -461,16 +495,17 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 				  <div role="tabpanel" class="tab-pane" id="main">
 						<h1 align="center">Willkommen auf <?php echo $APP["hostname"] . '<br>' . $APP["ip"]; ?></h1>
 						<b>WAS?</b><br>
-						FunkFeuer ist ein freies, experimentelles Netzwerk in Wien, Graz, der Weststeiermark, in Teilen des Weinviertels (NÖ) und in Bad Ischl. Es wird aufgebaut und betrieben von computerbegeisterten Menschen. Das Projekt verfolgt keine kommerziellen Interessen.<br><br>
+						FunkFeuer ist ein freies, experimentelles Netzwerk in Wien, Graz, der Weststeiermark, in Teilen des Weinviertels (NÃ–) und in Bad Ischl. Es wird aufgebaut und betrieben von computerbegeisterten Menschen. Das Projekt verfolgt keine kommerziellen Interessen.<br><br>
 						<b>FREI?</b><br>
-						FunkFeuer ist offen für jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu überbrücken und so Infrastruktur und Wissen zur Verfügung zu stellen. Teilnahme Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon überall (ungefähr) empfangen kann (bitte beachte, dass manchmal Häuser oder ähnliches im Weg sind, dann geht's nur über Umwege).
+						FunkFeuer ist offen fÃ¼r jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu Ã¼berbrÃ¼cken und so Infrastruktur und Wissen zur VerfÃ¼gung zu stellen. Teilnahme Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon Ã¼berall (ungefÃ¤hr) empfangen kann (bitte beachte, dass manchmal HÃ¤user oder Ã¤hnliches im Weg sind, dann geht's nur Ã¼ber Umwege).
 					</div>
 					<div role="tabpanel" class="tab-pane active" id="status">
+						<h3><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></h3>
 						<dl class="dl-horizontal">
 						  <dt>System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
 						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["host"].":".$APP["v4defaultrouteviaport"]."\"/>" . $APP["v4defaultrouteviaport"] . "</a> | <a href=\"http://".$APP["v4defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v4defaultrouteviaip"]."</a><br>"; ?></dd>
 						  <dt>Devices vlan 1100</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
-						  <dt>IPv4 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v4defaultrouteviaip"],"<mark title='Default-Route'><b>".$APP["v4defaultrouteviaip"]."</b></mark>",file_get_contents("http://127.0.0.1:2006/links"))); ?></pre></dd>
+						  <dt>IPv4 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v4defaultrouteviaip"],"<mark><b>".$APP["v4defaultrouteviaip"]."</b></mark>",file_get_contents("http://127.0.0.1:2006/links"))); ?></pre></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
 						  <dt>IPv6 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["host"].":".$APP["v6defaultrouteviaport"]."\"/>" . $APP["v6defaultrouteviaport"] . "</a> | <a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a><br>"; ?></dd>

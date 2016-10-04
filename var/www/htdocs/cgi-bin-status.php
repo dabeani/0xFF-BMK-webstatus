@@ -129,9 +129,9 @@ if(isset($get)) {
 			unset($v);
 			continue;
 		}
-		$interfaces[$int[0]]['desc'] = trim($int[1]);
+		$interfaces[$int[0]]['desc'] = trim($int[3]);
 		$interfaces[$int[0]]['state'] = $int[2];
-		$interfaces[$int[0]]['own_ip'] = $int[3];
+		$interfaces[$int[0]]['own_ip'] = $int[1];
 	}
 	
 	foreach ($interfaces as $key=>$value) {

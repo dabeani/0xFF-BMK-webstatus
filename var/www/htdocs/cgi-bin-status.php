@@ -78,31 +78,31 @@ if(isset($get)) {
 	$eth_poe = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet poe | grep -E \"^eth\" | awk '{print $1\",\"$2\",\"$3\",\"$4}'"))); 
 	
 	// load eth assignments to bridges
-$br_eth = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge | grep -v interfaces | awk '{print $1\",\"$4}'"))); 
-
-$eth_in_bridge=array();
-foreach ($br_eth as $key=>$value) {
-$int = explode(",", trim($value));
-if (strlen($int[1])>0) {
-$current_bridge=$int[0];
-$current_if = $int[1];
-} else {
-$current_if = $int[0];
-}
-unset($int);
-// example     eth2.1001   = br1
-// example     eth2        = br0
-$eth_in_bridge[$current_if]=$current_bridge;
-}
-unset($current_bridge);
-unset($current_if);
+	$br_eth = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge | grep -v interfaces | awk '{print $1\",\"$4}'"))); 
+	
+	$eth_in_bridge=array();
+	foreach ($br_eth as $key=>$value) {
+		$int = explode(",", trim($value));
+		if (strlen($int[1])>0) {
+			$current_bridge=$int[0];
+			$current_if = $int[1];
+		} else {
+			$current_if = $int[0];
+		}
+		unset($int);
+		// example     eth2.1001   = br1
+		// example     eth2        = br0
+	$eth_in_bridge[$current_if]=$current_bridge;
+	}
+	unset($current_bridge);
+	unset($current_if);
 	
 	function build_sorter($key) {
 		return function ($a, $b) use ($key) {
 			return strnatcmp($a[$key], $b[$key]);
  		};
 	}
-
+	
 	// pysical ports and their mac address
 	$interfaces=array();
 	$vlan_list=array();

@@ -49,7 +49,8 @@ if(isset($get)) {
 
 	// show interfaces | grep -E "^eth" | awk '{print $1","$4;}'
 	//$eth_desc = explode("\n",trim(shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E "^eth|^br" | awk \'{printf $1",";{for(i=4;i<=NF;++i) printf($i)} print ","$3","$2;}\'')));
-	$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; printf($4); print \",\"$3\",\"$2;}'")));
+	//$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; printf($4); print \",\"$3\",\"$2;}'")));
+	$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{print $1\",\"$2\",\"$3\",\"$4;}'")));
 	// $eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; {for(i=4;i<=NF;++i) printf($i)} print \",\"$3\",\"$2;}'")));
 	//$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{print $1\",\"$4\",\"$3\",\"$2;}'")));
 	// achtung: blanks im interface-namen irgendwie beachten!
@@ -114,9 +115,9 @@ if(isset($get)) {
 		if (substr($int[0],0,2)=="br") { 
 			if (!isset($v[1])) {
 				$bridges[$int[0]]['name']=$int[0];
-				$bridges[$int[0]]['desc'] = trim($int[1]);
+				$bridges[$int[0]]['desc'] = trim($int[3]);
 				$bridges[$int[0]]['state'] = $int[2];
-				$bridges[$int[0]]['own_ip'] = $int[3];
+				$bridges[$int[0]]['own_ip'] = $int[1];
 			} else {
 				unset($v);
 			}
@@ -392,7 +393,7 @@ td {
 		}
 		echo "</tr>";
 	}
-																										
+	
  	echo "</table>";
  	//echo "\n<pre>";
  	//print_r($bridges);

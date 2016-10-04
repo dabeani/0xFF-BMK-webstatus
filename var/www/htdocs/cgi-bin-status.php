@@ -1,4 +1,4 @@
-<?php // v2.4
+<?php // v2.5
 // issues: blanks in interface-desc eth_desc
 
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
@@ -76,7 +76,27 @@ if(isset($get)) {
 	
 	// load POE configuration
 	$eth_poe = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet poe | grep -E \"^eth\" | awk '{print $1\",\"$2\",\"$3\",\"$4}'"))); 
+	
+	// load eth assignments to bridges
+$br_eth = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge | grep -v interfaces | awk '{print $1\",\"$4}'"))); 
 
+$eth_in_bridge=array();
+foreach ($br_eth as $key=>$value) {
+$int = explode(",", trim($value));
+if (strlen($int[1])>0) {
+$current_bridge=$int[0];
+$current_if = $int[1];
+} else {
+$current_if = $int[0];
+}
+unset($int);
+// example     eth2.1001   = br1
+// example     eth2        = br0
+$eth_in_bridge[$current_if]=$current_bridge;
+}
+unset($current_bridge);
+unset($current_if);
+	
 	function build_sorter($key) {
 		return function ($a, $b) use ($key) {
 			return strnatcmp($a[$key], $b[$key]);
@@ -342,6 +362,10 @@ td {
  		echo "</td>";
 		foreach ($interfaces as $key=>$value) {
  			echo "<td>";
+			if (($eth_in_bridge[$key]!=$bridge)&&(isset($bridges[$bridge]['name']))) {
+				// only native bridges
+				echo $key." not member<br>"; 
+			}
 			foreach ($interfaces[$key]['devices'] as $d) {
  				foreach ($devices[$d]['ips'][$bridge] as $ip) {
  					if (substr($ip,0,8)=="192.168.") {
@@ -371,6 +395,9 @@ td {
 		foreach ($interfaces as $port=>$value) { // alle eth-ports durchgehen
 			echo "<td>";
 			if (isset($vlans[$port][$vlan_id]['desc'])) { // vlan existiert an diesem ETH-port
+				if (isset($eth_in_bridge[$port.".".$vlan_id])) {
+					echo "part of ".$eth_in_bridge[$port.".".$vlan_id]."<br>"; 
+				}
 				echo "<b>".$vlans[$port][$vlan_id]['desc']."</b><br>";
 				if (isset($vlans[$port][$vlan_id]['own_ip'])) { 
 					echo "<b>".$vlans[$port][$vlan_id]['own_ip']."</b><br>"; 
@@ -383,14 +410,14 @@ td {
 						} 
 						echo "=".$ip." <br>";
 					}
-                                        if ($devices[$d]['discover_id']) {
-                                                $tmp=$discover['devices'][$devices[$d]['discover_id']];
-                                                if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
-                                                if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }
-                                                if (isset($tmp['fwversion'])) { echo "::".parse_firmware($tmp['fwversion'])."<br>"; }
-                                                //if (isset($tmp['essid'])) { echo "@".$tmp['essid']."<br>"; }
-                                                unset($tmp);
-                                        }
+					if ($devices[$d]['discover_id']) {
+							$tmp=$discover['devices'][$devices[$d]['discover_id']];
+							if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
+							if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }
+							if (isset($tmp['fwversion'])) { echo "::".parse_firmware($tmp['fwversion'])."<br>"; }
+							//if (isset($tmp['essid'])) { echo "@".$tmp['essid']."<br>"; }
+							unset($tmp);
+					}
 				}
 			}
 			echo "&nbsp;</td>";

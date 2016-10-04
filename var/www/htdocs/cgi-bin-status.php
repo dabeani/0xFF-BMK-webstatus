@@ -125,7 +125,8 @@ if(isset($get)) {
 		}		
 		if ($v[1]) {
 			// this is a vlan
-			$vlans[$v[0]][$v[1]]['name']=trim($int[3]);
+			$vlans[$v[0]][$v[1]]['desc'] = trim($int[3]);
+			$vlans[$v[0]][$v[1]]['own_ip']=$int[1];
 			unset($v);
 			continue;
 		}
@@ -208,7 +209,7 @@ if(isset($get)) {
  		foreach ($br0_ips as $key=>$value) {
  			$ip = explode(",", trim($value));
  			$v= explode(".", $ip[2]); // 0=port/bridge, 1=vlan
-			if (isset($vlans[$v[0]][$v[1]]['name'])) {	
+			if (isset($vlans[$v[0]][$v[1]]['desc'])) {	
 				// this is a vlan and not a bridge
 				$devices[$ip[0]]['mac']=$ip[0];
 				if (!in_array($ip[1], $devices[$ip[0]]['ips'][$ip[2]])) {$devices[$ip[0]]['ips'][$ip[2]][]=$ip[1];}
@@ -369,8 +370,11 @@ td {
 		echo "<tr valign=top><td>VLAN ".$vlan_id."</td>";
 		foreach ($interfaces as $port=>$value) { // alle eth-ports durchgehen
 			echo "<td>";
-			if (isset($vlans[$port][$vlan_id]['name'])) { // vlan existiert an diesem ETH-port
-				echo "<b>".$vlans[$port][$vlan_id]['name']."</b><br>";
+			if (isset($vlans[$port][$vlan_id]['desc'])) { // vlan existiert an diesem ETH-port
+				echo "<b>".$vlans[$port][$vlan_id]['desc']."</b><br>";
+				if (isset($vlans[$port][$vlan_id]['own_ip'])) { 
+					echo "<b>".$vlans[$port][$vlan_id]['own_ip']."</b><br>"; 
+				}
 				foreach ($vlans[$port][$vlan_id]['devices'] as $d) {
 					echo $d.":<br>";
 					foreach ($devices[$d]['ips'][$port.".".$vlan_id] as $ip) {

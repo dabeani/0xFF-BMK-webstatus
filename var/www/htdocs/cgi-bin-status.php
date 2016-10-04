@@ -125,7 +125,7 @@ if(isset($get)) {
 		}		
 		if ($v[1]) {
 			// this is a vlan
-			$vlans[$v[0]][$v[1]]['name']=$int[1];
+			$vlans[$v[0]][$v[1]]['name']=trim($int[3]);
 			unset($v);
 			continue;
 		}

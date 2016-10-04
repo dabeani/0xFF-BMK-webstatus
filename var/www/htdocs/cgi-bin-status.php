@@ -4,6 +4,9 @@
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
 
+// define all possible management interfaces for status-output
+$interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
+
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 
@@ -22,11 +25,15 @@ function parse_firmware($in) {
 /*
 * Diverse Daten auslesen um ScanTools zu supporten! (- andernfalls Statusseite ausgeben...)
 */
+
 if(isset($get)) {
  if($get == "status") { 
-  echo shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100\" -j");
+	echo shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j");
+ } elseif($get == "devices") {
+	//echo shell_exec("/usr/sbin/ubnt-discover -d10 -ibr0.1100");
+	echo shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\"");
  } elseif($get == "phpinfo") {
-  phpinfo();
+	phpinfo();
  } elseif($get == "table") {
 	$time = microtime();
 	$time = explode(' ', $time);
@@ -56,14 +63,14 @@ if(isset($get)) {
 	// show arp | awk '{if ($2!~/incomplete/) {print $3","$1","$5}}'
 	$br0_ips =    explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show arp | awk '{if ($2!~/incomplete/) {print $3\",\"$1\",\"$5}}'"))); 
 	// skip first line?
-												
+	
 	//show interfaces ethernet physical
 	// does not seem to work... 
 	// works: $eth_speeds = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet poe"))); 
 	$eth_speeds = array(); //explode("\n",trim(shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper physical | show interfaces ethernet'))); 
 	//echo "0!\n";
 	//print_r($eth_speeds);
-														
+	
 	// echo shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet physical'); 
 	
 	// load POE configuration
@@ -426,12 +433,8 @@ $total_time = round(($finish - $start), 4);
 </html>
 	<?php
 	exit;
-																																																																																																																																																																																														  
- } elseif($get == "devices") {
-  //echo shell_exec("/usr/sbin/ubnt-discover -d10 -ibr0.1100");
-  echo shell_exec("/usr/sbin/ubnt-discover -d150 -i \"br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100\"");
- }
-} else {
+ } // end get=table
+} else { // standard-action without "get"
 
 $time = microtime();
 $time = explode(' ', $time);
@@ -445,7 +448,7 @@ $APP["hostname"] = gethostbyaddr($APP["ip"]);
 $APP["host"] = substr(shell_exec("/usr/bin/host ".$APP["ip"]." | cut -d ' ' -f 5"),0,-2);
 
 // $APP["vlanips"] = explode("\n",shell_exec("cat /config/config.boot | grep \"description\" | grep -v eth0 | awk {'print $2'} | cut -d '-' -f 1 | awk '/eth/ {sub(/^eth/,\"\",$1);print $1}'"));
-$APP["devices"] = explode("\n",shell_exec("/usr/sbin/ubnt-discover -d150 -i \"br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100\""));
+$APP["devices"] = explode("\n",shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\""));
 $APP["devices"][0]=str_replace("Local","Local  ",$APP["devices"][0]);
 // Deaktiviert... $APP["antennavlans"] = "";
 $APP["v4defaultrouteviaport"] = trim(shell_exec("ip r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
@@ -545,7 +548,5 @@ $total_time = round(($finish - $start), 4);
 </html>
 <?php
 unset($APP);
-//phpinfo();
 }
 ?>
-

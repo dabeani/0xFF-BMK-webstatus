@@ -299,23 +299,12 @@ if(isset($get)) {
 					<li role="presentation" class="active"><a href="#table">Port-Table</a></li>
 					<li role="presentation"><a href="cgi-bin-status.php#contact">Kontakt</a></li>
 				</ul>
-
+				<p class="navbar-text navbar-right"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></p>
 <!-- Tab panes -->
 				<div class="tab-content"> 
 					<div role="tabpanel" class="tab-pane active" id="table">
-
-<style>
-table{
-border-spacing: 16px 4px;
-}
-td {
- padding-left:10px; padding-right:10px;
- border: 1px solid black;
-}
-</style>
-<h3><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></h3>
 <br>
-  <table border=1>
+  <table class="table table-hover"><tbody>
  <?php
  	echo "<tr valign=top><td><b>Ports</b></td>";           foreach ($interfaces as $key=>$value) { echo "<td>".$key."</td>"; } echo "</tr>";
 	echo "<tr valign=top><td><b>Description</b></td>";     foreach ($interfaces as $key=>$value) { echo "<td>".$interfaces[$key]['desc']."</td>"; } echo "</tr>";
@@ -425,7 +414,7 @@ td {
 		echo "</tr>";
 	}
 	
- 	echo "</table>";
+ 	echo "</tbody></table>";
  	//echo "\n<pre>";
  	//print_r($bridges);
  	//print_r($vlans);

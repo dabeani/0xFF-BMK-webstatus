@@ -251,18 +251,18 @@ if(isset($get)) {
 
 	// find discover_id for additional information
 	foreach ($devices as $dkey=>$dvalue) {
-	foreach ($discover[devices] as $key=>$value) {
-	if (strtolower($value['hwaddr'])==strtolower($dkey)) {
-	$devices[$dkey]['discover_id']=$key;
-	break;
-	}
-	foreach ($value['addresses'] as $akey=>$avalue) {
-	if (strtolower($avalue['hwaddr'])==strtolower($dkey)) {
-	$devices[$dkey]['discover_id']=$key;
-	break;
-	}
-	}
-	}
+		foreach ($discover[devices] as $key=>$value) {
+			if (strtolower($value['hwaddr'])==strtolower($dkey)) {
+				$devices[$dkey]['discover_id']=$key;
+				break;
+			}
+			foreach ($value['addresses'] as $akey=>$avalue) {
+				if (strtolower($avalue['hwaddr'])==strtolower($dkey)) {
+					$devices[$dkey]['discover_id']=$key;
+					break;
+				}
+			}
+		}
 	}
 	
 
@@ -298,13 +298,13 @@ if(isset($get)) {
 					<li role="presentation"><a href="cgi-bin-status.php#status">Status</a></li>
 					<li role="presentation" class="active"><a href="#table">Port-Table</a></li>
 					<li role="presentation"><a href="cgi-bin-status.php#contact">Kontakt</a></li>
+					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
 				</ul>
-				<p class="navbar-text navbar-right"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></p>
 <!-- Tab panes -->
 				<div class="tab-content"> 
 					<div role="tabpanel" class="tab-pane active" id="table">
 <br>
-  <table class="table table-hover"><tbody>
+  <table class="table table-hover table-bordered"><tbody>
  <?php
  	echo "<tr valign=top><td><b>Ports</b></td>";           foreach ($interfaces as $key=>$value) { echo "<td>".$key."</td>"; } echo "</tr>";
 	echo "<tr valign=top><td><b>Description</b></td>";     foreach ($interfaces as $key=>$value) { echo "<td>".$interfaces[$key]['desc']."</td>"; } echo "</tr>";
@@ -512,6 +512,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 					<li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab">Status</a></li>
 					<li role="presentation"><a href="cgi-bin-status.php?get=table">Port-Table</a></li>
 					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab">Kontakt</a></li>
+					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
 				</ul>
 
 <!-- Tab panes -->
@@ -519,12 +520,12 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 				  <div role="tabpanel" class="tab-pane" id="main">
 						<h1 align="center">Willkommen auf <?php echo $APP["hostname"] . '<br>' . $APP["ip"]; ?></h1>
 						<b>WAS?</b><br>
-						FunkFeuer ist ein freies, experimentelles Netzwerk in Wien, Graz, der Weststeiermark, in Teilen des Weinviertels (NÃ–) und in Bad Ischl. Es wird aufgebaut und betrieben von computerbegeisterten Menschen. Das Projekt verfolgt keine kommerziellen Interessen.<br><br>
+						FunkFeuer ist ein freies, experimentelles Netzwerk in Wien, Graz, der Weststeiermark, in Teilen des Weinviertels (N&Ouml;) und in Bad Ischl. Es wird aufgebaut und betrieben von computerbegeisterten Menschen. Das Projekt verfolgt keine kommerziellen Interessen.<br><br>
 						<b>FREI?</b><br>
-						FunkFeuer ist offen fÃ¼r jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu Ã¼berbrÃ¼cken und so Infrastruktur und Wissen zur VerfÃ¼gung zu stellen. Teilnahme Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon Ã¼berall (ungefÃ¤hr) empfangen kann (bitte beachte, dass manchmal HÃ¤user oder Ã¤hnliches im Weg sind, dann geht's nur Ã¼ber Umwege).
+						FunkFeuer ist offen f&uuml;r jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu &Uuml;berbr&uuml;cken und so Infrastruktur und Wissen zur Verf&uuml;gung zu stellen. Teilnahme Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon &Uuml;berall (ungef&auml;r) empfangen kann (bitte beachte, dass manchmal H&auml;user oder &Auml;hnliches im Weg sind, dann geht's nur &uuml;ber Umwege).
 					</div>
 					<div role="tabpanel" class="tab-pane active" id="status">
-						<h3><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></h3>
+					
 						<dl class="dl-horizontal">
 						  <dt>System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
 						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["host"].":".$APP["v4defaultrouteviaport"]."\"/>" . $APP["v4defaultrouteviaport"] . "</a> | <a href=\"http://".$APP["v4defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v4defaultrouteviaip"]."</a><br>"; ?></dd>

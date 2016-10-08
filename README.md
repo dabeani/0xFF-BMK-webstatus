@@ -13,3 +13,4 @@ Possible GET-Params
 - get=phpinfo
 - get=devices same like status, but as plain text
 
+Build link: http://193.238.158.8/0xFF-BMK-webstatus/builds/

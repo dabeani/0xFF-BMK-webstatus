@@ -3,8 +3,8 @@
 # Exit on error
 set -e
 
-if [ -f "/var/www/htdocs/cgi-bin-status.html" ]; then
-        rm /var/www/htdocs/cgi-bin-status.html
+if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
+        rm /var/www/htdocs/cgi-bin-status.php
 fi
 
 if [ -f "/var/www/htdocs/namevlans.php" ]; then

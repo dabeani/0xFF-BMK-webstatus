@@ -18,9 +18,12 @@ parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 function getRoutes() {
     $routes_raw = explode("\n",trim(shell_exec("/sbin/ip route | awk '{print $3,$1}'")));
     foreach ($routes_raw as $getroute) {
+        if(strpos($getroute,'default') !== false) {
+            $APP["default_route"] = trim(substr($getroute,0,strpos($getroute," ")));
+        }
         $route = explode(" ",$getroute);
         if(preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $route['0'], $ip_match)) {
-            $APP["routes"][$route['0']][] = $route['1'];
+            $APP["routes"][$route['0']][] = trim($route['1']);
             $APP["routes_".$route['0']] = count($APP["routes"][$route['0']]);
         }
     }
@@ -31,12 +34,20 @@ function getRoutes() {
         unset($olsr_links_raw['1']);
     }
     
-    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td></tr></thead>\n";
+    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>route entries</b></td></tr></thead>\n";
     echo "<tbody>\n";
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
         preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
-        echo "<tr><td>".$link['1']."</td><td>".$link['2']."</td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td>".$APP["routes_".$link['2']]." route/s</td></tr>";
+        $tmp_output_route_text = "route";
+        $tmp_defaultroute = "";
+        if($APP["routes_".$link['2']] > 1) {
+            $tmp_output_route_text = "routes";
+        }
+        if($link['2'] == $APP["default_route"]) {
+           $tmp_defaultroute = " bgcolor=FFD700";
+        }
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td>".gethostbyaddr($link['2'])."</td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td>".$APP["routes_".$link['2']]." ".$tmp_output_route_text."</td></tr>";
     }
     echo "</tbody></table>\n";
     unset($routes_raw);
@@ -563,7 +574,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						  <dt>System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
 						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["host"].":".$APP["v4defaultrouteviaport"]."\"/>" . $APP["v4defaultrouteviaport"] . "</a> | <a href=\"http://".$APP["v4defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v4defaultrouteviaip"]."</a><br>"; ?></dd>
 						  <dt>Devices vlan 1100</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
-						  <dt>IPv4 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v4defaultrouteviaip"],"<mark><b>".$APP["v4defaultrouteviaip"]."</b></mark>",getRoutes())); ?></pre></dd>
+						  <dt>IPv4 OLSR-Links</dt><dd><?php echo getRoutes(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
 						  <dt>IPv6 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["host"].":".$APP["v6defaultrouteviaport"]."\"/>" . $APP["v6defaultrouteviaport"] . "</a> | <a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a><br>"; ?></dd>

@@ -45,12 +45,12 @@ if(isset($get)) {
 
 	$discover = json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -j"), TRUE);
  	// show interfaces ethernet detail | grep -E "^eth.|link/ether" | awk '{if ($1~/^eth./) {gsub(":","",$1); print $1;} else {print ",\""$2"\"";}}' | sed 'N;s/\n//'
-	$eth_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet detail | grep -E \"^eth.|link/ether\" | awk '{if ($1~/^eth./) { print $1\",\";} else {print $2;}}' | sed 'N;s/\\n//'")));
+	$eth_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-show-interfaces.pl --intf-type=ethernet --action=show | grep -E \"^eth.|link/ether\" | awk '{if ($1~/^eth./) { print $1\",\";} else {print $2;}}' | sed 'N;s/\\n//'")));
 
 	// show interfaces | grep -E "^eth" | awk '{print $1","$4;}'
 	//$eth_desc = explode("\n",trim(shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E "^eth|^br" | awk \'{printf $1",";{for(i=4;i<=NF;++i) printf($i)} print ","$3","$2;}\'')));
 	//$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; printf($4); print \",\"$3\",\"$2;}'")));
-	$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{print $1\",\"$2\",\"$3\",\"$4;}'")));
+	$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-show-interfaces.pl --action=show-brief | grep -E \"^eth|^br\" | awk '{print $1\",\"$2\",\"$3\",\"$4;}'")));
 	// $eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; {for(i=4;i<=NF;++i) printf($i)} print \",\"$3\",\"$2;}'")));
 	//$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{print $1\",\"$4\",\"$3\",\"$2;}'")));
 	// achtung: blanks im interface-namen irgendwie beachten!
@@ -62,7 +62,7 @@ if(isset($get)) {
 	// achtung: auch br1 koennte interessant sein --> hat eigene mac/ids
 									
 	// show arp | awk '{if ($2!~/incomplete/) {print $3","$1","$5}}'
-	$br0_ips =    explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show arp | awk '{if ($2!~/incomplete/) {print $3\",\"$1\",\"$5}}'"))); 
+	$br0_ips =    explode("\n",trim(shell_exec("/usr/sbin/arp -e -n | awk '{if ($2!~/incomplete/) {print $3\",\"$1\",\"$5}}'")));
 	// skip first line?
 	
 	//show interfaces ethernet physical
@@ -75,10 +75,10 @@ if(isset($get)) {
 	// echo shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet physical'); 
 	
 	// load POE configuration
-	$eth_poe = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet poe | grep -E \"^eth\" | awk '{print $1\",\"$2\",\"$3\",\"$4}'"))); 
+	$eth_poe = explode("\n",trim(shell_exec("/usr/sbin/ubnt-ifctl show-poe-status | grep -E \"^eth\" | awk '{print $1\",\"$2\",\"$3\",\"$4}'")));
 	
 	// load eth assignments to bridges
-	$br_eth = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge | grep -v interfaces | awk '{print $1\",\"$4}'"))); 
+	$br_eth = explode("\n",trim(shell_exec("/usr/sbin/brctl show | grep -v interfaces | awk '{print $1\",\"$4}'")));
 	
 	$eth_in_bridge=array();
 	foreach ($br_eth as $key=>$value) {
@@ -192,7 +192,7 @@ if(isset($get)) {
 	// NEW 5 loop all bridges br0,br1
  	$devices = array();
 	foreach ($bridges as $br=>$brdata) {
-	$br0_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge ".$br." macs | awk '{print $3\",\"$2\",\"$1\",\"$4}'"))); 
+	$br0_macs = explode("\n",trim(shell_exec("/usr/sbin/brctl showmacs ".$br." | awk '{print $3\",\"$2\",\"$1\",\"$4}'")));
 
 	// 6 add correct port_id for ethX from mac table
  	foreach ($br0_macs as $key=>$value) {

@@ -156,7 +156,7 @@ flush();
 					<li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab">Status</a></li>
                     <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab">Port-Table</a></li>
 					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab">Kontakt</a></li>
-					<li role="presentation"><a href="#"><?php echo  $APP["v4defaultrouteviaip"] ." - ".$APP["hostname"]; ?></a></li>
+					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
 				</ul>
 
 <?

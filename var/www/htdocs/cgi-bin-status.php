@@ -926,7 +926,7 @@ foreach ($devices as $dkey=>$dvalue) {
     //print_r($devices);
     //print_r($eth_speeds);
     //print_r($discover);
-    echo "</pre>";
+    echo "</pre>";?>
                     </div>
 					<div role="tabpanel" class="tab-pane" id="contact">
 						in Arbeit :D...

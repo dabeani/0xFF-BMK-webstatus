@@ -6,13 +6,13 @@ set -e
 WEBSERVER_CHANGES=0
 
 if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then
-	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old
+	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old >/dev/null
 fi
 
 if [ $(cat /var/www/php/app/views/login.php | grep 'cgi-bin-status.php' | wc -l) -eq 0 ]
 then
 	LINE=$(grep -n "End: Section Container" /var/www/php/app/views/login.php | cut -f1 -d:)
-	sed "$LINE i <h1 class=\"section-title\"><center><a href=\"/cgi-bin-status.php\"><button type=\"button\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary\" role=\"button\" aria-disabled=\"false\"><span class=\"ui-button-icon-primary ui-icon ui-icon-tag\"></span><span class=\"ui-button-text\">OLSRd / Node Status</span></button></a></CENTER></h1>" /var/www/php/app/views/login.php > /var/www/php/app/views/login.new
+	sed -i "$LINE i <h1 class=\"section-title\"><center><a href=\"/cgi-bin-status.php\"><button type=\"button\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary\" role=\"button\" aria-disabled=\"false\"><span class=\"ui-button-icon-primary ui-icon ui-icon-tag\"></span><span class=\"ui-button-text\">OLSRd / Node Status</span></button></a></CENTER></h1>" /var/www/php/app/views/login.php >/dev/null
 	mv /var/www/php/app/views/login.php /var/www/php/app/views/login.old
 	mv /var/www/php/app/views/login.new /var/www/php/app/views/login.php
 fi

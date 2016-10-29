@@ -387,7 +387,7 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 						        if (isset($vlans[$v[0]][$v[1]]['desc'])) {
 						            // this is a vlan and not a bridge
 						            $devices[$ip[0]]['mac']=$ip[0];
-						            if (!in_array($ip[1], $devices[$ip[0]]['ips'][$ip[2]])) {$devices[$ip[0]]['ips'][$ip[2]][]=$ip[1];}
+						            if ((isset($devices[$ip[0]]['ips'][$ip[2]]))&&(!in_array($ip[1], $devices[$ip[0]]['ips'][$ip[2]]))) {$devices[$ip[0]]['ips'][$ip[2]][]=$ip[1];}
 						            $devices[$ip[0]]['vlan']=$v[1];
 						            if (!in_array($ip[0], $vlans[$v[0]][$v[1]]['devices'])) {$vlans[$v[0]][$v[1]]['devices'][]=$ip[0];}
 						            unset($v);
@@ -407,7 +407,7 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 					
 					// find discover_id for additional information
 					foreach ($devices as $dkey=>$dvalue) {
-					    foreach ($discover[devices] as $key=>$value) {
+					    foreach ($discover['devices'] as $key=>$value) {
 					        if (strtolower($value['hwaddr'])==strtolower($dkey)) {
 					            $devices[$dkey]['discover_id']=$key;
 					            break;
@@ -440,7 +440,7 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 					    
 					    echo "<tr valign=top><td><b>PoE setting</b></td>";     foreach ($interfaces as $key=>$value) {
 					        echo "<td>";
-					        if ($interfaces[$key]['vif']) {
+					        if (isset($interfaces[$key]['vif'])) {
 					            echo "vif";
 					        } else {
 					            echo $interfaces[$key]['poe'];
@@ -462,17 +462,17 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 					    
 					    foreach ($bridge_names as $bridge) {
 					        echo "<tr valign=top><td><b>Devices</b> ".$bridge."<br>";
-					        echo $bridges[$bridge]['desc']."<br>";
-					        echo $bridges[$bridge]['own_ip']."<br>";
+					        if (isset($bridges[$bridge]['desc'])) { echo $bridges[$bridge]['desc']."<br>"; }
+					        if (isset($bridges[$bridge]['own_ip'])) { echo $bridges[$bridge]['own_ip']."<br>"; }
 					        echo "</td>";
 					        foreach ($interfaces as $key=>$value) {
 					            echo "<td>";
-					            if (($eth_in_bridge[$key]!=$bridge)&&(isset($bridges[$bridge]['name']))) {
+					            if ((isset($eth_in_bridge[$key]))&&($eth_in_bridge[$key]!=$bridge)&&(isset($bridges[$bridge]['name']))) {
 					                // only native bridges
 					                echo $key." not member<br>";
 					            }
 					            foreach ($interfaces[$key]['devices'] as $d) {
-					                foreach ($devices[$d]['ips'][$bridge] as $ip) {
+					                if (isset($devices[$d]['ips'][$bridge])) { foreach ($devices[$d]['ips'][$bridge] as $ip) {
 					                    if (substr($ip,0,8)=="192.168.") {
 					                        if ($skip_this==1) { continue; }
 					                        echo '192.168.*.*';
@@ -480,7 +480,7 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 					                        continue;
 					                    }
 					                    echo $ip." (".$devices[$d]['age'].")<br>";
-					                    if ($devices[$d]['discover_id']) {
+					                    if (isset($devices[$d]['discover_id'])) {
 					                        $tmp=$discover['devices'][$devices[$d]['discover_id']];
 					                        if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
 					                        if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }
@@ -488,7 +488,7 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 					                        //if (isset($tmp['essid'])) { echo "@".$tmp['essid']."<br>"; }
 					                        unset($tmp);
 					                    }
-					                }
+					                }}
 					            }
 					            unset($skip_this);
 					            echo "</td>";
@@ -509,13 +509,13 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 					                }
 					                foreach ($vlans[$port][$vlan_id]['devices'] as $d) {
 					                    echo $d.":<br>";
-					                    foreach ($devices[$d]['ips'][$port.".".$vlan_id] as $ip) {
+					                    if (isset($devices[$d]['ips'][$port.".".$vlan_id])) { foreach ($devices[$d]['ips'][$port.".".$vlan_id] as $ip) {
 					                        if (substr($ip,0,8)=="192.168.") {
 					                            $ip='192.168.*.*';
 					                        }
 					                        echo "=".$ip." <br>";
-					                    }
-					                    if ($devices[$d]['discover_id']) {
+					                    }}
+					                    if (isset($devices[$d]['discover_id'])) {
 					                        $tmp=$discover['devices'][$devices[$d]['discover_id']];
 					                        if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
 					                        if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }

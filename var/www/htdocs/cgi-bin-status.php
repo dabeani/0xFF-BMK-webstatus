@@ -81,7 +81,8 @@ if(isset($get)) {
 	echo shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\"");
  } elseif($get == "phpinfo") {
 	phpinfo();
- } else { // standard-action without "get"
+ }
+} else { // standard-action without "get"
 
 $time = microtime();
 $time = explode(' ', $time);

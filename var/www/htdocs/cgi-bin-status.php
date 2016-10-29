@@ -808,6 +808,7 @@ foreach ($devices as $dkey=>$dvalue) {
 }?>
 <table class="table table-hover table-bordered"><tbody>
 <?php
+    if($ext == "table") {
     echo "<tr valign=top><td><b>Ports</b></td>";           foreach ($interfaces as $key=>$value) { echo "<td>".$key."</td>"; } echo "</tr>";
     echo "<tr valign=top><td><b>Description</b></td>";     foreach ($interfaces as $key=>$value) { echo "<td>".$interfaces[$key]['desc']."</td>"; } echo "</tr>";
     
@@ -926,7 +927,9 @@ foreach ($devices as $dkey=>$dvalue) {
     //print_r($devices);
     //print_r($eth_speeds);
     //print_r($discover);
-    echo "</pre>";?>
+    echo "</pre>";
+    }
+    ?>
                     </div>
 					<div role="tabpanel" class="tab-pane" id="contact">
 						in Arbeit :D...

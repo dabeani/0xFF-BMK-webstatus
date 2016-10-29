@@ -15,7 +15,7 @@ $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 
-function getRoutes() {
+function getOLSRLinks() {
     $routes_raw = explode("\n",trim(shell_exec("/sbin/ip route | awk '{print $3,$1}'")));
     foreach ($routes_raw as $getroute) {
         if(strpos($getroute,'default') !== false) {
@@ -45,12 +45,39 @@ function getRoutes() {
         if($APP["routes_".$link['2']] > 1) {
             $tmp_output_route_text = "routes";
         }
+        if(!isset($APP["routes_".$link['2']])) {
+            $tmp_output_route_text = "no routes";
+        }
         // if we know the default-route, set a colored background of that column
         if($link['2'] == $APP["default_route"]) {
            $tmp_defaultroute = " bgcolor=FFD700";
         }
         $neighbor = gethostbyaddr($link['2']); // do this request only one time...
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td>".$APP["routes_".$link['2']]." ".$tmp_output_route_text."</td></tr>";
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td><button type=\"button\" class=\"btn btn-primary btn-sm\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button> ".$tmp_output_route_text."</td></tr>";
+        ?>
+        <!-- Modal -->
+<div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel"><?= $APP["routes_".$link['2']];?> <?= $tmp_output_route_text; ?> from <b><?= $neighbor; ?></b></h4>
+      </div>
+      <div class="modal-body"><?
+        foreach ($APP["routes"][$link['2']] as $listroutes) {
+        	echo $listroutes."<br>";
+        }
+        ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+        <?
     }
     echo "</tbody></table>\n";
     unset($routes_raw);
@@ -183,7 +210,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						  <dt>System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
 						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["hostname"]."\">".$APP["hostname"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
 						  <dt>Devices vlan 1100</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
-						  <dt>IPv4 OLSR-Links</dt><dd><?php echo getRoutes(); ?></dd>
+						  <dt>IPv4 OLSR-Links</dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
 						  <dt>IPv6 Default-Route</dt><dd><?php echo "<a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>

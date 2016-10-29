@@ -135,7 +135,7 @@ if(strlen($APP["hostname"]) < 2) {
 					<li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab">Status</a></li>
                     <li role="presentation"><a href="cgi-bin-status.php?ext=table#table" aria-controls="table" role="tab" data-toggle="tab">Port-Table</a></li>
 					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab">Kontakt</a></li>
-					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
+					<li role="presentation"><a href="#"><?php echo  $APP["v4defaultrouteviaip"] ." - ".$APP["hostname"]; ?></a></li>
 				</ul>
 
 <?
@@ -160,7 +160,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 					
 						<dl class="dl-horizontal">
 						  <dt>System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
-						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["hostname"]."/cgi-bin-status.html\">".$APP["hostname"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
+						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["hostname"]."\">".$APP["hostname"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
 						  <dt>Devices vlan 1100</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
 						  <dt>IPv4 OLSR-Links</dt><dd><?php echo getRoutes(); ?></dd>
 <?php

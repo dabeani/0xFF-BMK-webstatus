@@ -7,8 +7,7 @@ Adds a Link to Login-Screen to show
 - json status API
 
 Possible GET-Params
-- default: show olsr-status, 1100 devices, traceroute
-- get=table: show port table, bridges, connected devices per interface
+- default: show olsr-status, 1100 devices, traceroute, port table
 - get=status --> json output with devices of vlan 1100
 - get=phpinfo
 - get=devices same like status, but as plain text

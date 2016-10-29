@@ -91,13 +91,13 @@ $start = $time;
 
 $APP = Array();
 
-$APP["ip"] = $_SERVER["SERVER_NAME"];
+$APP["ip"] = $_SERVER["SERVER_ADDR"]; // $_SERVER["SERVER_NAME"];
 $APP["hostname"] = gethostbyaddr($APP["ip"]);
     
     
 // if dns resolver is not working / too slow - get IP-Adress!
-if(strlen($APP["hostname"]) < 2) {
-    $APP["hostname"] = $APP["ip"];
+if (($APP["hostname"]==$APP["ip"]) || (strlen($APP["hostname"]) < 2)) {
+    $APP["hostname"] = $_SERVER["SERVER_NAME"]; //$APP["ip"];
 }
 
 $APP["v4defaultrouteviaip"] = trim(shell_exec("ip r | grep default | awk {'print $3'}"));

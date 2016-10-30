@@ -15,7 +15,16 @@ $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 
+function printLoadingText($text) {
+    ?>
+    <script>
+    document.getElementById("overlay").innerHTML = "<h2><span class='glyphicon glyphicon-hourglass' aria-hidden='true'></span> <?php echo $text; ?></h2>";
+    </script>
+    <?  flush();
+}
+    
 function getOLSRLinks() {
+    printLoadingText("Loading Status-TAB (generating link-table)...");
     $routes_raw = explode("\n",trim(shell_exec("/sbin/ip route | awk '{print $3,$1}'")));
     foreach ($routes_raw as $getroute) {
         if(strpos($getroute,'default') !== false) {
@@ -53,7 +62,7 @@ function getOLSRLinks() {
            $tmp_defaultroute = " bgcolor=FFD700";
         }
         $neighbor = gethostbyaddr($link['2']); // do this request only one time...
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td><button type=\"button\" class=\"btn btn-primary btn-sm\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button> ".$tmp_output_route_text."</td></tr>";
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button> ".$tmp_output_route_text."</td></tr>";
         ?>
         <!-- Modal -->
 <div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -128,6 +137,7 @@ if (($APP["hostname"]==$APP["ip"]) || (strlen($APP["hostname"]) < 2)) {
 }
 
 $APP["v4defaultrouteviaip"] = trim(shell_exec("ip r | grep default | awk {'print $3'}"));
+$APP["v4defaultrouteviadns"] = gethostbyaddr($APP["v4defaultrouteviaip"]);
 flush();
 //$APP["host"] = substr(shell_exec("/usr/bin/host ".$APP["ip"]." | cut -d ' ' -f 5"),0,-2);
 ?>
@@ -147,9 +157,6 @@ flush();
 
     <!-- Bootstrap core CSS -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom styles for this template -->
-    <link href="/css/starter-template.css" rel="stylesheet">
 
   </head>
 
@@ -172,7 +179,7 @@ flush();
 </style>
 <div id="overlay">
     <h2><span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span> Loading...</h2>
-</div>
+</div><?php flush(); ?>
 
 <div class="container">
 	<div class="row">
@@ -184,42 +191,50 @@ flush();
                     <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Port-Table</a></li>
 					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
 					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
-				</ul>
-
+				</ul><br>
 <?
-flush();
 $APP["devices"] = explode("\n",shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\""));
 $APP["devices"][0]=str_replace("Local","Local  ",$APP["devices"][0]);
 $APP["v4defaultrouteviaport"] = trim(shell_exec("ip r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
 $APP["v6defaultrouteviaport"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
-$APP["v6defaultrouteviaip"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'print $3'}"));
 $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 ?>
 <!-- Tab panes -->
-				<div class="tab-content"> 
-				  <div role="tabpanel" class="tab-pane" id="main">
-						<h1 align="center">Willkommen auf <?php echo $APP["hostname"] . '<br>' . $APP["ip"]; ?></h1>
-						<b>WAS?</b><br>
-						FunkFeuer ist ein freies, experimentelles Netzwerk in Wien, Graz, der Weststeiermark, in Teilen des Weinviertels (N&Ouml;) und in Bad Ischl. Es wird aufgebaut und betrieben von computerbegeisterten Menschen. Das Projekt verfolgt keine kommerziellen Interessen.<br><br>
-						<b>FREI?</b><br>
-						FunkFeuer ist offen f&uuml;r jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu &Uuml;berbr&uuml;cken und so Infrastruktur und Wissen zur Verf&uuml;gung zu stellen. Teilnahme Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon &Uuml;berall (ungef&auml;r) empfangen kann (bitte beachte, dass manchmal H&auml;user oder &Auml;hnliches im Weg sind, dann geht's nur &uuml;ber Umwege).
+				<div class="tab-content">
+<!-- Main TAB -->
+                    <div role="tabpanel" class="tab-pane" id="main">
+                        <div class="page-header">
+                            <h1>Willkommen auf <?php echo $APP["hostname"] . '<small>' . $APP["ip"]; ?></small></h1>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-body"><b>WAS?</b></div>
+                            <div class="panel-footer">FunkFeuer ist ein freies, experimentelles Netzwerk in Wien, Graz, der Weststeiermark, in Teilen des Weinviertels (N&Ouml;) und in Bad Ischl. Es wird aufgebaut und betrieben von computerbegeisterten Menschen. Das Projekt verfolgt keine kommerziellen Interessen.</div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-body"><b>FREI?</b></div>
+                            <div class="panel-footer">FunkFeuer ist offen f&uuml;r jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu &Uuml;berbr&uuml;cken und so Infrastruktur und Wissen zur Verf&uuml;gung zu stellen. Teilnahme Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon &Uuml;berall (ungef&auml;r) empfangen kann (bitte beachte, dass manchmal H&auml;user oder &Auml;hnliches im Weg sind, dann geht's nur &uuml;ber Umwege).</div>
+                        </div>
 					</div>
-					<div role="tabpanel" class="tab-pane active" id="status">
-					
+<!-- Status TAB -->
+<?php printLoadingText("Loading Status TAB..."); ?>
+                    <div role="tabpanel" class="tab-pane active" id="status">
 						<dl class="dl-horizontal">
-						  <dt><span class="glyphicon glyphicon-time" aria-hidden="true"></span> System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
-						  <dt><span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["hostname"]."\">".$APP["hostname"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
-						  <dt><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> mgmt Devices</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
-						  <dt><span class="glyphicon glyphicon-link" aria-hidden="true"></span> IPv4 OLSR-Links</dt><dd><?php echo getOLSRLinks(); ?></dd>
+						  <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><?php echo shell_exec("uptime") ?></dd>
+						  <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v4defaultrouteviadns"]."\">".$APP["v4defaultrouteviadns"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
+						  <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
+						  <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
-						  <dt><span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> IPv6 Default-Route</dt><dd><?php echo "<a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
-						  <dt><span class="glyphicon glyphicon-link" aria-hidden="true"></span> IPv6 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v6defaultrouteviaip"],"<mark><b>".$APP["v6defaultrouteviaip"]."</b></mark>",file_get_contents("http://[::1]:2008/links"))); ?></pre></dd>
-<?php } else { echo "<dt>IPv6</dt><dd>disabled...</dd>"; }
+						  <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
+						  <dt>IPv6 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><pre><?php echo trim(str_replace($APP["v6defaultrouteviaip"],"<mark><b>".$APP["v6defaultrouteviaip"]."</b></mark>",file_get_contents("http://[::1]:2008/links"))); ?></pre></dd>
+<?php } else { echo "<dt>IPv6</dt><dd><span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\"></span> disabled...</dd>"; }
+printLoadingText("Loading Status-TAB (do traceroute)...");
 ?>
-						  <dt><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Trace to UPLINK</dt><dd><pre><?php echo trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));?></pre></dd>
+						  <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd><pre><?php echo trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));?></pre></dd>
 						</dl>
 					</div>
+<!-- Port-Status TAB -->
+<?php printLoadingText("Loading Port-Table TAB..."); ?>
                     <div role="tabpanel" class="tab-pane" id="table">
 					<?
 					$discover = json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -j"), TRUE);
@@ -572,6 +587,7 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 					    echo "</tbody></table>";
 					    ?>
                     </div>
+<!-- Contact TAB -->
 					<div role="tabpanel" class="tab-pane" id="contact">
 						in Arbeit :D...
 					</div>

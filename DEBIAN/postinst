@@ -23,9 +23,9 @@ then
 	WEBSERVER_CHANGES=1
 fi
 
-if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|cgi-bin' | wc -l) -eq 0 ]
+if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
 then
-	sed -i 's/tests/tests|js|css|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
+	sed -i 's/tests/tests|js|css|fonts|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
 	WEBSERVER_CHANGES=1
 fi
 
@@ -35,11 +35,11 @@ then
     WEBSERVER_CHANGES=1
 fi
 
-if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
-then
-    sed -i 's/tests|js|css|fonts|cgi-bin/tests|js|css|fonts|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
-    WEBSERVER_CHANGES=1
-fi
+#if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
+#then
+#    sed -i 's/tests|js|css|fonts|cgi-bin/tests|js|css|fonts|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
+#    WEBSERVER_CHANGES=1
+#fi
 
 if [ $(cat /etc/lighttpd/lighttpd.conf | grep '99-bmk.conf' | wc -l) -eq 0 ]
 then

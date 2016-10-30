@@ -29,7 +29,7 @@ then
 	WEBSERVER_CHANGES=1
 fi
 
-if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'mod_cgi' | wc -l) -eq 0 ]
+if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'mod_cgi' | wc -l) -eq 1 ]
 then
     sed -i 's/"mod_cgi",//g' /etc/lighttpd/lighttpd.conf >/dev/null
     WEBSERVER_CHANGES=1

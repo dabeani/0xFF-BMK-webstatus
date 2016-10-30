@@ -171,7 +171,7 @@ flush();
     }
 </style>
 <div id="overlay">
-    Loading...
+    <h2><span class="glyphicon glyphicon-hourglass" aria-hidden="true"></span> Loading...</h2>
 </div>
 
 <div class="container">
@@ -179,10 +179,10 @@ flush();
 		<!--<div class="col-md-6">-->
 			<!-- Nav tabs --><div class="card">
 				<ul class="nav nav-tabs" role="tablist">
-					<li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab">&Uuml;bersicht</a></li>
-					<li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab">Status</a></li>
-                    <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab">Port-Table</a></li>
-					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab">Kontakt</a></li>
+					<li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
+					<li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
+                    <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Port-Table</a></li>
+					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
 					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
 				</ul>
 
@@ -207,17 +207,17 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 					<div role="tabpanel" class="tab-pane active" id="status">
 					
 						<dl class="dl-horizontal">
-						  <dt>System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
-						  <dt>IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["hostname"]."\">".$APP["hostname"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
-						  <dt>Devices vlan 1100</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
-						  <dt>IPv4 OLSR-Links</dt><dd><?php echo getOLSRLinks(); ?></dd>
+						  <dt><span class="glyphicon glyphicon-time" aria-hidden="true"></span> System Uptime</dt><dd><?php echo shell_exec("uptime") ?></dd>
+						  <dt><span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> IPv4 Default-Route</dt><dd><?php echo "<a href=\"https://".$APP["hostname"]."\">".$APP["hostname"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
+						  <dt><span class="glyphicon glyphicon-signal" aria-hidden="true"></span> mgmt Devices</dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
+						  <dt><span class="glyphicon glyphicon-link" aria-hidden="true"></span> IPv4 OLSR-Links</dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
-						  <dt>IPv6 Default-Route</dt><dd><?php echo "<a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
-						  <dt>IPv6 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v6defaultrouteviaip"],"<mark><b>".$APP["v6defaultrouteviaip"]."</b></mark>",file_get_contents("http://[::1]:2008/links"))); ?></pre></dd>
+						  <dt><span class="glyphicon glyphicon-transfer" aria-hidden="true"></span> IPv6 Default-Route</dt><dd><?php echo "<a href=\"http://".$APP["v6defaultrouteviaip"]."/cgi-bin-status.html\">".$APP["v6defaultrouteviaip"]."</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
+						  <dt><span class="glyphicon glyphicon-link" aria-hidden="true"></span> IPv6 OLSR-Links</dt><dd><pre><?php echo trim(str_replace($APP["v6defaultrouteviaip"],"<mark><b>".$APP["v6defaultrouteviaip"]."</b></mark>",file_get_contents("http://[::1]:2008/links"))); ?></pre></dd>
 <?php } else { echo "<dt>IPv6</dt><dd>disabled...</dd>"; }
 ?>
-						  <dt>Trace to UPLINK</dt><dd><pre><?php echo trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));?></pre></dd>
+						  <dt><span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Trace to UPLINK</dt><dd><pre><?php echo trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));?></pre></dd>
 						</dl>
 					</div>
                     <div role="tabpanel" class="tab-pane" id="table">

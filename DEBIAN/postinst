@@ -5,35 +5,35 @@ set -e
 
 WEBSERVER_CHANGES=0
 
-if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then
-	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old >/dev/null
-fi
+#if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then
+#	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old >/dev/null
+#fi
 
-if [ $(cat /var/www/php/app/views/login.php | grep 'cgi-bin-status.php' | wc -l) -eq 0 ]
-then
-	LINE=$(grep -n "End: Section Container" /var/www/php/app/views/login.php | cut -f1 -d:)
-	sed -i "$LINE i <h1 class=\"section-title\"><center><a href=\"/cgi-bin-status.php\"><button type=\"button\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary\" role=\"button\" aria-disabled=\"false\"><span class=\"ui-button-icon-primary ui-icon ui-icon-tag\"></span><span class=\"ui-button-text\">OLSRd / Node Status</span></button></a></CENTER></h1>" /var/www/php/app/views/login.php >/dev/null
-	mv /var/www/php/app/views/login.php /var/www/php/app/views/login.old
-	mv /var/www/php/app/views/login.new /var/www/php/app/views/login.php
-fi
+#if [ $(cat /var/www/php/app/views/login.php | grep 'cgi-bin-status.php' | wc -l) -eq 0 ]
+#then
+#	LINE=$(grep -n "End: Section Container" /var/www/php/app/views/login.php | cut -f1 -d:)
+#	sed -i "$LINE i <h1 class=\"section-title\"><center><a href=\"/cgi-bin-status.php\"><button type=\"button\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary\" role=\"button\" aria-disabled=\"false\"><span class=\"ui-button-icon-primary ui-icon ui-icon-tag\"></span><span class=\"ui-button-text\">OLSRd / Node Status</span></button></a></CENTER></h1>" /var/www/php/app/views/login.php >/dev/null
+#	mv /var/www/php/app/views/login.php /var/www/php/app/views/login.old
+#	mv /var/www/php/app/views/login.new /var/www/php/app/views/login.php
+#fi
 
-if [ $(cat /etc/lighttpd/lighttpd.conf | grep '(/cgi-bin-status.php)' | wc -l) -eq 0 ]
-then
-	sed -i 's/url.rewrite-once = (/url.rewrite-once = (\n\t"^(\/cgi-bin-status.php)" => "$0",/g' /etc/lighttpd/lighttpd.conf >/dev/null
-	WEBSERVER_CHANGES=1
-fi
+#if [ $(cat /etc/lighttpd/lighttpd.conf | grep '(/cgi-bin-status.php)' | wc -l) -eq 0 ]
+#then
+#	sed -i 's/url.rewrite-once = (/url.rewrite-once = (\n\t"^(\/cgi-bin-status.php)" => "$0",/g' /etc/lighttpd/lighttpd.conf >/dev/null
+#	WEBSERVER_CHANGES=1
+#fi
 
-if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
-then
-	sed -i 's/tests/tests|js|css|fonts|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
-	WEBSERVER_CHANGES=1
-fi
+#if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
+#then
+#	sed -i 's/tests/tests|js|css|fonts|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
+#	WEBSERVER_CHANGES=1
+#fi
 
-if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'mod_cgi' | wc -l) -eq 1 ]
-then
-    sed -i 's/"mod_cgi",//g' /etc/lighttpd/lighttpd.conf >/dev/null
-    WEBSERVER_CHANGES=1
-fi
+#if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'mod_cgi' | wc -l) -eq 1 ]
+#then
+#    sed -i 's/"mod_cgi",//g' /etc/lighttpd/lighttpd.conf >/dev/null
+#    WEBSERVER_CHANGES=1
+#fi
 
 #if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
 #then
@@ -41,15 +41,26 @@ fi
 #    WEBSERVER_CHANGES=1
 #fi
 
-if [ $(cat /etc/lighttpd/lighttpd.conf | grep '99-bmk.conf' | wc -l) -eq 0 ]
+#if [ $(cat /etc/lighttpd/lighttpd.conf | grep '99-bmk.conf' | wc -l) -eq 0 ]
+#then
+#	sed -i '/include "conf-enabled\/10-ssl.conf"/i include "conf-enabled/99-bmk.conf"' /etc/lighttpd/lighttpd.conf >/dev/null
+#	WEBSERVER_CHANGES=1
+#fi
+
+if [ ! -d "/var/log/lighttpd_custom" ]
 then
-	sed -i '/include "conf-enabled\/10-ssl.conf"/i include "conf-enabled/99-bmk.conf"' /etc/lighttpd/lighttpd.conf >/dev/null
-	WEBSERVER_CHANGES=1
+    mkdir /var/log/lighttpd_custom
+    chown www-data:www-data /var/log/lighttpd_custom
+fi
+
+if [ $(ps aux | grep lighttpd_custom.conf | grep -v grep | awk {'print $2'} | wc -l) -eq 0 ]
+then
+    /config/scripts/post-config.d/lighttpd_custom.sh >/dev/null
 fi
 
 if [ "$WEBSERVER_CHANGES" = 1 ]
 then
-	pkill -9 lighttpd >/dev/null; /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf >/dev/null
+	kill -9 $(ps aux | grep lighttpd_custom.conf | grep -v grep | awk {'print $2'});  >/dev/null; /usr/sbin/lighttpd -f /config/custom/lighttpd/lighttpd_custom.conf >/dev/null
 fi
 
 exit 0

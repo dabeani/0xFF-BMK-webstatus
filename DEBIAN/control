@@ -5,6 +5,5 @@ Priority: optional
 Architecture: mipsel
 Maintainer: Bernhard Marker <bernhard@cybercomm.at>
 Description: EDGERouter Webserver Erweiterung damit OLSR-Status, Uptime,... dargestellt wird.      
- Extension wurde mit PHP realisiert.
- Tools fuer Scantools: https://{URL}/cgi-bin-status.php?get=status,https://{URL}/cgi-bin-status.php?get=phpinfo
  Es muessen zwingend der EdgeOS WebserverPorts von 80 und 443 abgeaendert werden. (z.b 81 und 8443)
+ Tools fuer Scantools: https://{URL}/cgi-bin-status.php?get=status,https://{URL}/cgi-bin-status.php?get=phpinfo

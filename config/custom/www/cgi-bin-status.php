@@ -151,7 +151,7 @@ flush();
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="favicon.ico">
+    <!--link rel="icon" href="favicon.ico" -->
 
     <title><?php echo $APP["hostname"];?></title>
 
@@ -204,7 +204,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 <!-- Main TAB -->
                     <div role="tabpanel" class="tab-pane" id="main">
                         <div class="page-header">
-                            <h1>Willkommen auf <?php echo $APP["hostname"] . '<small>' . $APP["ip"]; ?></small></h1>
+                            <h1>Willkommen auf <?php echo $APP["hostname"] . ' <small>' . $APP["ip"]; ?></small></h1>
                         </div>
                         <div class="panel panel-default">
                             <div class="panel-body"><b>WAS?</b></div>
@@ -220,7 +220,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
                     <div role="tabpanel" class="tab-pane active" id="status">
 						<dl class="dl-horizontal">
 						  <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><?php echo shell_exec("uptime") ?></dd>
-						  <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v4defaultrouteviadns"]."\">".$APP["v4defaultrouteviadns"]."(".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
+						  <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v4defaultrouteviadns"]."\">".$APP["v4defaultrouteviadns"]." (".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
 						  <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
 						  <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php

@@ -50,10 +50,10 @@ function getHostnameFromDB($ip) {
 		}
 		// {"193.238.159.58":{"node":"1230bfs256","nodeid":"2182","device":"natrouter.1230Bfs256"}
 		if (isset($node_dns[$ip])) {
-			$result = $node_dns[$ip]['device'] .".wien.funkfeuer.at";
+			$result = $node_dns[$ip]['device'] /*.".wien.funkfeuer.at" */;
 			if (isset($node_dns[$ip]['mid_master_ip'])) {
 				$result .= " (MID of ";
-				$result .= $node_dns[$ip]['mid_master_ip'] ."=". $node_dns[$node_dns[$ip]['mid_master_ip']]['device'] .".wien.funkfeuer.at";
+				$result .= $node_dns[$ip]['mid_master_ip'] ."=". $node_dns[$node_dns[$ip]['mid_master_ip']]['device'] /*.".wien.funkfeuer.at"*/;
 				$result .= ")";
 			}
 			return ($result);
@@ -121,7 +121,6 @@ function getOLSRLinks() {
         foreach ($APP["routes"][$link['2']] as $listroutes) {
         	echo $listroutes;
 			if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
-				echo " - ";
 				$lookup_string=getHostnameFromDB($listroutes);
 				if ($listroutes !== $lookup_string) {
 					echo " - ";

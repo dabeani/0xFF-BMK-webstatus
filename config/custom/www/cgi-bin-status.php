@@ -29,7 +29,7 @@ function printLoadingText($text) {
 }
 
 function getHostnameFromDB($ip) {
-	globale $IP_RANGE;
+	global $IP_RANGE;
 	// IP-Check... funkfeuer ip-adresses are useable...
 	$ip_long = ip2long($ip);
 	if (($ip_long >= $APP["78er_range_low"] && $ip_long <= $APP["78er_range_high"]) or ($ip_long >= $APP["193er_range_low"] && $ip_long <= $APP["193er_range_high"])) {

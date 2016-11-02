@@ -242,24 +242,14 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 					$eth_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-show-interfaces.pl --intf-type=ethernet --action=show | grep -E \"^eth.|link/ether\" | awk '{if ($1~/^eth./) { print $1\",\";} else {print $2;}}' | sed 'N;s/\\n//'")));
 					
 					// show interfaces | grep -E "^eth" | awk '{print $1","$4;}'
-					//$eth_desc = explode("\n",trim(shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E "^eth|^br" | awk \'{printf $1",";{for(i=4;i<=NF;++i) printf($i)} print ","$3","$2;}\'')));
-					//$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; printf($4); print \",\"$3\",\"$2;}'")));
-					$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-show-interfaces.pl --action=show-brief | grep -E \"^eth|^br\" | awk '{print $1\",\"$2\",\"$3\",\"$4;}'")));
-					// $eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{printf $1\",\"; {for(i=4;i<=NF;++i) printf($i)} print \",\"$3\",\"$2;}'")));
-					//$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces | grep -E \"^eth|^br\" | awk '{print $1\",\"$4\",\"$3\",\"$2;}'")));
-					// achtung: blanks im interface-namen irgendwie beachten!
-					//echo "version 0";
-					
-					// show bridge br0 macs | awk '{print $3","$2","$1","$4}'
-					// spaeter: $br0_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show bridge br0 macs | awk '{print $3\",\"$2\",\"$1\",\"$4}'")));
-					// skip 1st line?
-					// achtung: auch br1 koennte interessant sein --> hat eigene mac/ids
+					// looses desc after first blank: $eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-show-interfaces.pl --action=show-brief | grep -E \"^eth|^br\" | awk '{print $1\",\"$2\",\"$3\",\"$4;}'")));
+					$eth_desc = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-show-interfaces.pl --action=show-brief | grep -E \"^eth|^br\"")));
 					
 					// show arp | awk '{if ($2!~/incomplete/) {print $3","$1","$5}}'
 					$br0_ips =    explode("\n",trim(shell_exec("/usr/sbin/arp -e -n | awk '{if ($2!~/incomplete/) {print $3\",\"$1\",\"$5}}'")));
 					// skip first line?
 					
-					//show interfaces ethernet physical
+					// show interfaces ethernet physical
 					// does not seem to work...
 					// works: $eth_speeds = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-op-cmd-wrapper show interfaces ethernet poe")));
 					$eth_speeds = array(); //explode("\n",trim(shell_exec('/opt/vyatta/bin/vyatta-op-cmd-wrapper physical | show interfaces ethernet')));
@@ -324,14 +314,26 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 					// add port description, state, maybe own IP
 					$bridges=array();
 					foreach ($eth_desc as $key=>$value) {
-					    $int = explode(",", trim($value));
-					    $v=explode(".",$int[0]);
-					    if (substr($int[0],0,2)=="br") {
+						// get rid of fixed column layout, leave only one blank as seperator
+						$value=str_replace('       ',' ',$value); 
+						$value=str_replace('      ',' ',$value); 
+						$value=str_replace('     ',' ',$value); 
+						$value=str_replace('    ',' ',$value); 
+						$value=str_replace('   ',' ',$value); 
+						$value=str_replace('  ',' ',$value); 
+					    $int = explode(" ", trim($value));
+						$int_name=array_shift($int); // retrieve interface name: br0, eth1.101 (was:0)
+						$int_ip=array_shift($int); // retrieve interface IP address (was:1)
+						$int_state=array_shift($int); // retrieve status: u/u (was:2)
+						$int_desc = implode(" ", $int); // rest of array is interface description (was:3)
+						$int_desc=trim(str_replace($int_name,'',$int)); // remove self-naming
+					    $v=explode(".",$int_name);
+					    if (substr($int_name,0,2)=="br") {
 					        if (!isset($v[1])) {
-					            $bridges[$int[0]]['name']=$int[0];
-					            $bridges[$int[0]]['desc'] = trim($int[3]);
-					            $bridges[$int[0]]['state'] = $int[2];
-					            $bridges[$int[0]]['own_ip'] = $int[1];
+					            $bridges[$int_name]['name']=$int_name;
+					            $bridges[$int_name]['desc'] = $int_desc;
+					            $bridges[$int_name]['state'] = $int_state;
+					            $bridges[$int_name]['own_ip'] = $int_ip;
 					        } else {
 					            unset($v);
 					        }
@@ -339,14 +341,14 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 					    }
 					    if (isset($v[1])) {
 					        // this is a vlan
-					        $vlans[$v[0]][$v[1]]['desc'] = trim($int[3]);
-					        $vlans[$v[0]][$v[1]]['own_ip']=$int[1];
+					        $vlans[$v[0]][$v[1]]['desc'] = $int_desc;
+					        $vlans[$v[0]][$v[1]]['own_ip']=$int_ip;
 					        unset($v);
 					        continue;
 					    }
-					    $interfaces[$int[0]]['desc'] = trim($int[3]);
-					    $interfaces[$int[0]]['state'] = $int[2];
-					    $interfaces[$int[0]]['own_ip'] = $int[1];
+					    $interfaces[$int_name]['desc'] = $int_desc;
+					    $interfaces[$int_name]['state'] = $int_state;
+					    $interfaces[$int_name]['own_ip'] = $int_ip;
 					}
 					
 					foreach ($interfaces as $key=>$value) {

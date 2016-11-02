@@ -3,6 +3,7 @@
 set_time_limit(60);
 
 $APP = Array();
+$IP_RANGE=Array();
 
 // issues: blanks in interface-desc eth_desc
 
@@ -11,6 +12,7 @@ $APP = Array();
 
 // define all possible management interfaces for status-output
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
+$get_nslookup_from_nodedb=1;
 
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
@@ -30,13 +32,32 @@ function printLoadingText($text) {
 
 function getHostnameFromDB($ip) {
 	global $IP_RANGE;
+	global $node_dns;
+	global $get_nslookup_from_nodedb;
 	// IP-Check... funkfeuer ip-adresses are useable...
 	$ip_long = ip2long($ip);
-	if (($ip_long >= $APP["78er_range_low"] && $ip_long <= $APP["78er_range_high"]) or ($ip_long >= $APP["193er_range_low"] && $ip_long <= $APP["193er_range_high"])) {
+	if (($ip_long >= $IP_RANGE["78er_range_low"] && $ip_long <= $IP_RANGE["78er_range_high"]) or ($ip_long >= $IP_RANGE["193er_range_low"] && $ip_long <= $IP_RANGE["193er_range_high"])) {
 		// $ip is withing the range of 0xFF IP address space
-		// if not yet done, load ip whois data from http://ff.cybercomm.at/node_lookup.json // not yet available
-		// cache this json locally??
-		// get name infos from db and return device.node.wien.funkfeuer.at
+		// if not yet done, load ip whois data from http://ff.cybercomm.at/node_db.json
+		if (!isset($node_dns)) {
+			$node_dns = json_decode(trim(shell_exec("curl --connect-timeout 1 http://ff.cybercomm.at/node_db.json")), true);
+		}
+		if (count($node_dns) <= 1) {
+			// json not available, stop lookup
+			$node_dns=array('0');
+			$get_nslookup_from_nodedb=0;
+			return ($ip);
+		}
+		// {"193.238.159.58":{"node":"1230bfs256","nodeid":"2182","device":"natrouter.1230Bfs256"}
+		if (isset($node_dns[$ip])) {
+			$result = $node_dns[$ip]['device'] .".wien.funkfeuer.at";
+			if (isset($node_dns[$ip]['mid_master_ip'])) {
+				$result .= " (MID of ";
+				$result .= $node_dns[$ip]['mid_master_ip'] ."=". $node_dns[$node_dns[$ip]['mid_master_ip']]['device'] .".wien.funkfeuer.at";
+				$result .= ")";
+			}
+			return ($result);
+		}
 		return ($ip);
 	} else {
 		// $ip is not an 0xFF ip
@@ -45,6 +66,7 @@ function getHostnameFromDB($ip) {
 }
     
 function getOLSRLinks() {
+	global $get_nslookup_from_nodedb;
     printLoadingText("Loading Status-TAB (generating link-table)...");
     $routes_raw = explode("\n",trim(shell_exec("/sbin/ip route | awk '{print $3,$1}'")));
     foreach ($routes_raw as $getroute) {
@@ -97,7 +119,16 @@ function getOLSRLinks() {
       </div>
       <div class="modal-body"><?
         foreach ($APP["routes"][$link['2']] as $listroutes) {
-        	echo $listroutes."<br>";
+        	echo $listroutes;
+			if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
+				echo " - ";
+				$lookup_string=getHostnameFromDB($listroutes);
+				if ($listroutes !== $lookup_string) {
+					echo " - ";
+					echo $lookup_string;
+				}
+			}
+			echo "<br>";
         }
         ?>
       </div>
@@ -649,4 +680,5 @@ $total_time = round(($finish - $start), 4);
 <?php
 }
 unset($APP);
+unset($node_dns);
 ?>

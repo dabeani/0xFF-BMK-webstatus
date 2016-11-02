@@ -326,7 +326,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 						$int_ip=array_shift($int); // retrieve interface IP address (was:1)
 						$int_state=array_shift($int); // retrieve status: u/u (was:2)
 						$int_desc = implode(" ", $int); // rest of array is interface description (was:3)
-						$int_desc=trim(str_replace($int_name,'',$int_desc)); // remove self-naming
+						$int_desc=trim(str_replace($int_name,'',$int_desc), ' -:()'); // remove self-naming, trim
 					    $v=explode(".",$int_name);
 					    if (substr($int_name,0,2)=="br") {
 					        if (!isset($v[1])) {

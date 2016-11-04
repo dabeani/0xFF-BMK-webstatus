@@ -102,7 +102,7 @@ function getOLSRLinks() {
         unset($olsr_links_raw['1']);
     }
     
-    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td></tr></thead>\n";
+    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
@@ -123,6 +123,7 @@ function getOLSRLinks() {
         }
         $neighbor = gethostbyaddr($link['2']); // do this request only one time...
         //echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td></tr>";
+		$nodes_at_this_route=array();
         ?>
         <!-- Modal -->
 <div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -146,6 +147,10 @@ function getOLSRLinks() {
 						echo " - ";
 					//	echo $lookup_string;
 						echo $lookup['string'];
+						// count this node
+						if (!in_array(strtolower($lookup['n']), $nodes_at_this_route )) {
+							array_push($nodes_at_this_route, strtolower($lookup['n']));
+						}
 					}
 				}
 				echo "<br>";
@@ -160,7 +165,10 @@ function getOLSRLinks() {
   </div>
 </div>
         <?
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td></tr>";
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
+		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td>";
+		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">". count($nodes_at_this_route) ."</button></td>";
+		echo "</tr>";
     }
     echo "</tbody></table>\n";
     unset($routes_raw);

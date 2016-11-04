@@ -66,7 +66,7 @@ function getHostnameFromDB($ip) {
 			}
 			$return_arr=$node_dns[$ip];
 			$return_arr['ip']=$ip;
-			$return_arr['string']=$result
+			$return_arr['string']=$result;
 			return($return_arr);
 		}
 		return(array('ip'=>$ip));

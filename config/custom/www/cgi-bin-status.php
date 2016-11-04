@@ -159,10 +159,37 @@ function getOLSRLinks() {
     </div>
   </div>
 </div>
+        <? if (count($nodes_at_this_route)>0) {
+		?>
+        <!-- Modal -->
+<div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel"><?= count($nodes_at_this_route);?> nodes from <b><?= $neighbor; ?></b></h4>
+      </div>
+      <div class="modal-body"><?
+			foreach ($nodes_at_this_route as $node) {
+				echo "- ".$node;
+				echo "<br>";
+			}
+        ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
         <?
+		}
+
         echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td>";
-		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">". count($nodes_at_this_route) ."</button></td>";
+		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."_nodes\">". count($nodes_at_this_route) ."</button></td>";
 		echo "</tr>";
     }
     echo "</tbody></table>\n";

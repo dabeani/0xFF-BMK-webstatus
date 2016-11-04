@@ -64,15 +64,10 @@ function getHostnameFromDB($ip) {
 				}
 				$result .= ")";
 			}
-			//return ($result);
-			return(array(	 'ip'=>$ip
-							,'n' =>$node_dns[$ip]['n']
-							,'i' =>$node_dns[$ip]['i']
-							,'d' =>$node_dns[$ip]['d']
-							,'m' =>$node_dns[$ip]['m']
-							,'h' =>$node_dns[$ip]['h']
-							,'string'=>$result
-						));
+			$return_arr=$node_dns[$ip];
+			$return_arr['ip']=$ip;
+			$return_arr['string']=$result
+			return($return_arr);
 		}
 		return(array('ip'=>$ip));
 	} else {

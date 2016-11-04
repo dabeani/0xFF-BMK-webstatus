@@ -31,6 +31,10 @@ function printLoadingText($text) {
 }
 
 function getHostnameFromDB($ip) {
+	if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+		// $ip is not a valid IP address
+		return ($ip);
+	}
 	global $IP_RANGE;
 	global $node_dns;
 	global $get_nslookup_from_nodedb;

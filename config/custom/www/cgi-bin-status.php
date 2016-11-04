@@ -127,16 +127,18 @@ function getOLSRLinks() {
         <h4 class="modal-title" id="myModalLabel"><?= $APP["routes_".$link['2']];?> <?= $tmp_output_route_text; ?> from <b><?= $neighbor; ?></b></h4>
       </div>
       <div class="modal-body"><?
-        foreach ($APP["routes"][$link['2']] as $listroutes) {
-        	echo $listroutes;
-			if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
-				$lookup_string=getHostnameFromDB($listroutes);
-				if ($listroutes !== $lookup_string) {
-					echo " - ";
-					echo $lookup_string;
+        if ($APP["routes_".$link['2']]>0) { 
+			foreach ($APP["routes"][$link['2']] as $listroutes) {
+				echo $listroutes;
+				if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
+					$lookup_string=getHostnameFromDB($listroutes);
+					if ($listroutes !== $lookup_string) {
+						echo " - ";
+						echo $lookup_string;
+					}
 				}
+				echo "<br>";
 			}
-			echo "<br>";
         }
         ?>
       </div>
@@ -580,7 +582,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 					            foreach ($interfaces[$key]['devices'] as $d) {
 					                if (isset($devices[$d]['ips'][$bridge])) { foreach ($devices[$d]['ips'][$bridge] as $ip) {
 					                    if (substr($ip,0,8)=="192.168.") {
-					                        if ($skip_this==1) { continue; }
+					                        if (isset($skip_this==1)) { continue; }
 					                        echo '192.168.*.*';
 					                        $skip_this = 1;
 					                        continue;

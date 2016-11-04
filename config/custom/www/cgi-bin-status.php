@@ -582,7 +582,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 					            foreach ($interfaces[$key]['devices'] as $d) {
 					                if (isset($devices[$d]['ips'][$bridge])) { foreach ($devices[$d]['ips'][$bridge] as $ip) {
 					                    if (substr($ip,0,8)=="192.168.") {
-					                        if (isset($skip_this==1)) { continue; }
+					                        if (isset($skip_this)) { continue; }
 					                        echo '192.168.*.*';
 					                        $skip_this = 1;
 					                        continue;

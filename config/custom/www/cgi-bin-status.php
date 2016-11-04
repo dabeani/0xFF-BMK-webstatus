@@ -98,20 +98,20 @@ function getOLSRLinks() {
         preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
         $tmp_output_route_text = "route";
         $tmp_defaultroute = "";
-        // prepare the text of route or routes..
-        //if($APP["routes_".$link['2']] > 1) {
-        //    $tmp_output_route_text = "routes";
-        //}
+         prepare the text of route or routes..
         if(!isset($APP["routes_".$link['2']])) {
-        //    $tmp_output_route_text = "no routes";
+            $tmp_output_route_text = "no routes";
             $APP["routes_".$link['2']]=0;
+        }
+        if($APP["routes_".$link['2']] > 1) {
+            $tmp_output_route_text = "routes";
         }
         // if we know the default-route, set a colored background of that column
         if($link['2'] == $APP["default_route"]) {
            $tmp_defaultroute = " bgcolor=FFD700";
         }
         $neighbor = gethostbyaddr($link['2']); // do this request only one time...
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td></tr>";
+        //echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td></tr>";
         ?>
         <!-- Modal -->
 <div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -144,6 +144,7 @@ function getOLSRLinks() {
   </div>
 </div>
         <?
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td></tr>";
     }
     echo "</tbody></table>\n";
     unset($routes_raw);

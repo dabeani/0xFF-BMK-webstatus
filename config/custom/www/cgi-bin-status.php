@@ -117,7 +117,6 @@ function getOLSRLinks() {
            $tmp_defaultroute = " bgcolor=FFD700";
         }
         $neighbor = gethostbyaddr($link['2']); // do this request only one time...
-        //echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td></tr>";
 		$nodes_at_this_route=array();
         ?>
         <!-- Modal -->
@@ -135,14 +134,10 @@ function getOLSRLinks() {
 			foreach ($APP["routes"][$link['2']] as $listroutes) {
 				echo $listroutes;
 				if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
-					//$lookup_string=getHostnameFromDB($listroutes);
 					$lookup=getHostnameFromDB($listroutes);
-					//if ($listroutes !== $lookup_string) {
 					if (isset($lookup['n'])) {
 						echo " - ";
-					//	echo $lookup_string;
 						echo $lookup['string'];
-						// count this node
 						if (!in_array(strtolower($lookup['n']), $nodes_at_this_route )) {
 							array_push($nodes_at_this_route, strtolower($lookup['n']));
 						}
@@ -186,7 +181,6 @@ function getOLSRLinks() {
 </div>
         <?
 		}
-
         echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."_nodes\">". count($nodes_at_this_route) ."</button></td>";
@@ -195,6 +189,7 @@ function getOLSRLinks() {
     echo "</tbody></table>\n";
     unset($routes_raw);
     unset($olsr_links_raw);
+    unset($nodes_at_this_route);
 }
     
 function parse_firmware($in) {

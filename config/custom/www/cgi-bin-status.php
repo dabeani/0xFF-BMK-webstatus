@@ -53,15 +53,14 @@ function getHostnameFromDB($ip) {
 			return ($ip);
 		}
 		// {"193.238.159.58":{"n":"1230bfs256","i":"2182","d":"natrouter"}
-		$ipl=ip2long($ip);
-		if (isset($node_dns[$ipl])) {
-			$result = $node_dns[$ipl]['d'] .".".$node_dns[$ipl]['n'] /*.".wien.funkfeuer.at" */;
-			if (isset($node_dns[$ipl]['m'])) {
+		if (isset($node_dns[$ip])) {
+			$result = $node_dns[$ip]['d'] .".".$node_dns[$ip]['n'] /*.".wien.funkfeuer.at" */;
+			if (isset($node_dns[$ip]['m'])) {
 				$result .= " (MID of ";
-				if (isset($node_dns[$node_dns[$ipl]['m']]['n'])) {
-					$result .= $node_dns[$ipl]['m'] ."=". $node_dns[$node_dns[$ipl]['m']]['d'].".".$node_dns[$node_dns[$ipl]['m']]['n'] /*.".wien.funkfeuer.at"*/;
+				if (isset($node_dns[$node_dns[$ip]['m']]['n'])) {
+					$result .= $node_dns[$ip]['m'] ."=". $node_dns[$node_dns[$ip]['m']]['d'].".".$node_dns[$node_dns[$ip]['m']]['n'] /*.".wien.funkfeuer.at"*/;
 				} else {
-					$result .= $node_dns[$ipl]['m'] ."=unknown device/node";
+					$result .= $node_dns[$ip]['m'] ."=unknown device/node";
 				}
 				$result .= ")";
 			}

@@ -48,12 +48,13 @@ function getHostnameFromDB($ip) {
 			$get_nslookup_from_nodedb=0;
 			return ($ip);
 		}
-		// {"193.238.159.58":{"node":"1230bfs256","nodeid":"2182","device":"natrouter.1230Bfs256"}
-		if (isset($node_dns[$ip])) {
-			$result = $node_dns[$ip]['device'] /*.".wien.funkfeuer.at" */;
-			if (isset($node_dns[$ip]['mid_master_ip'])) {
+		// {"193.238.159.58":{"n":"1230bfs256","i":"2182","d":"natrouter"}
+		$ipl=ip2long($ip);
+		if (isset($node_dns[$ipl])) {
+			$result = $node_dns[$ipl]['d'] .".".$node_dns[$ipl]['n'] /*.".wien.funkfeuer.at" */;
+			if (isset($node_dns[$ipl]['m'])) {
 				$result .= " (MID of ";
-				$result .= $node_dns[$ip]['mid_master_ip'] ."=". $node_dns[$node_dns[$ip]['mid_master_ip']]['device'] /*.".wien.funkfeuer.at"*/;
+				$result .= $node_dns[$ipl]['m'] ."=". $node_dns[$node_dns[$ipl]['m']]['d'].".".$node_dns[$node_dns[$ipl]['m']]['n'] /*.".wien.funkfeuer.at"*/;
 				$result .= ")";
 			}
 			return ($result);
@@ -99,6 +100,7 @@ function getOLSRLinks() {
         }
         if(!isset($APP["routes_".$link['2']])) {
             $tmp_output_route_text = "no routes";
+            $APP["routes_".$link['2']]=0;
         }
         // if we know the default-route, set a colored background of that column
         if($link['2'] == $APP["default_route"]) {

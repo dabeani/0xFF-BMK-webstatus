@@ -58,7 +58,11 @@ function getHostnameFromDB($ip) {
 			$result = $node_dns[$ipl]['d'] .".".$node_dns[$ipl]['n'] /*.".wien.funkfeuer.at" */;
 			if (isset($node_dns[$ipl]['m'])) {
 				$result .= " (MID of ";
-				$result .= $node_dns[$ipl]['m'] ."=". $node_dns[$node_dns[$ipl]['m']]['d'].".".$node_dns[$node_dns[$ipl]['m']]['n'] /*.".wien.funkfeuer.at"*/;
+				if (isset($node_dns[$node_dns[$ipl]['m']]['n'])) {
+					$result .= $node_dns[$ipl]['m'] ."=". $node_dns[$node_dns[$ipl]['m']]['d'].".".$node_dns[$node_dns[$ipl]['m']]['n'] /*.".wien.funkfeuer.at"*/;
+				} else {
+					$result .= $node_dns[$ipl]['m'] ."=unknown device/node";
+				}
 				$result .= ")";
 			}
 			return ($result);
@@ -98,7 +102,7 @@ function getOLSRLinks() {
         preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
         $tmp_output_route_text = "route";
         $tmp_defaultroute = "";
-         prepare the text of route or routes..
+        // prepare the text of route or routes..
         if(!isset($APP["routes_".$link['2']])) {
             $tmp_output_route_text = "no routes";
             $APP["routes_".$link['2']]=0;

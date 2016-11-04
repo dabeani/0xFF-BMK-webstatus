@@ -31,6 +31,10 @@ function printLoadingText($text) {
 }
 
 function getHostnameFromDB($ip) {
+	if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
+		// $ip is not a valid IP address
+		return(array('ip'=>$ip));
+	}
 	global $IP_RANGE;
 	global $node_dns;
 	global $get_nslookup_from_nodedb;
@@ -46,22 +50,29 @@ function getHostnameFromDB($ip) {
 			// json not available, stop lookup
 			$node_dns=array('0');
 			$get_nslookup_from_nodedb=0;
-			return ($ip);
+			return(array('ip'=>$ip));
 		}
-		// {"193.238.159.58":{"node":"1230bfs256","nodeid":"2182","device":"natrouter.1230Bfs256"}
+		// {"193.238.159.58":{"n":"1230bfs256","i":"2182","d":"natrouter"}
 		if (isset($node_dns[$ip])) {
-			$result = $node_dns[$ip]['device'] /*.".wien.funkfeuer.at" */;
-			if (isset($node_dns[$ip]['mid_master_ip'])) {
+			$result = $node_dns[$ip]['d'] .".".$node_dns[$ip]['n'] /*.".wien.funkfeuer.at" */;
+			if (isset($node_dns[$ip]['m'])) {
 				$result .= " (MID of ";
-				$result .= $node_dns[$ip]['mid_master_ip'] ."=". $node_dns[$node_dns[$ip]['mid_master_ip']]['device'] /*.".wien.funkfeuer.at"*/;
+				if (isset($node_dns[$node_dns[$ip]['m']]['n'])) {
+					$result .= $node_dns[$ip]['m'] ."=". $node_dns[$node_dns[$ip]['m']]['d'].".".$node_dns[$node_dns[$ip]['m']]['n'] /*.".wien.funkfeuer.at"*/;
+				} else {
+					$result .= $node_dns[$ip]['m'] ."=unknown device/node";
+				}
 				$result .= ")";
 			}
-			return ($result);
+			$return_arr=$node_dns[$ip];
+			$return_arr['ip']=$ip;
+			$return_arr['string']=$result;
+			return($return_arr);
 		}
-		return ($ip);
+		return(array('ip'=>$ip));
 	} else {
 		// $ip is not an 0xFF ip
-		return ($ip);
+		return(array('ip'=>$ip));
 	}
 }
     
@@ -86,7 +97,7 @@ function getOLSRLinks() {
         unset($olsr_links_raw['1']);
     }
     
-    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>route entries</b></td></tr></thead>\n";
+    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
@@ -94,18 +105,19 @@ function getOLSRLinks() {
         $tmp_output_route_text = "route";
         $tmp_defaultroute = "";
         // prepare the text of route or routes..
-        if($APP["routes_".$link['2']] > 1) {
-            $tmp_output_route_text = "routes";
-        }
         if(!isset($APP["routes_".$link['2']])) {
             $tmp_output_route_text = "no routes";
+            $APP["routes_".$link['2']]=0;
+        }
+        if($APP["routes_".$link['2']] > 1) {
+            $tmp_output_route_text = "routes";
         }
         // if we know the default-route, set a colored background of that column
         if($link['2'] == $APP["default_route"]) {
            $tmp_defaultroute = " bgcolor=FFD700";
         }
         $neighbor = gethostbyaddr($link['2']); // do this request only one time...
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button> ".$tmp_output_route_text."</td></tr>";
+		$nodes_at_this_route=array();
         ?>
         <!-- Modal -->
 <div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -118,16 +130,21 @@ function getOLSRLinks() {
         <h4 class="modal-title" id="myModalLabel"><?= $APP["routes_".$link['2']];?> <?= $tmp_output_route_text; ?> from <b><?= $neighbor; ?></b></h4>
       </div>
       <div class="modal-body"><?
-        foreach ($APP["routes"][$link['2']] as $listroutes) {
-        	echo $listroutes;
-			if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
-				$lookup_string=getHostnameFromDB($listroutes);
-				if ($listroutes !== $lookup_string) {
-					echo " - ";
-					echo $lookup_string;
+        if ($APP["routes_".$link['2']]>0) { 
+			foreach ($APP["routes"][$link['2']] as $listroutes) {
+				echo $listroutes;
+				if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
+					$lookup=getHostnameFromDB($listroutes);
+					if (isset($lookup['n'])) {
+						echo " - ";
+						echo $lookup['string'];
+						if (!in_array(strtolower($lookup['n']), $nodes_at_this_route )) {
+							array_push($nodes_at_this_route, strtolower($lookup['n']));
+						}
+					}
 				}
+				echo "<br>";
 			}
-			echo "<br>";
         }
         ?>
       </div>
@@ -137,11 +154,42 @@ function getOLSRLinks() {
     </div>
   </div>
 </div>
+        <? if (count($nodes_at_this_route)>0) {
+		?>
+        <!-- Modal -->
+<div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel"><?= count($nodes_at_this_route);?> nodes from <b><?= $neighbor; ?></b></h4>
+      </div>
+      <div class="modal-body"><?
+			foreach ($nodes_at_this_route as $node) {
+				echo "- ".$node;
+				echo "<br>";
+			}
+        ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
         <?
+		}
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
+		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td>";
+		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."_nodes\">". count($nodes_at_this_route) ."</button></td>";
+		echo "</tr>";
     }
     echo "</tbody></table>\n";
     unset($routes_raw);
     unset($olsr_links_raw);
+    unset($nodes_at_this_route);
 }
     
 function parse_firmware($in) {
@@ -570,7 +618,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 					            foreach ($interfaces[$key]['devices'] as $d) {
 					                if (isset($devices[$d]['ips'][$bridge])) { foreach ($devices[$d]['ips'][$bridge] as $ip) {
 					                    if (substr($ip,0,8)=="192.168.") {
-					                        if ($skip_this==1) { continue; }
+					                        if (isset($skip_this)) { continue; }
 					                        echo '192.168.*.*';
 					                        $skip_this = 1;
 					                        continue;

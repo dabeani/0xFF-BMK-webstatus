@@ -91,7 +91,7 @@ function getOLSRLinks() {
         unset($olsr_links_raw['1']);
     }
     
-    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>route entries</b></td></tr></thead>\n";
+    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td></tr></thead>\n";
     echo "<tbody>\n";
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
@@ -99,11 +99,11 @@ function getOLSRLinks() {
         $tmp_output_route_text = "route";
         $tmp_defaultroute = "";
         // prepare the text of route or routes..
-        if($APP["routes_".$link['2']] > 1) {
-            $tmp_output_route_text = "routes";
-        }
+        //if($APP["routes_".$link['2']] > 1) {
+        //    $tmp_output_route_text = "routes";
+        //}
         if(!isset($APP["routes_".$link['2']])) {
-            $tmp_output_route_text = "no routes";
+        //    $tmp_output_route_text = "no routes";
             $APP["routes_".$link['2']]=0;
         }
         // if we know the default-route, set a colored background of that column
@@ -111,7 +111,7 @@ function getOLSRLinks() {
            $tmp_defaultroute = " bgcolor=FFD700";
         }
         $neighbor = gethostbyaddr($link['2']); // do this request only one time...
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button> ".$tmp_output_route_text."</td></tr>";
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td><td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td></tr>";
         ?>
         <!-- Modal -->
 <div class="modal fade" id="myModal<?= str_replace('.','',$link['2']); ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

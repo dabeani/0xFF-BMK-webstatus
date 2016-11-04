@@ -33,7 +33,7 @@ function printLoadingText($text) {
 function getHostnameFromDB($ip) {
 	if (filter_var($ip, FILTER_VALIDATE_IP) === false) {
 		// $ip is not a valid IP address
-		return ($ip);
+		return(array('ip'=>$ip));
 	}
 	global $IP_RANGE;
 	global $node_dns;
@@ -50,7 +50,7 @@ function getHostnameFromDB($ip) {
 			// json not available, stop lookup
 			$node_dns=array('0');
 			$get_nslookup_from_nodedb=0;
-			return ($ip);
+			return(array('ip'=>$ip));
 		}
 		// {"193.238.159.58":{"n":"1230bfs256","i":"2182","d":"natrouter"}
 		if (isset($node_dns[$ip])) {
@@ -64,12 +64,20 @@ function getHostnameFromDB($ip) {
 				}
 				$result .= ")";
 			}
-			return ($result);
+			//return ($result);
+			return(array(	 'ip'=>$ip
+							,'n' =>$node_dns[$ip]['n']
+							,'i' =>$node_dns[$ip]['i']
+							,'d' =>$node_dns[$ip]['d']
+							,'m' =>$node_dns[$ip]['m']
+							,'h' =>$node_dns[$ip]['h']
+							,'string'=>$result
+						));
 		}
-		return ($ip);
+		return(array('ip'=>$ip));
 	} else {
 		// $ip is not an 0xFF ip
-		return ($ip);
+		return(array('ip'=>$ip));
 	}
 }
     
@@ -131,10 +139,13 @@ function getOLSRLinks() {
 			foreach ($APP["routes"][$link['2']] as $listroutes) {
 				echo $listroutes;
 				if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
-					$lookup_string=getHostnameFromDB($listroutes);
-					if ($listroutes !== $lookup_string) {
+					//$lookup_string=getHostnameFromDB($listroutes);
+					$lookup=getHostnameFromDB($listroutes);
+					//if ($listroutes !== $lookup_string) {
+					if (isset($lookup['n'])) {
 						echo " - ";
-						echo $lookup_string;
+					//	echo $lookup_string;
+						echo $lookup['string'];
 					}
 				}
 				echo "<br>";

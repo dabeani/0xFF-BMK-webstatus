@@ -97,7 +97,7 @@ function getOLSRLinks() {
         unset($olsr_links_raw['1']);
     }
     
-    echo "<table class=\"table table-hover table-bordered\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
+    echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
@@ -564,7 +564,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 					        }
 					    }
 					}
-					echo "<table class=\"table table-hover table-bordered\"><tbody>";
+					echo "<table class=\"table table-hover table-bordered table-condensed\"><tbody>";
 					    //if($ext == "table") {
 					    echo "<tr valign=top><td><b>Ports</b></td>";           foreach ($interfaces as $key=>$value) { echo "<td>".$key."</td>"; } echo "</tr>";
 					    echo "<tr valign=top><td><b>Description</b></td>";     foreach ($interfaces as $key=>$value) { echo "<td>".$interfaces[$key]['desc']."</td>"; } echo "</tr>";

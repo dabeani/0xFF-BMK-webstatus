@@ -5,14 +5,13 @@ set_time_limit(60);
 $APP = Array();
 $IP_RANGE=Array();
 
-// issues: blanks in interface-desc eth_desc
-
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
 
 // define all possible management interfaces for status-output
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
-$get_nslookup_from_nodedb=1;
+$get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
+$traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
@@ -380,7 +379,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>#</b></td><td><b>Hostename</b></td><td><b>IP Address</b></td>";
 							echo "<td><b>Ping</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							$tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228")));
+							$tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 ".$traceroute_to)));
 							array_shift($tracelines); // remove headline
 							foreach ($tracelines as $line) {
 								$line=str_replace('     ',' ',$line); 

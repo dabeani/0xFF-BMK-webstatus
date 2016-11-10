@@ -380,7 +380,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>#</b></td><td><b>Hostename</b></td><td><b>IP Address</b></td>";
 							echo "<td><b>Ping</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							$tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228")););
+							$tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228")));
 							array_shift($tracelines); // remove headline
 							foreach ($tracelines as $line) {
 								$line=str_replace('     ',' ',$line); 
@@ -391,14 +391,23 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								//  1  router.luxi122home.wien.funkfeuer.at (78.41.113.155)  5.307 ms
 								echo "<tr>";
 								echo "<td>".$hop[0]."</td>"; // hop number
+								echo "<td>";
+								if (strlen($hop[1])>=5) { echo "<a href=\"http://".$hop[1]."\" target=\"".$hop[1]."\">"; }
 								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) { 
 									$hostname=explode(".",$hop[1]);
 									$hostname[1]="<b>".$hostname[1]."</b>";
-									echo "<td>".implode(".",$hostname)."</td>"; // hostname with nodename highlighted
+									echo implode(".",$hostname); // hostname with nodename highlighted
 								} else {
-									echo "<td>".$hop[1]."</td>"; // hostname as is
+									echo $hop[1]; // hostname as is
 								}
-								echo "<td>".trim($hop[2]," ()[]")."</td>"; // ip address in ()
+								if (strlen($hop[1])>=5) { echo "</a>"; }
+								echo "</td>";
+								echo "<td>";
+								$hop[2]=trim($hop[2]," ()[]");
+								if (strlen($hop[2])>=5) { echo "<a href=\"http://".$hop[2]."\" target=\"".$hop[2]."\">"; }
+								echo $hop[2]; // ip address
+								if (strlen($hop[2])>=5) { echo "</a>"; }
+								echo "</td>";
 								echo "<td align=right>".number_format($hop[3],2)." ".$hop[4]."</td>"; // ping-time
 								echo "</tr>\n";
 							}

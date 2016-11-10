@@ -204,6 +204,21 @@ function parse_firmware($in) {
 	return $fwstring;
 }
 
+function format_wmode($in) {
+	if ($in == -1) { return "CABLE"; }
+	if ($in ==  3) { return "AP"; }
+	if ($in ==  2) { return "STA"; }
+	return $in;
+}
+
+function format_duration($in) {
+	if ($in  <= 120)  return $in."sec";    // 0-120 sek
+	if ($in  <= 120*60)  return round($in/60,0)."min"; // 2-120min
+	if ($in  <= 50*60*60)  return round($in/60/60,0)."h"; // 2-50h
+	return round($in/60/60/24,0)."d"; // 2+ tage
+}
+
+
 /*
 * Diverse Daten auslesen um ScanTools zu supporten! (- andernfalls Statusseite ausgeben...)
 */
@@ -297,8 +312,8 @@ flush();
 					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
 				</ul><br>
 <?
-$APP["devices"] = explode("\n",shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\""));
-$APP["devices"][0]=str_replace("Local","Local  ",$APP["devices"][0]);
+//$APP["devices"] = explode("\n",shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\""));
+//$APP["devices"][0]=str_replace("Local","Local  ",$APP["devices"][0]);
 $APP["v4defaultrouteviaport"] = trim(shell_exec("ip r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
 $APP["v6defaultrouteviaport"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
 $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
@@ -325,7 +340,33 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						<dl class="dl-horizontal">
 						  <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><?php echo shell_exec("uptime") ?></dd>
 						  <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v4defaultrouteviadns"]."\">".$APP["v4defaultrouteviadns"]." (".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
-						  <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
+						  <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
+						  <?
+						  $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j"),true);
+						  if (count($APP["devices_list"]>0)) {
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
+							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
+							echo "<tbody>\n";
+							foreach ($APP["devices_list"] as $device) {
+								foreach ($device as $d) {
+									echo "<tr>";
+									echo "<td>".$d['hwaddr']."</td>";
+									echo "<td>".$d['ipv4']."</td>";
+									echo "<td>".$d['hostname']."</td>";
+									echo "<td>".$d['product']."</td>";
+									echo "<td>".format_duration($d['uptime'])."</td>";
+									echo "<td>".format_wmode($d['wmode'])."</td>";
+									echo "<td>".$d['essid']."</td>";
+									echo "<td>".parse_firmware($d['fwversion'])."</td>";
+									echo "</tr>\n";
+								}
+							}
+							echo "</tbody></table>";
+						  } else {
+							echo "No devices discovered";
+						  }
+						  ?>
+						  </dd>
 						  <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>

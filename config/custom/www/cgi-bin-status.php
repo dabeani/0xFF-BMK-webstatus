@@ -355,12 +355,12 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 									echo "<td>".$d['ipv4']."</td>";
 									echo "<td>".$d['hostname']."</td>";
 									echo "<td>".$d['product']."</td>";
-									echo "<td>".$d['uptime']."</td>";
-									echo "<td>".$d['wmode']."</td>";
+									echo "<td>".format_duration($d['uptime'])."</td>";
+									echo "<td>".format_wmode($d['wmode'])."</td>";
 									echo "<td>".$d['essid']."</td>";
-									echo "<td>".$d['firmware']."</td>";
+									echo "<td>".parse_firmware($d['firmware'])."</td>";
 								}
-								echo "</tr>";
+								echo "</tr>\n";
 							}
 							echo "</tbody></table>";
 						  } else {

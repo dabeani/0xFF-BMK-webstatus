@@ -358,7 +358,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 									echo "<td>".format_duration($d['uptime'])."</td>";
 									echo "<td>".format_wmode($d['wmode'])."</td>";
 									echo "<td>".$d['essid']."</td>";
-									echo "<td>".parse_firmware($d['firmware'])."</td>";
+									echo "<td>".parse_firmware($d['fwversion'])."</td>";
 									echo "</tr>\n";
 								}
 							}

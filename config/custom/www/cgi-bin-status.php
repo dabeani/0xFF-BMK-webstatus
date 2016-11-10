@@ -5,14 +5,13 @@ set_time_limit(60);
 $APP = Array();
 $IP_RANGE=Array();
 
-// issues: blanks in interface-desc eth_desc
-
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
 
 // define all possible management interfaces for status-output
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
-$get_nslookup_from_nodedb=1;
+$get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
+$traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
@@ -97,7 +96,7 @@ function getOLSRLinks() {
         unset($olsr_links_raw['1']);
     }
     
-    echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
+    echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
@@ -344,7 +343,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						  <?
 						  $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j"),true);
 						  if (count($APP["devices_list"]>0)) {
-							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 							foreach ($APP["devices_list"] as $device) {
@@ -375,7 +374,45 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 <?php } else { echo "<dt>IPv6</dt><dd><span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\"></span> disabled...</dd>"; }
 printLoadingText("Loading Status-TAB (do traceroute)...");
 ?>
-						  <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd><pre><?php echo trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));?></pre></dd>
+						  <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
+						  <?php
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>#</b></td><td><b>Hostename</b></td><td><b>IP Address</b></td>";
+							echo "<td><b>Ping</b></td></tr></thead>\n";
+							echo "<tbody>\n";
+							$tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 ".$traceroute_to)));
+							array_shift($tracelines); // remove headline
+							foreach ($tracelines as $line) {
+								$line=str_replace('     ',' ',$line); 
+								$line=str_replace('    ',' ',$line); 
+								$line=str_replace('   ',' ',$line); 
+								$line=str_replace('  ',' ',$line); 
+								$hop = explode(" ", trim($line));
+								//  1  router.luxi122home.wien.funkfeuer.at (78.41.113.155)  5.307 ms
+								echo "<tr>";
+								echo "<td>".$hop[0]."</td>"; // hop number
+								echo "<td>";
+								if (strlen($hop[1])>=5) { echo "<a href=\"http://".$hop[1]."\" target=\"".$hop[1]."\">"; }
+								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) { 
+									$hostname=explode(".",$hop[1]);
+									$hostname[1]="<b>".$hostname[1]."</b>";
+									echo implode(".",$hostname); // hostname with nodename highlighted
+								} else {
+									echo $hop[1]; // hostname as is
+								}
+								if (strlen($hop[1])>=5) { echo "</a>"; }
+								echo "</td>";
+								echo "<td>";
+								$hop[2]=trim($hop[2]," ()[]");
+								if (strlen($hop[2])>=5) { echo "<a href=\"http://".$hop[2]."\" target=\"".$hop[2]."\">"; }
+								echo $hop[2]; // ip address
+								if (strlen($hop[2])>=5) { echo "</a>"; }
+								echo "</td>";
+								echo "<td align=right>".number_format($hop[3],2)." ".$hop[4]."</td>"; // ping-time
+								echo "</tr>\n";
+							}
+							echo "</tbody></table>";
+						  ?> 
+						  </dd>
 						</dl>
 					</div>
 <!-- Port-Status TAB -->

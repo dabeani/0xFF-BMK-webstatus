@@ -250,11 +250,12 @@ flush();
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-	<link rel="shortcut icon" type="image/ico" href="/css/favicon.ico">
-	<link rel="apple-touch-icon" sizes="114x114" href="/css/apple-touch-icon.png">
-	<link rel="icon" type="image/png" href="/css/favicon-32x32.png" sizes="32x32">
-	<link rel="icon" type="image/png" href="/css/favicon-16x16.png" sizes="16x16">
-	<link rel="icon" type="image/x-icon" href="/css/favicon.ico">
+	<? /* favicons on iPhone/iPad only work, if FQDN is used as url; wont work over IP - might need a fix for correct PORT in URI */ ?>
+	<link rel="shortcut icon" type="image/ico" href="https://<?= $APP["hostname"]; ?>/css/favicon.ico">
+	<link rel="apple-touch-icon" sizes="114x114" href="https://<?= $APP["hostname"]; ?>/css/apple-touch-icon.png">
+	<link rel="icon" type="image/png" href="https://<?= $APP["hostname"]; ?>/css/favicon-32x32.png" sizes="32x32">
+	<link rel="icon" type="image/png" href="https://<?= $APP["hostname"]; ?>/css/favicon-16x16.png" sizes="16x16">
+	<link rel="icon" type="image/x-icon" href="https://<?= $APP["hostname"]; ?>/css/favicon.ico">
 
     <title><?php echo $APP["hostname"];?></title>
 

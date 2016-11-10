@@ -349,8 +349,8 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 							foreach ($APP["devices_list"] as $device) {
-								echo "<tr>";
 								foreach ($device as $d) {
+									echo "<tr>";
 									echo "<td>".$d['hwaddr']."</td>";
 									echo "<td>".$d['ipv4']."</td>";
 									echo "<td>".$d['hostname']."</td>";
@@ -359,8 +359,8 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 									echo "<td>".format_wmode($d['wmode'])."</td>";
 									echo "<td>".$d['essid']."</td>";
 									echo "<td>".parse_firmware($d['firmware'])."</td>";
+									echo "</tr>\n";
 								}
-								echo "</tr>\n";
 							}
 							echo "</tbody></table>";
 						  } else {

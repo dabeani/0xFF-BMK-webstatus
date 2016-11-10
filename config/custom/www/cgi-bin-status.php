@@ -326,6 +326,26 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						  <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><?php echo shell_exec("uptime") ?></dd>
 						  <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v4defaultrouteviadns"]."\">".$APP["v4defaultrouteviadns"]." (".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
 						  <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre><?php echo implode("\n", $APP["devices"]); ?></pre></dd>
+						  <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
+						  <? /* NEW DEVICES START */
+						  $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j"));
+						  if (count($APP["devices_list"]>0)) {
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
+							echo "<tbody>\n";
+							foreach ($APP["devices_list"] as $device) {
+								echo "<tr>";
+								foreach ($device as $val=>$key) {
+									echo "<td>".$val."=".$key."</td>";
+								}
+								echo "</tr>";
+							}
+							echo "</tbody></table>";
+						  } else {
+							echo "No devices discovered";
+						  }
+						  /* NEW DEVICES END */ 
+						  ?>
+						  </dd>
 						  <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>

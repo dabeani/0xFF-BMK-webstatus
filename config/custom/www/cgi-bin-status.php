@@ -346,21 +346,19 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						  $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j"),true);
 						  if (count($APP["devices_list"]>0)) {
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>Hardware Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
-							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODe</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
+							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							foreach ($APP["devices_list"]["devices"] as $device) {
+							foreach ($APP["devices_list"] as $device) {
 								echo "<tr>";
-								// Local    Hardware Address   IP address            Name
-								// "hwaddr": "24:A4:3C:FA:FE:8D","ipv4": "10.27.18.1","hostname": "WEHRxLUXI","product": "N5B-19","uptime": 1263863,"wmode": 2,"essid": "luxitowehr.funkfeuer.at","addresses": [{ "hwaddr": "24:A4:3C:FB:FE:8D", "ipv4" : "10.27.18.1" }],"fwversion": "XW.ar934x.v5.6.9.29546.160819.1146"
 								foreach ($device as $d) {
-									echo "<td>{$d['hwaddr']}</td>";
-									echo "<td>{$d['ipv4']}</td>";
-									echo "<td>{$d['hostname']}</td>";
-									echo "<td>{$d['product']}</td>";
-									echo "<td>".format_duration($d['uptime'])."</td>";
-									echo "<td>".format_wmode($d['wmode'])."</td>";
-									echo "<td>{$d['essid']}</td>";
-									echo "<td>".parse_firmware($d['fwversion'])."</td>";
+									echo "<td>".$d['hwaddr']."</td>";
+									echo "<td>".$d['ipv4']."</td>";
+									echo "<td>".$d['hostname']."</td>";
+									echo "<td>".$d['product']."</td>";
+									echo "<td>".$d['uptime']."</td>";
+									echo "<td>".$d['wmode']."</td>";
+									echo "<td>".$d['essid']."</td>";
+									echo "<td>".$d['firmware']."</td>";
 								}
 								echo "</tr>";
 							}

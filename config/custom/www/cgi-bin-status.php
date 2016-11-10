@@ -97,7 +97,7 @@ function getOLSRLinks() {
         unset($olsr_links_raw['1']);
     }
     
-    echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
+    echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
@@ -344,7 +344,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 						  <?
 						  $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j"),true);
 						  if (count($APP["devices_list"]>0)) {
-							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 							foreach ($APP["devices_list"] as $device) {
@@ -375,7 +375,34 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 <?php } else { echo "<dt>IPv6</dt><dd><span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\"></span> disabled...</dd>"; }
 printLoadingText("Loading Status-TAB (do traceroute)...");
 ?>
-						  <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd><pre><?php echo trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));?></pre></dd>
+						  <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
+						  <?php 
+							$traceroute_raw=trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));
+						  ?><pre> <?= $traceroute_raw; ?></pre>
+						  <?php
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
+							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
+							echo "<tbody>\n";
+							$tracelines=explode("\n",$traceroute_raw);
+							array_shift($tracelines); // remove headline
+							foreach ($tracelines as $line) {
+								$line=str_replace('     ',' ',$line); 
+								$line=str_replace('    ',' ',$line); 
+								$line=str_replace('   ',' ',$line); 
+								$line=str_replace('  ',' ',$line); 
+								$hop = explode(" ", trim($line));
+								//  1  router.luxi122home.wien.funkfeuer.at (78.41.113.155)  5.307 ms
+									echo "<tr>";
+									echo "<td>".$hop[0]."</td>"; // hop number
+									echo "<td>".$hop[1]."</td>"; // hostname
+									echo "<td>".$hop[2]."</td>"; // ip address in ()
+									echo "<td>".$hop[3]."</td>"; // ping-time
+									echo "<td>".$hop[4]."</td>"; // ping-period
+									echo "</tr>\n";
+							}
+							echo "</tbody></table>";
+						  ?> 
+						  </dd>
 						</dl>
 					</div>
 <!-- Port-Status TAB -->

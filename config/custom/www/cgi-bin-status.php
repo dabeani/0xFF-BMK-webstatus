@@ -376,14 +376,11 @@ if(strlen($APP["ipv6_status"]) > 5) {?>
 printLoadingText("Loading Status-TAB (do traceroute)...");
 ?>
 						  <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
-						  <?php 
-							$traceroute_raw=trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228"));
-						  ?><pre> <?= $traceroute_raw; ?></pre>
 						  <?php
-							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
-							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>#</b></td><td><b>Hostename</b></td><td><b>IP Address</b></td>";
+							echo "<td><b>Ping</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							$tracelines=explode("\n",$traceroute_raw);
+							$tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 78.41.115.228")););
 							array_shift($tracelines); // remove headline
 							foreach ($tracelines as $line) {
 								$line=str_replace('     ',' ',$line); 
@@ -392,13 +389,18 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								$line=str_replace('  ',' ',$line); 
 								$hop = explode(" ", trim($line));
 								//  1  router.luxi122home.wien.funkfeuer.at (78.41.113.155)  5.307 ms
-									echo "<tr>";
-									echo "<td>".$hop[0]."</td>"; // hop number
-									echo "<td>".$hop[1]."</td>"; // hostname
-									echo "<td>".$hop[2]."</td>"; // ip address in ()
-									echo "<td>".$hop[3]."</td>"; // ping-time
-									echo "<td>".$hop[4]."</td>"; // ping-period
-									echo "</tr>\n";
+								echo "<tr>";
+								echo "<td>".$hop[0]."</td>"; // hop number
+								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) { 
+									$hostname=explode(".",$hop[1]);
+									$hostname[1]="<b>".$hostname[1]."</b>";
+									echo "<td>".implode(".",$hostname)."</td>"; // hostname with nodename highlighted
+								} else {
+									echo "<td>".$hop[1]."</td>"; // hostname as is
+								}
+								echo "<td>".trim($hop[2]," ()[]")."</td>"; // ip address in ()
+								echo "<td align=right>".number_format($hop[3],2)." ".$hop[4]."</td>"; // ping-time
+								echo "</tr>\n";
 							}
 							echo "</tbody></table>";
 						  ?> 

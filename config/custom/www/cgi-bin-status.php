@@ -11,6 +11,7 @@ $IP_RANGE=Array();
 // define all possible management interfaces for status-output
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
 $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
+$show_link_to_adminlogin=1;
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
@@ -309,6 +310,20 @@ flush();
                     <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Port-Table</a></li>
 					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
 					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
+
+				<?	if ((isset($show_link_to_adminlogin)) && ($show_link_to_adminlogin==1)) {
+						$port_array_raw=explode("\n",trim(shell_exec("grep -E \"http.{0,1}-port\" /config/config.boot")));
+						foreach ($port_array_raw as $line) {
+							$tmp=explode(" ", trim($line));
+							$port_array[$tmp[0]]=$tmp[1];
+						}
+						unset($tmp); 
+						unset($port_array_raw);
+						unset($line);
+						?><li role="presentation"><a href="<? echo "https://".$_SERVER['SERVER_NAME'].":".$port_array['https-port']."/";   ?>" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>Login</a></li>
+						<?
+					}
+				?>
 				</ul><br>
 <?
 //$APP["devices"] = explode("\n",shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\""));
@@ -376,7 +391,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 ?>
 						  <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
 						  <?php
-							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>#</b></td><td><b>Hostename</b></td><td><b>IP Address</b></td>";
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>";
 							echo "<td><b>Ping</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 							$tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 ".$traceroute_to)));

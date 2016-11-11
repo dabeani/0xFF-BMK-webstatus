@@ -11,7 +11,7 @@ $IP_RANGE=Array();
 // define all possible management interfaces for status-output
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
 $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
-$show_link_to_adminlogin=1;
+$show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
@@ -310,7 +310,6 @@ flush();
                     <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Port-Table</a></li>
 					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
 					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
-
 				<?	if ((isset($show_link_to_adminlogin)) && ($show_link_to_adminlogin==1)) {
 						$port_array_raw=explode("\n",trim(shell_exec("grep -E \"http.{0,1}-port\" /config/config.boot")));
 						foreach ($port_array_raw as $line) {
@@ -320,7 +319,7 @@ flush();
 						unset($tmp); 
 						unset($port_array_raw);
 						unset($line);
-						?><li role="presentation"><a href="<? echo "https://".$_SERVER['SERVER_NAME'].":".$port_array['https-port']."/";   ?>" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>Login</a></li>
+						?><li role="presentation"><a href="<? echo "https://".$_SERVER['SERVER_NAME'].":".$port_array['https-port']."/";   ?>"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Login</a></li>
 						<?
 					}
 				?>

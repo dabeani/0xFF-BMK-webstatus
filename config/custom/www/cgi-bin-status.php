@@ -289,6 +289,7 @@ flush();
         height: 100%;
         width: 100%;
         z-index: 5000;
+	opacity: 0.5;
         top: 0;
         left: 0;
         float: left;

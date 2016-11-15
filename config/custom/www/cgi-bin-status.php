@@ -185,6 +185,7 @@ function getOLSRLinks() {
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."\">".$APP["routes_".$link['2']]."</button></td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace('.','',$link['2'])."_nodes\">". count($nodes_at_this_route) ."</button></td>";
 		echo "</tr>";
+		flush();
     }
     echo "</tbody></table>\n";
     unset($routes_raw);
@@ -278,7 +279,6 @@ flush();
     <link href="/css/bootstrap.min.css" rel="stylesheet">
 
   </head>
-
   <body>
 
 <style>
@@ -289,7 +289,7 @@ flush();
         height: 100%;
         width: 100%;
         z-index: 5000;
-	opacity: 0.5;
+        opacity: 0.5;
         top: 0;
         left: 0;
         float: left;
@@ -373,6 +373,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 									echo "<td>".$d['essid']."</td>";
 									echo "<td>".parse_firmware($d['fwversion'])."</td>";
 									echo "</tr>\n";
+									flush();
 								}
 							}
 							echo "</tbody></table>";
@@ -424,6 +425,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								echo "</td>";
 								echo "<td align=right>".number_format($hop[3],2)." ".$hop[4]."</td>"; // ping-time
 								echo "</tr>\n";
+								flush();
 							}
 							echo "</tbody></table>";
 						  ?> 
@@ -431,6 +433,12 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 						</dl>
 					</div>
 <!-- Port-Status TAB -->
+<script type="text/javascript">
+document.getElementById('overlay').style.height='60px';
+document.getElementById('overlay').style.top ='0px';
+document.getElementById('overlay').style.float='none';
+document.getElementById('overlay').style.padding='0';
+</script>
 <?php printLoadingText("Loading Port-Table TAB..."); ?>
                     <div role="tabpanel" class="tab-pane" id="table">
 					<?

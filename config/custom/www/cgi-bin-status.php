@@ -490,7 +490,7 @@ document.getElementById('overlay').style.padding='0';
 								echo "<td>";
 								if (strstr($line['hostname'], 'wien.funkfeuer.at')==TRUE) {
 									$hostname=explode(".",$line['hostname']);
-									echo $hostname[0]."<b>".$hostname[1]."</b>";
+									echo $hostname[0].".<b>".$hostname[1]."</b>";
 								} else {
 									echo $line['hostname'];
 								}

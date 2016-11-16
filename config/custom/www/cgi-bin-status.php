@@ -58,9 +58,7 @@ function getHostnameFromDB($ip) {
 			foreach (array('m'=>'MID of', 'h'=>'HNA at') as $key=>$text) {
 				if (isset($node_dns[$ip][$key])) {
 					$result .= " (".$text." ";
-				//	if (isset($node_dns[$node_dns[$ip]['m' ]]['n'])) {
 					if (isset($node_dns[$node_dns[$ip][$key]]['n'])) {
-					//	$result .= $node_dns[$ip]['m' ] ."=". $node_dns[$node_dns[$ip]['m' ]]['d'].".".$node_dns[$node_dns[$ip]['m' ]]['n'] /*.".wien.funkfeuer.at"*/;
 						$result .= $node_dns[$ip][$key] ."=". $node_dns[$node_dns[$ip][$key]]['d'].".".$node_dns[$node_dns[$ip][$key]]['n'] /*.".wien.funkfeuer.at"*/;
 					} else {
 						$result .= $node_dns[$ip][$key] ."=unknown device/node";
@@ -412,7 +410,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								echo "<td>".$hop[0]."</td>"; // hop number
 								echo "<td>";
 								if (strlen($hop[1])>=5) { echo "<a href=\"http://".$hop[1]."\" target=\"".$hop[1]."\">"; }
-								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) { 
+								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) {
 									$hostname=explode(".",$hop[1]);
 									$smoke_image_url="http://smokeping.funkfeuer.at/smokeping/freenet/img/".$hostname[1]."/".$hostname[0]."_mini.png";
 									$hostname[1]="<b>".$hostname[1]."</b>";
@@ -422,6 +420,16 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 									unset($smoke_image_url);
 								}
 								if (strlen($hop[1])>=5) { echo "</a>"; }
+								if ((isset($smoke_image_url)) && (1==2)) {   // no not execute - future feature
+									$headers = get_headers($smoke_image_url);
+									$code = $headers[0];
+									$code_0=explode(" ", $code);
+									if ($code_0[1]=="200") {
+										echo "<br><img src=\"".$smoke_image_url."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\">";
+									} else {
+										echo "<!-- smokeping image load error: ~".$code."~ -->";
+									}
+								}
 								echo "</td>";
 								echo "<td>";
 								$hop[2]=trim($hop[2]," ()[]");

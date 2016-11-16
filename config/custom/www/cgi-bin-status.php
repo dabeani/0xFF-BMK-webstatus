@@ -475,21 +475,34 @@ document.getElementById('overlay').style.padding='0';
 					<div role="tabpanel" class="tab-pane" id="smoke">
 <?php
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top>";
-							echo "<td><b>#</b></td><td><b>Hostname</b></td><td><b>IP</b></td></tr></thead>\n";
+							echo "<td><b>#</b></td><td><b>Hostname/IP</b></td><td><b>Smokeping</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 							foreach ($smokeping_table as $line) {
 								echo "<tr>";
 								echo "<td rowspan=2>".$line['hop']."</td>";
-								echo "<td>".$line['hostname']."</td>";
-								echo "<td>".$line['ip']."</td>";
-								echo "</tr><tr>";
-								echo "<td><img src=\"".$line['image']."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\"></td>";
-								echo "</tr>\n";
+								echo "<td rowspan=2>";
+								if (strlen($line['image'])>3) {
+									echo "<img src=\"".$line['image']."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\">";
+								} else {
+									echo "smokeping not enabled for this host";
+								}
+								echo "</td>";
+								echo "<td>";
+								if (strstr($line['hostname'], 'wien.funkfeuer.at')==TRUE) {
+									$hostname=explode(".",$line['hostname']);
+									echo $hostname[0]."<b>".$hostname[1]."</b>";
+								} else {
+									echo $line['hostname'];
+								}
+								echo "</td>";
+								echo "</tr>";
+								echo "<tr><td>".$line['ip']."</td>";
+								echo "</tr>";
 								flush();
 							}
 							echo "</tbody></table>";
 							echo "</div>\n";
-<?php } // end if smoke ?>
+} // end if smoke ?>
 <?php printLoadingText("Loading Port-Table TAB..."); ?>
                     <div role="tabpanel" class="tab-pane" id="table">
 					<?

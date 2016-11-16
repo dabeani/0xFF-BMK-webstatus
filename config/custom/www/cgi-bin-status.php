@@ -55,14 +55,16 @@ function getHostnameFromDB($ip) {
 		// {"193.238.159.58":{"n":"1230bfs256","i":"2182","d":"natrouter"}
 		if (isset($node_dns[$ip])) {
 			$result = $node_dns[$ip]['d'] .".".$node_dns[$ip]['n'] /*.".wien.funkfeuer.at" */;
-			if (isset($node_dns[$ip]['m'])) {
-				$result .= " (MID of ";
-				if (isset($node_dns[$node_dns[$ip]['m']]['n'])) {
-					$result .= $node_dns[$ip]['m'] ."=". $node_dns[$node_dns[$ip]['m']]['d'].".".$node_dns[$node_dns[$ip]['m']]['n'] /*.".wien.funkfeuer.at"*/;
-				} else {
-					$result .= $node_dns[$ip]['m'] ."=unknown device/node";
-				}
-				$result .= ")";
+			foreach (array('m'=>'MID of', 'h'=>'HNA at') as $key=>$text) {
+				if (isset($node_dns[$ip][$key])) {
+					$result .= " (".$text." ";
+					if (isset($node_dns[$node_dns[$ip][$key]['n'])) {
+						$result .= $node_dns[$ip][$key] ."=". $node_dns[$node_dns[$ip][$key]['d'].".".$node_dns[$node_dns[$ip][$key]]['n'] /*.".wien.funkfeuer.at"*/;
+					} else {
+						$result .= $node_dns[$ip][$key] ."=unknown device/node";
+					}
+					$result .= ")";
+			}
 			}
 			$return_arr=$node_dns[$ip];
 			$return_arr['ip']=$ip;
@@ -410,10 +412,12 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								if (strlen($hop[1])>=5) { echo "<a href=\"http://".$hop[1]."\" target=\"".$hop[1]."\">"; }
 								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) { 
 									$hostname=explode(".",$hop[1]);
+									$smoke_image_url="http://smokeping.funkfeuer.at/smokeping/freenet/img/".$hostname[1]."/".$hostname[0]."_mini.png";
 									$hostname[1]="<b>".$hostname[1]."</b>";
 									echo implode(".",$hostname); // hostname with nodename highlighted
 								} else {
 									echo $hop[1]; // hostname as is
+									unset($smoke_image_url);
 								}
 								if (strlen($hop[1])>=5) { echo "</a>"; }
 								echo "</td>";

@@ -58,7 +58,9 @@ function getHostnameFromDB($ip) {
 			foreach (array('m'=>'MID of', 'h'=>'HNA at') as $key=>$text) {
 				if (isset($node_dns[$ip][$key])) {
 					$result .= " (".$text." ";
+				//	if (isset($node_dns[$node_dns[$ip]['m' ]]['n'])) {
 					if (isset($node_dns[$node_dns[$ip][$key]]['n'])) {
+					//	$result .= $node_dns[$ip]['m' ] ."=". $node_dns[$node_dns[$ip]['m' ]]['d'].".".$node_dns[$node_dns[$ip]['m' ]]['n'] /*.".wien.funkfeuer.at"*/;
 						$result .= $node_dns[$ip][$key] ."=". $node_dns[$node_dns[$ip][$key]]['d'].".".$node_dns[$node_dns[$ip][$key]]['n'] /*.".wien.funkfeuer.at"*/;
 					} else {
 						$result .= $node_dns[$ip][$key] ."=unknown device/node";

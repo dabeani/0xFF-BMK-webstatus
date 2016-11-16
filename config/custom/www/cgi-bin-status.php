@@ -420,7 +420,8 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 									unset($smoke_image_url);
 								}
 								if (strlen($hop[1])>=5) { echo "</a>"; }
-								if ((isset($smoke_image_url)) && (1==2)) {   // no not execute - future feature
+								if (isset($smoke_image_url)) { unset($smoke_image_url); }  // no not execute - future feature
+								if (isset($smoke_image_url)) {
 									$headers = get_headers($smoke_image_url);
 									$code = $headers[0];
 									$code_0=explode(" ", $code);

@@ -485,8 +485,16 @@ document.getElementById('overlay').style.padding='0';
 								echo "<td rowspan=2>".$line['hop']."</td>";
 								echo "<td rowspan=2>";
 								if (strlen($line['image'])>3) {
-									echo "<img id=\"smokeping_generate_".$line['hop']."\" src=\"".$line['generate']."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\" ";
-									echo "onload=\"document.getElementById(\"smokeping_generate_".$line['hop'].").src = ".$line['image'].";\">";
+									echo "<img id=\"smokeping_generate_".$line['hop']."\" src=\"".$line['generate']."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\">";
+									?>
+<script>
+document.getElementById("smokeping_generate_<?= $line['hop']; ?>").addEventListener("load", myFunction_<?= $line['hop']; ?>);
+function myFunction_<?= $line['hop']; ?>() {
+    document.getElementById("smokeping_generate_<?= $line['hop']; ?>").src="<?= $line['image']; ?>";
+}
+</script>
+									
+									<?php
 								} else {
 									echo "smokeping not enabled for this host";
 								}

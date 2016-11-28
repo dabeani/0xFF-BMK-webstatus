@@ -14,7 +14,7 @@ $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node dat
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 $show_smokeping_page=1;            // if nodedb-lookup is enabled: lookup smokeping images and show them in traceroute sequence
-$smokeping_baseurl="http://smokeping.funkfeuer.at/smokeping/freenet/img/";
+$smokeping_baseurl="http://smokeping.funkfeuer.at/smokeping/freenet/";
 
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
@@ -419,12 +419,14 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								if (strlen($hop[1])>=5) { echo "<a href=\"http://".$hop[1]."\" target=\"".$hop[1]."\">"; }
 								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) {
 									$hostname=explode(".",$hop[1]);
-									$smoke_image_url=$smokeping_baseurl.$hostname[1]."/".$hostname[0]."_mini.png";
+									$smoke_image_url=$smokeping_baseurl."img/".$hostname[1]."/".$hostname[0]."_mini.png";
+									$smoke_generate_url=$smokeping_baseurl."?target=".$hostname[1];
 									$hostname[1]="<b>".$hostname[1]."</b>";
 									echo implode(".",$hostname); // hostname with nodename highlighted
 								} else {
 									echo $hop[1]; // hostname as is
 									unset($smoke_image_url);
+									unset($smoke_generate_url);
 								}
 								if (strlen($hop[1])>=5) { echo "</a>"; }
 								//if (isset($smoke_image_url)) { unset($smoke_image_url); }  // do not execute - future feature
@@ -444,6 +446,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 										'hop'     => $hop[0],
 										'hostname'=> $hop[1],
 										'image'   => $smoke_image_url,
+										'generate'=> $smoke_generate_url,
 										'ip'      => $hop[2]
 										));
 								}
@@ -482,7 +485,19 @@ document.getElementById('overlay').style.padding='0';
 								echo "<td rowspan=2>".$line['hop']."</td>";
 								echo "<td rowspan=2>";
 								if (strlen($line['image'])>3) {
-									echo "<img src=\"".$line['image']."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\">";
+								
+								?>
+								<script>
+function checkImageLoad_<?= $line['hop']; ?>() {
+    if (document.getElementById("smokeping_generate_<?= $line['hop']; ?>").complete == true){ true; }
+    document.getElementById("smokeping_generate_<?= $line['hop']; ?>").src = "<?= $line['image']; ?>";
+}
+</script>
+								
+								
+								<?php
+								
+									echo "<img id=\"smokeping_generate_".$line['hop']."\" src=\"".$line['generate']."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\"  onload=\"checkImageLoad_".$line['hop']."();\">";
 								} else {
 									echo "smokeping not enabled for this host";
 								}

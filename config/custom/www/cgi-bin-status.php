@@ -736,9 +736,9 @@ document.getElementById('overlay').style.padding='0';
 					                    if (isset($devices[$d]['discover_id'])) {
 											echo "<small>";
 					                        $tmp=$discover['devices'][$devices[$d]['discover_id']];
-					                        if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
-					                        if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }
-					                        if (isset($tmp['fwversion'])) { echo "::".parse_firmware($tmp['fwversion'])."<br>"; }
+					                        if (isset($tmp['hostname'])) { echo $tmp['hostname']."<br>"; }
+					                        if (isset($tmp['product'])) { echo $tmp['product']." "; }
+					                        if (isset($tmp['fwversion'])) { echo "(".parse_firmware($tmp['fwversion']).")<br>"; }
 					                        //if (isset($tmp['essid'])) { echo "@".$tmp['essid']."<br>"; }
 											echo "</small>";
 					                        unset($tmp);
@@ -773,9 +773,9 @@ document.getElementById('overlay').style.padding='0';
 					                    if (isset($devices[$d]['discover_id'])) {
 											echo "<small>";
 					                        $tmp=$discover['devices'][$devices[$d]['discover_id']];
-					                        if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
-					                        if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }
-					                        if (isset($tmp['fwversion'])) { echo "::".parse_firmware($tmp['fwversion'])."<br>"; }
+					                        if (isset($tmp['hostname'])) { echo $tmp['hostname']."<br>"; }
+					                        if (isset($tmp['product'])) { echo $tmp['product']." "; }
+					                        if (isset($tmp['fwversion'])) { echo "(".parse_firmware($tmp['fwversion']).")<br>"; }
 					                        //if (isset($tmp['essid'])) { echo "@".$tmp['essid']."<br>"; }
 											echo "</small>";
 					                        unset($tmp);

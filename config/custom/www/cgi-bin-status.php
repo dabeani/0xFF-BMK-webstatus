@@ -13,8 +13,6 @@ $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100
 $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
-$show_smokeping_page=1;            // if nodedb-lookup is enabled: lookup smokeping images and show them in traceroute sequence
-$smokeping_baseurl="http://smokeping.funkfeuer.at/smokeping/freenet/img/";
 
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
@@ -313,10 +311,6 @@ flush();
 					<li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
 					<li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
 					<li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Port-Table</a></li>
-			<?php if ((isset($show_smokeping_page)) && ($show_smokeping_page==1)) { 
-					$smokeping_table = array(); ?>
-					<li role="presentation"><a href="#smoke" aria-controls="smoke" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Smokeping</a></li>
-			<?php } ?>
 					<li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
 					<li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
 				<?	if ((isset($show_link_to_adminlogin)) && ($show_link_to_adminlogin==1)) {
@@ -419,34 +413,12 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								if (strlen($hop[1])>=5) { echo "<a href=\"http://".$hop[1]."\" target=\"".$hop[1]."\">"; }
 								if (strstr($hop[1], 'wien.funkfeuer.at')==TRUE) {
 									$hostname=explode(".",$hop[1]);
-									$smoke_image_url=$smokeping_baseurl.$hostname[1]."/".$hostname[0]."_mini.png";
 									$hostname[1]="<b>".$hostname[1]."</b>";
 									echo implode(".",$hostname); // hostname with nodename highlighted
 								} else {
 									echo $hop[1]; // hostname as is
-									unset($smoke_image_url);
 								}
 								if (strlen($hop[1])>=5) { echo "</a>"; }
-								//if (isset($smoke_image_url)) { unset($smoke_image_url); }  // do not execute - future feature
-								if ((isset($show_smokeping_page)) && ($show_smokeping_page==1)) { 
-									if (isset($smoke_image_url)) {
-										$headers = get_headers($smoke_image_url);
-										$code = $headers[0];
-										$code_0=explode(" ", $code);
-										if ($code_0[1]=="200") {
-											//echo "<br><img src=\"".$smoke_image_url."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\">";
-										} else {
-											unset($smoke_image_url);
-										}
-									}
-									if (!isset($smoke_image_url)) { $smoke_image_url=""; }
-									array_push ($smokeping_table, array(
-										'hop'     => $hop[0],
-										'hostname'=> $hop[1],
-										'image'   => $smoke_image_url,
-										'ip'      => $hop[2]
-										));
-								}
 								echo "</td>";
 								echo "<td>";
 								if (strlen($hop[2])>=5) { echo "<a href=\"http://".$hop[2]."\" target=\"".$hop[2]."\">"; }
@@ -469,40 +441,6 @@ document.getElementById('overlay').style.top ='0px';
 document.getElementById('overlay').style.float='none';
 document.getElementById('overlay').style.padding='0';
 </script>
-<?php if ((isset($show_smokeping_page)) && ($show_smokeping_page==1)) { ?>
-<!-- SMOKEPING TAB -->
-<?php printLoadingText("Loading Smokeping TAB..."); ?>
-					<div role="tabpanel" class="tab-pane" id="smoke">
-<?php
-							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top>";
-							echo "<td><b>#</b></td><td><b>Hostname/IP</b></td><td><b>Smokeping</b></td></tr></thead>\n";
-							echo "<tbody>\n";
-							foreach ($smokeping_table as $line) {
-								echo "<tr>";
-								echo "<td rowspan=2>".$line['hop']."</td>";
-								echo "<td rowspan=2>";
-								if (strlen($line['image'])>3) {
-									echo "<img src=\"".$line['image']."\" BORDER=\"0\" WIDTH=\"697\" HEIGHT=\"137\">";
-								} else {
-									echo "smokeping not enabled for this host";
-								}
-								echo "</td>";
-								echo "<td>";
-								if (strstr($line['hostname'], 'wien.funkfeuer.at')==TRUE) {
-									$hostname=explode(".",$line['hostname']);
-									echo $hostname[0].".<b>".$hostname[1]."</b>";
-								} else {
-									echo $line['hostname'];
-								}
-								echo "</td>";
-								echo "</tr>";
-								echo "<tr><td>".$line['ip']."</td>";
-								echo "</tr>";
-								flush();
-							}
-							echo "</tbody></table>";
-							echo "</div>\n";
-} // end if smoke ?>
 <?php printLoadingText("Loading Port-Table TAB..."); ?>
                     <div role="tabpanel" class="tab-pane" id="table">
 					<?
@@ -896,5 +834,6 @@ $total_time = round(($finish - $start), 4);
 <?php
 }
 unset($APP);
+unset($IP_RANGE);
 unset($node_dns);
 ?>

@@ -671,9 +671,10 @@ document.getElementById('overlay').style.padding='0';
 					        }
 					    }
 					}
-					echo "<table class=\"table table-hover table-bordered table-condensed\"><tbody>";
-					    //if($ext == "table") {
+					echo "<table class=\"table table-hover table-bordered table-condensed\">";
+					echo "<thead style=\"background-color:#f5f5f5;\">";
 					    echo "<tr valign=top><td><b>Ports</b></td>";           foreach ($interfaces as $key=>$value) { echo "<td>".$key."</td>"; } echo "</tr>";
+					    echo "</thead><tbody>";
 					    echo "<tr valign=top><td><b>Description</b></td>";     foreach ($interfaces as $key=>$value) { echo "<td>".$interfaces[$key]['desc']."</td>"; } echo "</tr>";
 					    
 					    echo "<tr valign=top><td><b>Port State/Link</b></td>";           foreach ($interfaces as $key=>$value) {
@@ -730,13 +731,16 @@ document.getElementById('overlay').style.padding='0';
 					                        $skip_this = 1;
 					                        continue;
 					                    }
-					                    echo $ip." (".$devices[$d]['age'].")<br>";
+					                    //echo $ip." (".$devices[$d]['age'].")<br>";
+					                    echo "<em>".$ip."</em><br>";
 					                    if (isset($devices[$d]['discover_id'])) {
+											echo "<small>";
 					                        $tmp=$discover['devices'][$devices[$d]['discover_id']];
-					                        if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
-					                        if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }
-					                        if (isset($tmp['fwversion'])) { echo "::".parse_firmware($tmp['fwversion'])."<br>"; }
+					                        if (isset($tmp['hostname'])) { echo $tmp['hostname']."<br>"; }
+					                        if (isset($tmp['product'])) { echo $tmp['product']." "; }
+					                        if (isset($tmp['fwversion'])) { echo "(".parse_firmware($tmp['fwversion']).")<br>"; }
 					                        //if (isset($tmp['essid'])) { echo "@".$tmp['essid']."<br>"; }
+											echo "</small>";
 					                        unset($tmp);
 					                    }
 					                }}
@@ -759,7 +763,7 @@ document.getElementById('overlay').style.padding='0';
 					                    echo "<b>".$vlans[$port][$vlan_id]['own_ip']."</b><br>";
 					                }
 					                foreach ($vlans[$port][$vlan_id]['devices'] as $d) {
-					                    echo $d.":<br>";
+					                    echo $d."<br>";
 					                    if (isset($devices[$d]['ips'][$port.".".$vlan_id])) { foreach ($devices[$d]['ips'][$port.".".$vlan_id] as $ip) {
 					                        if (substr($ip,0,8)=="192.168.") {
 					                            $ip='192.168.*.*';
@@ -767,11 +771,13 @@ document.getElementById('overlay').style.padding='0';
 					                        echo "=".$ip." <br>";
 					                    }}
 					                    if (isset($devices[$d]['discover_id'])) {
+											echo "<small>";
 					                        $tmp=$discover['devices'][$devices[$d]['discover_id']];
-					                        if (isset($tmp['hostname'])) { echo "=".$tmp['hostname']."<br>"; }
-					                        if (isset($tmp['product'])) { echo "-".$tmp['product']."<br>"; }
-					                        if (isset($tmp['fwversion'])) { echo "::".parse_firmware($tmp['fwversion'])."<br>"; }
+					                        if (isset($tmp['hostname'])) { echo $tmp['hostname']."<br>"; }
+					                        if (isset($tmp['product'])) { echo $tmp['product']." "; }
+					                        if (isset($tmp['fwversion'])) { echo "(".parse_firmware($tmp['fwversion']).")<br>"; }
 					                        //if (isset($tmp['essid'])) { echo "@".$tmp['essid']."<br>"; }
+											echo "</small>";
 					                        unset($tmp);
 					                    }
 					                }
@@ -792,7 +798,6 @@ document.getElementById('overlay').style.padding='0';
 					    //print_r($eth_speeds);
 					    //print_r($discover);
 					    //echo "</pre>";
-					    //}
 					    echo "</tbody></table>";
 					    ?>
                     </div>

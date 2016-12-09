@@ -570,6 +570,8 @@ document.getElementById('overlay').style.padding='0';
 					        if (strtolower($tmp[0])=='duplex') { $interfaces[$key]['duplex']=$tmp[1]; }
 					        if (strtolower($tmp[0])=='link')   { $interfaces[$key]['link_detected']=$tmp[1]; }
 					    }
+						unset($lines);
+						unset($line);
 					}
 					
 					// add poe setup
@@ -594,6 +596,9 @@ document.getElementById('overlay').style.padding='0';
 					        }
 					        if (strlen($line) < 2) {$tracker=0;}
 					    }
+						unset($tracker);
+						unset($line);
+						unset($info);
 					}
 					
 					// NEW 5 loop all bridges br0,br1
@@ -654,8 +659,8 @@ document.getElementById('overlay').style.padding='0';
 					            if (!in_array($ip[2], $bridge_names)) {array_push($bridge_names, $ip[2]);}
 					            $devices[$dkey]['ips'][$ip[2]][] = $ip[1];
 					        }
+							unset($v);
 					    }
-					    
 					}
 					
 					sort($bridge_names);
@@ -692,6 +697,7 @@ document.getElementById('overlay').style.padding='0';
 					        if ($state[1]=="D") { echo "down"; }
 					        if ($state[1]=="A") { echo "disabl"; }
 					        echo "</td>";
+							unset($state);
 					    } echo "</tr>";
 					    
 					    echo "<tr valign=top><td><b>PoE setting</b></td>";     foreach ($interfaces as $key=>$value) {
@@ -809,6 +815,35 @@ document.getElementById('overlay').style.padding='0';
 						unset($br0_ips);
 						unset($eth_speeds);
 						unset($discover);
+						unset($discover);
+						
+						unset($eth_macs);
+						unset($eth_desc);
+						unset($br0_ips);
+						unset($eth_speeds);
+						unset($eth_poe);
+						unset($br_eth);
+						unset($eth_in_bridge);
+						unset($key);
+						unset($value);
+						unset($tmp);
+						unset($int_name);
+						unset($int_ip);
+						unset($int_state);
+						unset($int_desc);
+						unset($int);
+						unset($br);
+						unset($brdata);
+						unset($ikey);
+						unset($ivalue);
+						unset($ip);
+						unset($dkey);
+						unset($dvalue);
+						unset($d);
+						unset($vlan_id);
+						unset($vlan_list);
+						unset($port);
+						
 					    echo "</tbody></table>";
 					    ?>
                     </div>

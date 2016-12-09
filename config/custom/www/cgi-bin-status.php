@@ -368,26 +368,23 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							foreach ($APP["devices_list"] as $key=>$value) {
-								$APP["devices_list"][$key]['sort']=ip2long($APP["devices_list"][$key]['ipv4']);
+							foreach ($APP["devices_list"]['devices'] as $key=>$value) {
+									$APP["devices_list"]['devices'][$key]['sort']=(int)ip2long($APP["devices_list"]['devices'][$key]['ipv4']);
 							}
-							usort($APP["devices_list"], build_sorter('sort'));
-							foreach ($APP["devices_list"] as $device) {
-								foreach ($device as $d) {
-									echo "<tr>";
-									echo "<td>".$d['hwaddr']."</td>";
-									echo "<td>".$d['ipv4']."</td>";
-									echo "<td>".$d['hostname']."</td>";
-									echo "<td>".$d['product']."</td>";
-									echo "<td>".format_duration($d['uptime'])."</td>";
-									echo "<td>".format_wmode($d['wmode'])."</td>";
-									echo "<td>".$d['essid']."</td>";
-									echo "<td>".parse_firmware($d['fwversion'])."</td>";
-									echo "</tr>\n";
-									flush();
-								}
+							usort($APP["devices_list"]['devices'], build_sorter('sort'));
+							foreach ($APP["devices_list"]['devices'] as $d) {
+								echo "<tr>";
+								echo "<td>".$d['hwaddr']."</td>";
+								echo "<td>".$d['ipv4']."</td>";
+								echo "<td>".$d['hostname']."</td>";
+								echo "<td>".$d['product']."</td>";
+								echo "<td>".format_duration($d['uptime'])."</td>";
+								echo "<td>".format_wmode($d['wmode'])."</td>";
+								echo "<td>".$d['essid']."</td>";
+								echo "<td>".parse_firmware($d['fwversion'])."</td>";
+								echo "</tr>\n";
+								flush();
 							}
-							unset($device);
 							unset($d);
 							echo "</tbody></table>";
 						  } else {

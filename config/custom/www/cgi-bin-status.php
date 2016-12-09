@@ -99,6 +99,7 @@ function getOLSRLinks() {
     
     echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
+	sort($olsr_links_raw);
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
         preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
@@ -361,6 +362,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
+							sort($APP["devices_list"]);
 							foreach ($APP["devices_list"] as $device) {
 								foreach ($device as $d) {
 									echo "<tr>";

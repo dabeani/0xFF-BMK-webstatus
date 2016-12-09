@@ -1,10 +1,4 @@
 <?php
-// scripts should terminated after 1 minute!
-set_time_limit(60);
-
-$APP = Array();
-$IP_RANGE=Array();
-
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
 
@@ -14,6 +8,10 @@ $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node dat
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 
+// scripts should terminated after 1 minute!
+set_time_limit(60);
+
+$IP_RANGE=Array();
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
 $IP_RANGE["193er_range_low"] = ip2long("193.238.156.1");
@@ -101,6 +99,7 @@ function getOLSRLinks() {
     
     echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
+	sort($olsr_links_raw);
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
         preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
@@ -195,12 +194,18 @@ function getOLSRLinks() {
     unset($nodes_at_this_route);
 }
     
+function build_sorter($key) {
+	return function ($a, $b) use ($key) {
+		return strnatcmp($a[$key], $b[$key]);
+	};
+}
+
 function parse_firmware($in) {
 	//crop firmware version
 	$fw = explode(".", $in); 
 	$fwstring = $fw[2];
 	for ($f = 3; $f < count($fw); $f++) {
-		if ((strlen($fw[$f]) >= 5) && (strpos(strtolower($fw[$f]), 'beta')==false)) {break;}
+		if ((strlen($fw[$f]) >= 5) && (strpos(strtolower($fw[$f]), 'beta')==false) && (strpos(strtolower($fw[$f]), 'rc')==false)) {break;}
 		$fwstring.='.';
 		$fwstring.=$fw[$f];
 	}
@@ -363,21 +368,24 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							foreach ($APP["devices_list"] as $device) {
-								foreach ($device as $d) {
-									echo "<tr>";
-									echo "<td>".$d['hwaddr']."</td>";
-									echo "<td>".$d['ipv4']."</td>";
-									echo "<td>".$d['hostname']."</td>";
-									echo "<td>".$d['product']."</td>";
-									echo "<td>".format_duration($d['uptime'])."</td>";
-									echo "<td>".format_wmode($d['wmode'])."</td>";
-									echo "<td>".$d['essid']."</td>";
-									echo "<td>".parse_firmware($d['fwversion'])."</td>";
-									echo "</tr>\n";
-									flush();
-								}
+							foreach ($APP["devices_list"]['devices'] as $key=>$value) {
+									$APP["devices_list"]['devices'][$key]['sort']=(int)ip2long($APP["devices_list"]['devices'][$key]['ipv4']);
 							}
+							usort($APP["devices_list"]['devices'], build_sorter('sort'));
+							foreach ($APP["devices_list"]['devices'] as $d) {
+								echo "<tr>";
+								echo "<td>".$d['hwaddr']."</td>";
+								echo "<td>".$d['ipv4']."</td>";
+								echo "<td>".$d['hostname']."</td>";
+								echo "<td>".$d['product']."</td>";
+								echo "<td>".format_duration($d['uptime'])."</td>";
+								echo "<td>".format_wmode($d['wmode'])."</td>";
+								echo "<td>".$d['essid']."</td>";
+								echo "<td>".parse_firmware($d['fwversion'])."</td>";
+								echo "</tr>\n";
+								flush();
+							}
+							unset($d);
 							echo "</tbody></table>";
 						  } else {
 							echo "No devices discovered";
@@ -429,6 +437,10 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								echo "</tr>\n";
 								flush();
 							}
+							unset($tracelines);
+							unset($line);
+							unset($hop);
+							unset($hostname);
 							echo "</tbody></table>";
 						  ?> 
 						  </dd>
@@ -487,12 +499,6 @@ document.getElementById('overlay').style.padding='0';
 					}
 					unset($current_bridge);
 					unset($current_if);
-					
-					function build_sorter($key) {
-					    return function ($a, $b) use ($key) {
-					        return strnatcmp($a[$key], $b[$key]);
-					    };
-					}
 					
 					// pysical ports and their mac address
 					$interfaces=array();
@@ -566,6 +572,8 @@ document.getElementById('overlay').style.padding='0';
 					        if (strtolower($tmp[0])=='duplex') { $interfaces[$key]['duplex']=$tmp[1]; }
 					        if (strtolower($tmp[0])=='link')   { $interfaces[$key]['link_detected']=$tmp[1]; }
 					    }
+						unset($lines);
+						unset($line);
 					}
 					
 					// add poe setup
@@ -590,6 +598,9 @@ document.getElementById('overlay').style.padding='0';
 					        }
 					        if (strlen($line) < 2) {$tracker=0;}
 					    }
+						unset($tracker);
+						unset($line);
+						unset($info);
 					}
 					
 					// NEW 5 loop all bridges br0,br1
@@ -650,8 +661,8 @@ document.getElementById('overlay').style.padding='0';
 					            if (!in_array($ip[2], $bridge_names)) {array_push($bridge_names, $ip[2]);}
 					            $devices[$dkey]['ips'][$ip[2]][] = $ip[1];
 					        }
+							unset($v);
 					    }
-					    
 					}
 					
 					sort($bridge_names);
@@ -688,6 +699,7 @@ document.getElementById('overlay').style.padding='0';
 					        if ($state[1]=="D") { echo "down"; }
 					        if ($state[1]=="A") { echo "disabl"; }
 					        echo "</td>";
+							unset($state);
 					    } echo "</tr>";
 					    
 					    echo "<tr valign=top><td><b>PoE setting</b></td>";     foreach ($interfaces as $key=>$value) {
@@ -798,6 +810,42 @@ document.getElementById('overlay').style.padding='0';
 					    //print_r($eth_speeds);
 					    //print_r($discover);
 					    //echo "</pre>";
+						unset($bridges);
+						unset($vlans);
+						unset($interfaces);
+						unset($bridge_names);
+						unset($br0_ips);
+						unset($eth_speeds);
+						unset($discover);
+						unset($discover);
+						
+						unset($eth_macs);
+						unset($eth_desc);
+						unset($br0_ips);
+						unset($eth_speeds);
+						unset($eth_poe);
+						unset($br_eth);
+						unset($eth_in_bridge);
+						unset($key);
+						unset($value);
+						unset($tmp);
+						unset($int_name);
+						unset($int_ip);
+						unset($int_state);
+						unset($int_desc);
+						unset($int);
+						unset($br);
+						unset($brdata);
+						unset($ikey);
+						unset($ivalue);
+						unset($ip);
+						unset($dkey);
+						unset($dvalue);
+						unset($d);
+						unset($vlan_id);
+						unset($vlan_list);
+						unset($port);
+						
 					    echo "</tbody></table>";
 					    ?>
                     </div>
@@ -841,4 +889,14 @@ $total_time = round(($finish - $start), 4);
 unset($APP);
 unset($IP_RANGE);
 unset($node_dns);
+unset($interface_1100_list);
+unset($get_nslookup_from_nodedb);
+unset($show_link_to_adminlogin);
+unset($traceroute_to);
+unset($get);
+unset($start);
+unset($time);
+unset($finish);
+unset($total_time);
+
 ?>

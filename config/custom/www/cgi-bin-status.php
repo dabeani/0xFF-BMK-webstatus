@@ -110,11 +110,12 @@ function getOLSRLinks() {
         } else {
             $link['routes']=$APP["routes_".$link['2']];
         }
-        $link['sort']=(int)ip2long($link['2']);
+        $link['sort']=sprintf("%u", ip2long($link['2']));
         array_push($olsr_links, $link);
     }
     usort($olsr_links, build_sorter('sort'));
-    unset(olsr_links_raw);
+    unset($olsr_links_raw);
+	unset($getlink);
 
     foreach ($olsr_links as $link) {
         $tmp_output_route_text = "route";
@@ -384,7 +385,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 							foreach ($APP["devices_list"]['devices'] as $key=>$value) {
-									$APP["devices_list"]['devices'][$key]['sort']=(int)ip2long($APP["devices_list"]['devices'][$key]['ipv4']);
+									$APP["devices_list"]['devices'][$key]['sort']=sprintf("%u", ip2long($APP["devices_list"]['devices'][$key]['ipv4']));
 							}
 							usort($APP["devices_list"]['devices'], build_sorter('sort'));
 							foreach ($APP["devices_list"]['devices'] as $d) {

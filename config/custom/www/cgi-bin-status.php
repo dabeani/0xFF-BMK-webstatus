@@ -194,6 +194,12 @@ function getOLSRLinks() {
     unset($nodes_at_this_route);
 }
     
+function build_sorter($key) {
+	return function ($a, $b) use ($key) {
+		return strnatcmp($a[$key], $b[$key]);
+	};
+}
+
 function parse_firmware($in) {
 	//crop firmware version
 	$fw = explode(".", $in); 
@@ -362,7 +368,10 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							sort($APP["devices_list"]);
+							foreach ($APP["devices_list"] as $key=>$value) {
+								$APP["devices_list"][$key]['sort']=ip2long($APP["devices_list"][$key]['ipv4']);
+							}
+							usort($APP["devices_list"], build_sorter('sort'));
 							foreach ($APP["devices_list"] as $device) {
 								foreach ($device as $d) {
 									echo "<tr>";
@@ -493,12 +502,6 @@ document.getElementById('overlay').style.padding='0';
 					}
 					unset($current_bridge);
 					unset($current_if);
-					
-					function build_sorter($key) {
-					    return function ($a, $b) use ($key) {
-					        return strnatcmp($a[$key], $b[$key]);
-					    };
-					}
 					
 					// pysical ports and their mac address
 					$interfaces=array();

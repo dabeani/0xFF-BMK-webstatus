@@ -1,10 +1,4 @@
 <?php
-// scripts should terminated after 1 minute!
-set_time_limit(60);
-
-$APP = Array();
-$IP_RANGE=Array();
-
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
 
@@ -14,6 +8,10 @@ $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node dat
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 
+// scripts should terminated after 1 minute!
+set_time_limit(60);
+
+$IP_RANGE=Array();
 $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
 $IP_RANGE["193er_range_low"] = ip2long("193.238.156.1");
@@ -378,6 +376,8 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 									flush();
 								}
 							}
+							unset($device);
+							unset($d);
 							echo "</tbody></table>";
 						  } else {
 							echo "No devices discovered";
@@ -429,6 +429,10 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
 								echo "</tr>\n";
 								flush();
 							}
+							unset($tracelines);
+							unset($line);
+							unset($hop);
+							unset($hostname);
 							echo "</tbody></table>";
 						  ?> 
 						  </dd>
@@ -798,6 +802,13 @@ document.getElementById('overlay').style.padding='0';
 					    //print_r($eth_speeds);
 					    //print_r($discover);
 					    //echo "</pre>";
+						unset($bridges);
+						unset($vlans);
+						unset($interfaces);
+						unset($bridge_names);
+						unset($br0_ips);
+						unset($eth_speeds);
+						unset($discover);
 					    echo "</tbody></table>";
 					    ?>
                     </div>
@@ -841,4 +852,14 @@ $total_time = round(($finish - $start), 4);
 unset($APP);
 unset($IP_RANGE);
 unset($node_dns);
+unset($interface_1100_list);
+unset($get_nslookup_from_nodedb);
+unset($show_link_to_adminlogin);
+unset($traceroute_to);
+unset($get);
+unset($start);
+unset($time);
+unset($finish);
+unset($total_time);
+
 ?>

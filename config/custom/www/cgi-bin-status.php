@@ -99,10 +99,25 @@ function getOLSRLinks() {
     
     echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
     echo "<tbody>\n";
-	sort($olsr_links_raw);
+
+    // linkliste vorbereiten
+    $olsr_links=array();
     foreach ($olsr_links_raw as $getlink) {
         $getlink = preg_replace('/\s+/',',',trim($getlink));
         preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
+        if(!isset($APP["routes_".$link['2']])) {
+            $link['routes']=0;
+        } else {
+            $link['routes']=$APP["routes_".$link['2']];
+        }
+        $link['sort']=sprintf("%u", ip2long($link['2']));
+        array_push($olsr_links, $link);
+    }
+    usort($olsr_links, build_sorter('sort'));
+    unset($olsr_links_raw);
+	unset($getlink);
+
+    foreach ($olsr_links as $link) {
         $tmp_output_route_text = "route";
         $tmp_defaultroute = "";
         // prepare the text of route or routes..
@@ -190,7 +205,8 @@ function getOLSRLinks() {
     }
     echo "</tbody></table>\n";
     unset($routes_raw);
-    unset($olsr_links_raw);
+    unset($olsr_links);
+	unset($link);
     unset($nodes_at_this_route);
 }
     
@@ -369,7 +385,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 							foreach ($APP["devices_list"]['devices'] as $key=>$value) {
-									$APP["devices_list"]['devices'][$key]['sort']=(int)ip2long($APP["devices_list"]['devices'][$key]['ipv4']);
+									$APP["devices_list"]['devices'][$key]['sort']=sprintf("%u", ip2long($APP["devices_list"]['devices'][$key]['ipv4']));
 							}
 							usort($APP["devices_list"]['devices'], build_sorter('sort'));
 							foreach ($APP["devices_list"]['devices'] as $d) {

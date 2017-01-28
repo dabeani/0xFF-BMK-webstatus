@@ -221,7 +221,11 @@ function parse_firmware($in) {
 	$fw = explode(".", $in); 
 	$fwstring = $fw[2];
 	for ($f = 3; $f < count($fw); $f++) {
-		if ((strlen($fw[$f]) >= 5) && (strpos(strtolower($fw[$f]), 'beta')==false) && (strpos(strtolower($fw[$f]), 'rc')==false)) {break;}
+		if ((strlen($fw[$f]) >= 5) && 
+		    (strpos(strtolower($fw[$f]), 'beta')==false) && 
+		    (strpos(strtolower($fw[$f]), 'alpha')==false) && 
+		    (strpos(strtolower($fw[$f]), 'rc')==false)
+		   ) {break;}
 		$fwstring.='.';
 		$fwstring.=$fw[$f];
 	}

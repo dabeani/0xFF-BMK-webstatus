@@ -10,11 +10,14 @@ python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/accoun
 # Removing firewall rule added earlier
 iptables -D $CHAIN 1
 
-# Copying files to lighttpd directory
-cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
-cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
+# Copying files to lighttpd directory on success
+if [ -s "/config/letsencrypt/domain.key" ]
+  then
+  cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
+  cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
 
-# Restarting lighttpd daemon
-ps -e | grep lighttpd | awk '{print $1;}' | xargs kill
-/usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf
-/usr/sbin/lighttpd -f /config/custom/lighttpd/lighttpd_custom.conf
+  # Restarting lighttpd daemon
+  ps -e | grep lighttpd | awk '{print $1;}' | xargs kill
+  /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf
+  /usr/sbin/lighttpd -f /config/custom/lighttpd/lighttpd_custom.conf
+fi

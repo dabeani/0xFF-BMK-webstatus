@@ -347,7 +347,7 @@ flush();
 						unset($tmp); 
 						unset($port_array_raw);
 						unset($line);
-						?><li role="presentation"><a href="<? echo "https://".$_SERVER['SERVER_NAME'].":".$port_array['https-port']."/";   ?>"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Login</a></li>
+						?><li role="presentation"><a href="<? echo "https://".$APP["hostname"].":".$port_array['https-port']."/";   ?>"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Login</a></li>
 						<?
 					}
 				?>

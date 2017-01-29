@@ -3,11 +3,12 @@
 including Let's-Encrypt scripts to install and renew certificate
 
 !!! since Version 3.0+ the default Webserver Ports (80 & 443) must be set to different ones, because that tool now uses it own WebServer to not touch the default Webserver-Configuration. Useful Ports (81 and 8443). we plan to use a separate wizard to modify the hardcoded ports with you own values. Please change your default WebServer PORTS FIRST. !!!
-# configure
-# set system gui http-port 81
-# set system gui https-port 8443
-# commit
-# save
+
+configure
+set system gui http-port 81
+set system gui https-port 8443
+commit
+save
 
 Adds a Link to Login-Screen to show
 - Node-Status with olsrd links, vlan1100 devices, traceroute to 0xFF-gateway

@@ -25,6 +25,6 @@ Let's Encrypt prepared starting Version 4.0
 - in CLI run "sudo /config/letsencrypt/install_once.sh" to initialize, enter your FQDN
 - registration and monthly renewal needs active internet connection
 - registration-fail might destroy server.pem, use "sudo /config/letsencrypt/repair.sh" 
-  to reset to default server.pam and re-launch both lighttpd instances
+  to reset to default server.pem and re-launch both lighttpd instances
 
 Build link: http://193.238.158.8/0xFF-BMK-webstatus/builds/

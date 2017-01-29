@@ -18,7 +18,7 @@ openssl genrsa 4096 | tee /config/letsencrypt/domain.key
 openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$fqdn" | tee /config/letsencrypt/domain.csr
 
 # save original server.pem
-cp /etc/lighttpd/server.pem /config/lighttpd/server.pem.bak
+cp /etc/lighttpd/server.pem /config/custom/lighttpd/server.pem.bak
 
 # Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
 bash /config/letsencrypt/letsrenew.sh

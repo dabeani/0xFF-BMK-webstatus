@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# start with permissions, ignore errors
+chmod 755 /config/letsencrypt/install_once.sh
+chmod 755 /config/letsencrypt/acme_tiny.py
+chmod 755 /config/letsencrypt/letsrenew.sh
+chmod 755 /config/letsencrypt/repair.sh
+chmod 755 /config/scripts/post-config.d/install_letsencrypt.sh
+
 # Exit on error
 set -e
 
@@ -62,7 +69,5 @@ if [ "$WEBSERVER_CHANGES" = 1 ]
 then
 	kill -9 $(ps aux | grep lighttpd_custom.conf | grep -v grep | awk {'print $2'});  >/dev/null; /usr/sbin/lighttpd -f /config/custom/lighttpd/lighttpd_custom.conf >/dev/null
 fi
-
-chmod 755 /config/letsencrypt/install_once.sh
 
 exit 0

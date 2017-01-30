@@ -14,4 +14,4 @@ sudo /sbin/start-stop-daemon --start --quiet \
 # start original EsgeOS webserver
 sudo /sbin/start-stop-daemon --start --quiet \
 	--pidfile /var/run/lighttpd.pid \
-	--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd.conf
+	--exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf

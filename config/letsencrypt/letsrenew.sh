@@ -16,8 +16,10 @@ if [ -s "/config/letsencrypt/domain.key" ]
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
 
-  # Restarting lighttpd daemon
-  ps -e | grep lighttpd | awk '{print $1;}' | xargs kill
+  # Restarting original lighttpd webserver for EdgeOS
+  ps aux | grep lighttpd.conf | awk '{print $2;}' | head -n1 | xargs kill
   /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf
+  # Restart custom lighttpd webserver for custom scripts
+  ps aux | grep lighttpd_custom.conf | awk '{print $2;}' | head -n1 | xargs kill
   /usr/sbin/lighttpd -f /config/custom/lighttpd/lighttpd_custom.conf
 fi

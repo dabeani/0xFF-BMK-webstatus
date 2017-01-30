@@ -3,7 +3,7 @@
 # Exit on error
 #set -e
 
-if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
         #(old bmk-webstatus version check) - check if we have the last original lighttpd.conf saved...
         if [ -f "/etc/lighttpd/lighttpd.old" ]; then
@@ -34,7 +34,7 @@ if [ -f "/var/run/lighttpd_custom.pid" ]; then
         fi
 fi
 
-if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
         if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
                 rm /var/www/htdocs/cgi-bin-status.php

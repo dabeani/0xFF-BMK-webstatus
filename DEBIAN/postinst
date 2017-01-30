@@ -56,6 +56,22 @@ onlinecheck () {
     fi                                                                                                                          
 }
 
+if [ ! -d "/var/log/lighttpd_custom" ]
+then
+    mkdir /var/log/lighttpd_custom
+    chown www-data:www-data /var/log/lighttpd_custom
+fi
+
+# start custom script webserver
+sudo /sbin/start-stop-daemon --start --quiet \
+	--pidfile /var/run/lighttpd_custom.pid \
+	--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+
+# start original EsgeOS webserver
+sudo /sbin/start-stop-daemon --start --quiet \
+	--pidfile /var/run/lighttpd.pid \
+	--exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
+
 # to get the cert, you must habe internet access!
 onlinecheck                                                                                 
 if [[ $? == 0 ]]; then
@@ -109,21 +125,5 @@ fi
 #	sed -i '/include "conf-enabled\/10-ssl.conf"/i include "conf-enabled/99-bmk.conf"' /etc/lighttpd/lighttpd.conf >/dev/null
 #	WEBSERVER_CHANGES=1
 #fi
-
-if [ ! -d "/var/log/lighttpd_custom" ]
-then
-    mkdir /var/log/lighttpd_custom
-    chown www-data:www-data /var/log/lighttpd_custom
-fi
-
-# start custom script webserver
-sudo /sbin/start-stop-daemon --start --quiet \
-	--pidfile /var/run/lighttpd_custom.pid \
-	--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
-
-# start original EsgeOS webserver
-sudo /sbin/start-stop-daemon --start --quiet \
-	--pidfile /var/run/lighttpd.pid \
-	--exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 
 exit 0

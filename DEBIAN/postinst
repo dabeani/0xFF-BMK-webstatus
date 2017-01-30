@@ -67,7 +67,7 @@ chmod +w /etc/lighttpd/server.pem
 cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
 
 # start custom script webserver, if default webserver is not configured to run on port 80...
-if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
 	sudo /sbin/start-stop-daemon --start --quiet \
 		--pidfile /var/run/lighttpd_custom.pid \
@@ -80,7 +80,7 @@ sudo /sbin/start-stop-daemon --start --quiet \
 	--exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 
 # to get the cert, you must habe internet access and the custom webserver - does not work with the stock webserver from EdgeOS!
-if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
 	onlinecheck                                                                                 
 	if [[ $? == 0 ]]; then

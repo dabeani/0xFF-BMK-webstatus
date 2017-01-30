@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Exit on error
-set -x
+#set -x
 
 # create needed folder for letsencrypt initial setup files
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
@@ -13,8 +13,6 @@ chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/scripts/post-config.d/install_letsencrypt.sh
 
-
-WEBSERVER_CHANGES=0
 
 #if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then
 #	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old >/dev/null
@@ -64,14 +62,14 @@ then
     chown www-data:www-data /var/log/lighttpd_custom
 fi
 
-if [ $(ps aux | grep lighttpd_custom.conf | grep -v grep | awk {'print $2'} | wc -l) -eq 0 ]
-then
-    /config/scripts/post-config.d/lighttpd_custom.sh >/dev/null
-fi
+# start custom script webserver
+sudo /sbin/start-stop-daemon --start --quiet \
+	--pidfile /var/run/lighttpd_custom.pid \
+	--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
 
-if [ "$WEBSERVER_CHANGES" = 1 ]
-then
-	kill -9 $(ps aux | grep lighttpd_custom.conf | grep -v grep | awk {'print $2'});  >/dev/null; /usr/sbin/lighttpd -f /config/custom/lighttpd/lighttpd_custom.conf >/dev/null
-fi
+# start original EsgeOS webserver
+sudo /sbin/start-stop-daemon --start --quiet \
+	--pidfile /var/run/lighttpd.pid \
+	--exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 
 exit 0

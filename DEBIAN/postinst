@@ -6,6 +6,12 @@
 # create needed folder for letsencrypt initial setup files
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
 
+# if its not already created, create cronjob for LE
+if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]
+then
+	ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
+fi
+
 # start with permissions, ignore errors
 chmod 755 /config/letsencrypt/install_once.sh
 chmod 755 /config/letsencrypt/acme_tiny.py
@@ -84,6 +90,14 @@ if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
 	onlinecheck                                                                                 
 	if [[ $? == 0 ]]; then
+		if [ ! -s "/config/letsencrypt/account.key" ]
+		then
+			openssl genrsa 4096 | tee /config/letsencrypt/account.key
+		fi
+		if [ ! -s "/config/letsencrypt/domain.key" ]
+		then
+			openssl genrsa 4096 | tee /config/letsencrypt/domain.key
+		fi
 		# read activated PublicIP from OLSR Daemon
 		# it works only if txtinfo Plugin is activated in the OLSR Wizard!!!!!
 		PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)

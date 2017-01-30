@@ -16,6 +16,11 @@ then
                 # remove old file...
                 rm /etc/lighttpd/conf-enabled/10-ssl.old
         fi
+        if [ -f "/var/www/php/app/views/login.old" ]; then
+                cp /var/www/php/app/views/login.old /var/www/php/app/views/login.php
+                # remove old file...
+                rm /var/www/php/app/views/login.old
+        fi
 fi
 
 # stop custom Webserver if running

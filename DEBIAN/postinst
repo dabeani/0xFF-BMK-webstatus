@@ -12,7 +12,18 @@ chmod 755 /config/letsencrypt/acme_tiny.py
 chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/scripts/post-config.d/install_letsencrypt.sh
+chmod 755 /config/custom/bin/ip2dns
 
+
+# to get the cert, you must habe internet access!
+# read activated PublicIP from OLSR Daemon
+# it works only if txtinfo Plugin is activated in the OLSR Wizard!!!!!
+PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
+# correctly register csr file
+openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr
+
+# Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
+bash /config/letsencrypt/letsrenew.sh
 
 #if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then
 #	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old >/dev/null

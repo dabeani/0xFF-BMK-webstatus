@@ -66,27 +66,33 @@ fi
 chmod +w /etc/lighttpd/server.pem
 cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
 
-# start custom script webserver
-sudo /sbin/start-stop-daemon --start --quiet \
-	--pidfile /var/run/lighttpd_custom.pid \
-	--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+# start custom script webserver, if default webserver is not configured to run on port 80...
+if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+then
+	sudo /sbin/start-stop-daemon --start --quiet \
+		--pidfile /var/run/lighttpd_custom.pid \
+		--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+fi
 
 # start original EsgeOS webserver
 sudo /sbin/start-stop-daemon --start --quiet \
 	--pidfile /var/run/lighttpd.pid \
 	--exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 
-# to get the cert, you must habe internet access!
-onlinecheck                                                                                 
-if [[ $? == 0 ]]; then
-	# read activated PublicIP from OLSR Daemon
-	# it works only if txtinfo Plugin is activated in the OLSR Wizard!!!!!
-	PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
-	# correctly register csr file
-	openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr
+# to get the cert, you must habe internet access and the custom webserver - does not work with the stock webserver from EdgeOS!
+if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+then
+	onlinecheck                                                                                 
+	if [[ $? == 0 ]]; then
+		# read activated PublicIP from OLSR Daemon
+		# it works only if txtinfo Plugin is activated in the OLSR Wizard!!!!!
+		PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
+		# correctly register csr file
+		openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr
 
-	# Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
-	bash /config/letsencrypt/letsrenew.sh
+		# Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
+		bash /config/letsencrypt/letsrenew.sh
+	fi
 fi
 #if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then
 #	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old >/dev/null

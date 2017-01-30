@@ -27,4 +27,10 @@ if [ -f "/var/www/htdocs/namevlans.php" ]; then
         rm /var/www/htdocs/namevlans.php
 fi
 
+# remove old custom folder with content!! (WARNING)
+if [ ! -d "/config/custom/" ]
+then
+        rm -R /config/custom/
+fi
+
 exit 0

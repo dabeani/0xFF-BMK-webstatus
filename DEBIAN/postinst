@@ -62,6 +62,10 @@ then
     chown www-data:www-data /var/log/lighttpd_custom
 fi
 
+# overwrite existing server.pem with original...
+chmod +w /etc/lighttpd/server.pem
+cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+
 # start custom script webserver
 sudo /sbin/start-stop-daemon --start --quiet \
 	--pidfile /var/run/lighttpd_custom.pid \

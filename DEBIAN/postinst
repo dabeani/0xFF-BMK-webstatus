@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# Exit on error
+set -x
+
 # create needed folder for letsencrypt initial setup files
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
 
@@ -10,8 +13,6 @@ chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/scripts/post-config.d/install_letsencrypt.sh
 
-# Exit on error
-set -e
 
 WEBSERVER_CHANGES=0
 

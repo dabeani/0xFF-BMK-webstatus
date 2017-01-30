@@ -3,16 +3,19 @@
 # Exit on error
 #set -e
 
-#(old bmk-webstatus version check) - check if we have the last original lighttpd.conf saved...
-if [ -f "/etc/lighttpd/lighttpd.old" ]; then
-        cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
-        # remove old file...
-        rm /etc/lighttpd/lighttpd.old
-fi
-if [ -f "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
-        cp /etc/lighttpd/conf-enabled/10-ssl.old /etc/lighttpd/conf-enabled/10-ssl.conf
-        # remove old file...
-        rm /etc/lighttpd/conf-enabled/10-ssl.old
+if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+then
+        #(old bmk-webstatus version check) - check if we have the last original lighttpd.conf saved...
+        if [ -f "/etc/lighttpd/lighttpd.old" ]; then
+                cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
+                # remove old file...
+                rm /etc/lighttpd/lighttpd.old
+        fi
+        if [ -f "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
+                cp /etc/lighttpd/conf-enabled/10-ssl.old /etc/lighttpd/conf-enabled/10-ssl.conf
+                # remove old file...
+                rm /etc/lighttpd/conf-enabled/10-ssl.old
+        fi
 fi
 
 # stop custom Webserver if running
@@ -31,12 +34,15 @@ if [ -f "/var/run/lighttpd_custom.pid" ]; then
         fi
 fi
 
-if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
-        rm /var/www/htdocs/cgi-bin-status.php
-fi
+if [ $(grep -r "port = 80" /etc/lighttpd/ | wc -l) -eq 0 ]
+then
+        if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
+                rm /var/www/htdocs/cgi-bin-status.php
+        fi
 
-if [ -f "/var/www/htdocs/namevlans.php" ]; then
-        rm /var/www/htdocs/namevlans.php
+        if [ -f "/var/www/htdocs/namevlans.php" ]; then
+                rm /var/www/htdocs/namevlans.php
+        fi
 fi
 
 # remove old custom folder with content!! (WARNING)

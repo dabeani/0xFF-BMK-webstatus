@@ -3,6 +3,22 @@
 # Exit on error
 set -e
 
+# stop custom Webserver if running
+if [ -f "/var/run/lighttpd_custom.pid" ]; then
+        sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
+        if [ -f "/var/run/lighttpd_custom.pid" ]; then
+                rm /var/run/lighttpd_custom.pid
+        fi
+fi
+
+# stop EdgeOS original Webserver if running
+if [ -f "/var/run/lighttpd_custom.pid" ]; then
+        sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
+        if [ -f "/var/run/lighttpd.pid" ]; then
+                rm /var/run/lighttpd.pid
+        fi
+fi
+
 if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
         rm /var/www/htdocs/cgi-bin-status.php
 fi

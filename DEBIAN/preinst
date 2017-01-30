@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Exit on error
-set -x
+#set -e
 
 # stop custom Webserver if running
 if [ -f "/var/run/lighttpd_custom.pid" ]; then
@@ -28,7 +28,7 @@ if [ -f "/var/www/htdocs/namevlans.php" ]; then
 fi
 
 # remove old custom folder with content!! (WARNING)
-if [ ! -d "/config/custom/" ]
+if [ -d "/config/custom/" ]
 then
         rm -R /config/custom/
 fi

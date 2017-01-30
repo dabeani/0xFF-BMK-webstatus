@@ -3,6 +3,18 @@
 # Exit on error
 #set -e
 
+#(old bmk-webstatus version check) - check if we have the last original lighttpd.conf saved...
+if [ -f "/etc/lighttpd/lighttpd.old" ]; then
+        cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
+        # remove old file...
+        rm /etc/lighttpd/lighttpd.old
+fi
+if [ -f "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
+        cp /etc/lighttpd/conf-enabled/10-ssl.old /etc/lighttpd/conf-enabled/10-ssl.conf
+        # remove old file...
+        rm /etc/lighttpd/conf-enabled/10-ssl.old
+fi
+
 # stop custom Webserver if running
 if [ -f "/var/run/lighttpd_custom.pid" ]; then
         sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid

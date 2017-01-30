@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# create needed folder for letsencrypt initial setup files
+[ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
+
 # start with permissions, ignore errors
 chmod 755 /config/letsencrypt/install_once.sh
 chmod 755 /config/letsencrypt/acme_tiny.py

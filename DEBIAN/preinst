@@ -3,8 +3,7 @@
 # Exit on error
 #set -e
 
-# CPO: problem: if https-port was changed to 8443 already, we will not clean old files
-# CPO: improve: change ports 80->81 and 443->8443 by config-script
+# CPO: problem: if https-port was changed to 8443 before, we will not clean old files
 # CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then

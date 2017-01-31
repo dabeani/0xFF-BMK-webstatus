@@ -65,8 +65,14 @@ fi
 if [ -f "/config/0xffstatus_restart.sh" ]; then
         rm /config/0xffstatus_restart.sh
 fi
+if [ -L "/etc/cron.weekly/0xffstatus_restart.sh" ]; then
+        rm /etc/cron.weekly/0xffstatus_restart.sh
+fi
 if [ -f "/config/0xffcustom_restart.sh" ]; then
         rm /config/0xffcustom_restart.sh
+fi
+if [ -L "/etc/cron.weekly/0xffcustom_restart.sh" ]; then
+        rm /etc/cron.weekly/0xffcustom_restart.sh
 fi
 
 # recover original lighttpd.conf

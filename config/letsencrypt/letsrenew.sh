@@ -11,8 +11,7 @@ python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/accoun
 iptables -D $CHAIN 1
 
 # Copying files to lighttpd directory on success only (file domain.key is not empty)
-if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ]
-  then
+if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ]; then
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
 
@@ -28,7 +27,7 @@ if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencry
   # Restart custom lighttpd webserver for custom scripts
   # only if default webserver is not configured to run on port 80/443...
   # CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
-  if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]
+  if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]; then
     sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
     if [ -f "/var/run/lighttpd_custom.pid" ]; then
       rm /var/run/lighttpd_custom.pid

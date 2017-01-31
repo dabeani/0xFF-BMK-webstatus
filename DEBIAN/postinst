@@ -125,9 +125,16 @@ then
         onlinecheck
         if [[ $? == 0 ]]; then
                 echo "Retrieving IP and FQDN..."
-                # read activated PublicIP from OLSR Daemon
-                # it works only if txtinfo Plugin is activated in the OLSR Wizard!
-                PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
+                
+                # read activated PublicIP from OLSR Daemon (should be optimized in the future)
+                if [ $(ps aux | grep olsr | grep -v grep | wc -l) -eq 0 ]; then
+                        # it works only if txtinfo Plugin is activated in the OLSR Wizard!
+                        PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
+                else
+                        # if OLSR is not activated or not used - we get the "public" IP from the default route iface
+                        PUBLICIP=$(echo $(/sbin/ifconfig $(ip r | grep default | awk {'print $5'}) | head -n2 | tail -n1 | awk {'print $2'} | sed -e s/addr://) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
+                fi
+                
                 # correctly register csr file
                 echo "Creating domain-csr..."
                 openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr

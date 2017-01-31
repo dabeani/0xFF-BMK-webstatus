@@ -12,11 +12,9 @@ if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]; then
 fi
 
 # start with permissions, ignore errors
-chmod 755 /config/letsencrypt/install_once.sh
 chmod 755 /config/letsencrypt/acme_tiny.py
 chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
-chmod 755 /config/scripts/post-config.d/install_letsencrypt.sh
 chmod 755 /config/scripts/port_81.sh
 chmod 755 /config/scripts/port_8443.sh
 chmod 755 /config/custom/bin/ip2dns

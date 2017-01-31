@@ -16,6 +16,12 @@ fi
 if [ -f "/var/www/htdocs/namevlans.php" ]; then
     rm /var/www/htdocs/namevlans.php
 fi
+if [ -f "/config/letsencrypt/install_once.sh" ]; then
+    rm /config/letsencrypt/install_once.sh
+fi
+if [ -f "/config/scripts/post-config.d/install_letsencrypt.sh" ]; then
+    rm /config/scripts/post-config.d/install_letsencrypt.sh
+fi
 # CPO: delete old other files
 if [ -d "/var/www/htdocs/.well-known" ]; then
     rm -R /var/www/htdocs/.well-known

@@ -5,6 +5,7 @@
 
 # CPO: problem: if https-port was changed to 8443 already, we will not clean old files
 # CPO: improve: change ports 80->81 and 443->8443 by config-script
+# CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
         #(old bmk-webstatus version check) - check if we have the last original lighttpd.conf saved...
@@ -77,4 +78,23 @@ fi
 if [ -f "/config/0xffcustom_restart.sh" ]; then
         rm /config/0xffcustom_restart.sh
 fi
+
+# recover original lighttpd.conf in
+if [ -L /etc/lighttpd/lighttpd.conf ]; then
+  # it is a link
+  if [ -f /etc/lighttpd/lighttpd.old ]; then 
+    ## recover backup file
+    rm /etc/lighttpd/lighttpd.conf
+    cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
+    rm /etc/lighttpd/lighttpd.old
+  else
+    ## replace link by link-target
+    cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd_linked.conf
+    rm /etc/lighttpd/lighttpd.conf
+    cp /etc/lighttpd/lighttpd_linked.conf /etc/lighttpd/lighttpd.conf
+    rm /etc/lighttpd/lighttpd_linked.conf
+  fi
+  rm /config/lighttpd/lighttpd.conf
+fi
+
 exit 0

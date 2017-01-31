@@ -9,7 +9,7 @@
 # if its not already created, create cronjob for LE
 if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]
 then
-	ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
+        ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
 fi
 
 # start with permissions, ignore errors
@@ -20,46 +20,46 @@ chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/scripts/post-config.d/install_letsencrypt.sh
 chmod 755 /config/custom/bin/ip2dns
 
-# hosts to check for online status                                                                                          
-v4iphost='8.8.8.8'                                                                                                          
-v4dnshost='www.google.com'                                                                               
-v6iphost='2001:4860:4860::8888'                                                                        
+# hosts to check for online status
+v4iphost='8.8.8.8'
+v4dnshost='www.google.com'
+v6iphost='2001:4860:4860::8888'
 v6dnshost='www.google.com'
 
-# function to check if connectivity is given to download packages (script from vchrizz)                            
-onlinecheck () {                                                                                         
-    ping="ping -c 1 -W 1 ";                                                                                                 
-    ping6="ping6 -c 1 -W 1 ";                                                                                               
-    $ping $v4iphost 2> /dev/null                                                                                            
-    if [[ $? == 0 ]]; then                                                                                                  
-        # ipv4 ok                                                                                        
-        $ping6 $v6iphost > /dev/null                                                                   
-        if [[ $? == 0 ]]; then                                                                                                  
-            # ipv6 ok                                                                                                           
-            $ping6 $v6dnshost > /dev/null                                                                                       
-            if [[ $? == 0 ]]; then                                                                                              
-                # ipv6dns ok                                                                                                    
-                return 0                                                                                                        
-            else                                                                                                                
-                # ipv6dns not ok                                                                                                
-                return 1                                                                                                        
-            fi                                                                                                                  
-        else                                                                                                                    
-            # ipv6 not ok, fallback to ipv4                                                                                     
-            # issue: dns resolver prefers v6 (if ipv6 is configured)                                                            
-            $ping $v4dnshost > /dev/null                                                                                        
-            if [[ $? == 0 ]]; then                                                                                              
-                # ipv4dns ok                                                                                                    
-                return 0                                                                                                        
-            else                                                                                                                
-                # ipv4dns not ok                                                                                                
-                return 1                                                                                                        
-            fi                                                                                                                  
-        fi                                                                                                                      
-    else                                                                                                                        
-        # ipv4 not ok                                                                                                                      
-        return 1                                                                                                                
-    fi                                                                                                                          
+# function to check if connectivity is given to download packages (script from vchrizz)
+onlinecheck () {
+    ping="ping -c 1 -W 1 ";
+    ping6="ping6 -c 1 -W 1 ";
+    $ping $v4iphost 2> /dev/null
+    if [[ $? == 0 ]]; then
+        # ipv4 ok
+        $ping6 $v6iphost > /dev/null
+        if [[ $? == 0 ]]; then
+            # ipv6 ok
+            $ping6 $v6dnshost > /dev/null
+            if [[ $? == 0 ]]; then
+                # ipv6dns ok
+                return 0
+            else
+                # ipv6dns not ok
+                return 1
+            fi
+        else
+            # ipv6 not ok, fallback to ipv4
+            # issue: dns resolver prefers v6 (if ipv6 is configured)
+            $ping $v4dnshost > /dev/null
+            if [[ $? == 0 ]]; then
+                # ipv4dns ok
+                return 0
+            else
+                # ipv4dns not ok
+                return 1
+            fi
+        fi
+    else
+        # ipv4 not ok
+        return 1
+    fi
 }
 
 if [ ! -d "/var/log/lighttpd_custom" ]
@@ -75,79 +75,38 @@ cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
 # start custom script webserver, if default webserver is not configured to run on port 80...
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
-	sudo /sbin/start-stop-daemon --start --quiet \
-		--pidfile /var/run/lighttpd_custom.pid \
-		--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+        sudo /sbin/start-stop-daemon --start --quiet \
+                --pidfile /var/run/lighttpd_custom.pid \
+                --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
 fi
 
-# start original EsgeOS webserver
+# start original EdgeOS webserver
 sudo /sbin/start-stop-daemon --start --quiet \
-	--pidfile /var/run/lighttpd.pid \
-	--exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
+        --pidfile /var/run/lighttpd.pid \
+        --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 
-# to get the cert, you must habe internet access and the custom webserver - does not work with the stock webserver from EdgeOS!
+# to get the cert, you must have internet access and the custom webserver - does not work with the stock webserver from EdgeOS!
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
-	onlinecheck                                                                                 
-	if [[ $? == 0 ]]; then
-		if [ ! -s "/config/letsencrypt/account.key" ]
-		then
-			openssl genrsa 4096 | tee /config/letsencrypt/account.key
-		fi
-		if [ ! -s "/config/letsencrypt/domain.key" ]
-		then
-			openssl genrsa 4096 | tee /config/letsencrypt/domain.key
-		fi
-		# read activated PublicIP from OLSR Daemon
-		# it works only if txtinfo Plugin is activated in the OLSR Wizard!!!!!
-		PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
-		# correctly register csr file
-		openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr
+        onlinecheck
+        if [[ $? == 0 ]]; then
+                if [ ! -s "/config/letsencrypt/account.key" ]
+                then
+                        openssl genrsa 4096 | tee /config/letsencrypt/account.key
+                fi
+                if [ ! -s "/config/letsencrypt/domain.key" ]
+                then
+                        openssl genrsa 4096 | tee /config/letsencrypt/domain.key
+                fi
+                # read activated PublicIP from OLSR Daemon
+                # it works only if txtinfo Plugin is activated in the OLSR Wizard!
+                PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
+                # correctly register csr file
+                openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr
 
-		# Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
-		bash /config/letsencrypt/letsrenew.sh
-	fi
+                # Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
+                bash /config/letsencrypt/letsrenew.sh
+        fi
 fi
-#if [ ! -a "/etc/lighttpd/lighttpd.old" ]; then
-#	cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd.old >/dev/null
-#fi
-
-#if [ $(cat /var/www/php/app/views/login.php | grep 'cgi-bin-status.php' | wc -l) -eq 0 ]
-#then
-#	LINE=$(grep -n "End: Section Container" /var/www/php/app/views/login.php | cut -f1 -d:)
-#	sed -i "$LINE i <h1 class=\"section-title\"><center><a href=\"/cgi-bin-status.php\"><button type=\"button\" class=\"ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary\" role=\"button\" aria-disabled=\"false\"><span class=\"ui-button-icon-primary ui-icon ui-icon-tag\"></span><span class=\"ui-button-text\">OLSRd / Node Status</span></button></a></CENTER></h1>" /var/www/php/app/views/login.php >/dev/null
-#	mv /var/www/php/app/views/login.php /var/www/php/app/views/login.old
-#	mv /var/www/php/app/views/login.new /var/www/php/app/views/login.php
-#fi
-
-#if [ $(cat /etc/lighttpd/lighttpd.conf | grep '(/cgi-bin-status.php)' | wc -l) -eq 0 ]
-#then
-#	sed -i 's/url.rewrite-once = (/url.rewrite-once = (\n\t"^(\/cgi-bin-status.php)" => "$0",/g' /etc/lighttpd/lighttpd.conf >/dev/null
-#	WEBSERVER_CHANGES=1
-#fi
-
-#if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
-#then
-#	sed -i 's/tests/tests|js|css|fonts|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
-#	WEBSERVER_CHANGES=1
-#fi
-
-#if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'mod_cgi' | wc -l) -eq 1 ]
-#then
-#    sed -i 's/"mod_cgi",//g' /etc/lighttpd/lighttpd.conf >/dev/null
-#    WEBSERVER_CHANGES=1
-#fi
-
-#if [ $(cat /etc/lighttpd/lighttpd.conf | grep 'tests|js|css|fonts|cgi-bin' | wc -l) -eq 0 ]
-#then
-#    sed -i 's/tests|js|css|fonts|cgi-bin/tests|js|css|fonts|cgi-bin/g' /etc/lighttpd/lighttpd.conf >/dev/null
-#    WEBSERVER_CHANGES=1
-#fi
-
-#if [ $(cat /etc/lighttpd/lighttpd.conf | grep '99-bmk.conf' | wc -l) -eq 0 ]
-#then
-#	sed -i '/include "conf-enabled\/10-ssl.conf"/i include "conf-enabled/99-bmk.conf"' /etc/lighttpd/lighttpd.conf >/dev/null
-#	WEBSERVER_CHANGES=1
-#fi
 
 exit 0

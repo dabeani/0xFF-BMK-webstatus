@@ -3,6 +3,8 @@
 # Exit on error
 #set -e
 
+# CPO: problem: if https-port was changed to 8443 already, we will not clean old files
+# CPO: improve: change ports 80->81 and 443->8443 by config-script
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
 then
         #(old bmk-webstatus version check) - check if we have the last original lighttpd.conf saved...
@@ -21,6 +23,26 @@ then
                 # remove old file...
                 rm /var/www/php/app/views/login.old
         fi
+        # delete old status php files
+        if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
+                rm /var/www/htdocs/cgi-bin-status.php
+        fi
+        if [ -f "/var/www/htdocs/namevlans.php" ]; then
+                rm /var/www/htdocs/namevlans.php
+        fi
+        # CPO: delete old other files
+        if [ -d "/var/www/htdocs/.well-known" ]; then
+                rm -R /var/www/htdocs/.well-known
+        fi
+        if [ -d "/var/www/htdocs/css" ]; then
+                rm -R /var/www/htdocs/css
+        fi
+        if [ -d "/var/www/htdocs/fonts" ]; then
+                rm -R /var/www/htdocs/fonts
+        fi
+        if [ -d "/var/www/htdocs/js" ]; then
+                rm -R /var/www/htdocs/js
+        fi
 fi
 
 # stop custom Webserver if running
@@ -32,28 +54,27 @@ if [ -f "/var/run/lighttpd_custom.pid" ]; then
 fi
 
 # stop EdgeOS original Webserver if running
-if [ -f "/var/run/lighttpd_custom.pid" ]; then
+if [ -f "/var/run/lighttpd.pid" ]; then
         sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
         if [ -f "/var/run/lighttpd.pid" ]; then
                 rm /var/run/lighttpd.pid
         fi
 fi
 
-if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
-then
-        if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
-                rm /var/www/htdocs/cgi-bin-status.php
-        fi
-
-        if [ -f "/var/www/htdocs/namevlans.php" ]; then
-                rm /var/www/htdocs/namevlans.php
-        fi
-fi
-
 # remove old custom folder with content!! (WARNING)
+# custom contains lighttpd_custom.conf, www-directory, bin/ip2dns --> will be reinstalled from package
 if [ -d "/config/custom/" ]
 then
         rm -R /config/custom/
 fi
-
+#CPO: cleanup old files from former versions of this package
+#if [ -f "/config/scripts/post-config.d/install_letsencrypt.sh" ]; then
+#        rm /config/scripts/post-config.d/install_letsencrypt.sh
+#fi
+if [ -f "/config/0xffstatus_restart.sh" ]; then
+        rm /config/0xffstatus_restart.sh
+fi
+if [ -f "/config/0xffcustom_restart.sh" ]; then
+        rm /config/0xffcustom_restart.sh
+fi
 exit 0

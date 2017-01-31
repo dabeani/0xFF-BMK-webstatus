@@ -5,6 +5,7 @@
 
 # clean up old files from previous versions
 # old bmk-webstatus login button
+echo "Cleanup old files..."
 if [ -f "/var/www/php/app/views/login.old" ]; then
     cp /var/www/php/app/views/login.old /var/www/php/app/views/login.php
     rm /var/www/php/app/views/login.old
@@ -36,6 +37,7 @@ if [ -d "/var/www/htdocs/js" ]; then
     rm -R /var/www/htdocs/js
 fi
 
+echo "Stopping Webservers..."
 # stop custom Webserver if running
 if [ -f "/var/run/lighttpd_custom.pid" ]; then
         sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
@@ -54,14 +56,12 @@ fi
 
 # remove old custom folder with content!! (WARNING)
 # custom contains lighttpd_custom.conf, www-directory, bin/ip2dns --> will be reinstalled from package
+echo "Removing /config/custom/ ..."
 if [ -d "/config/custom/" ]
 then
         rm -R /config/custom/
 fi
-#CPO: cleanup old files from former versions of this package
-#if [ -f "/config/scripts/post-config.d/install_letsencrypt.sh" ]; then
-#        rm /config/scripts/post-config.d/install_letsencrypt.sh
-#fi
+echo "Removing old 0xff-restart cronjob..."
 if [ -f "/config/0xffstatus_restart.sh" ]; then
         rm /config/0xffstatus_restart.sh
 fi
@@ -76,6 +76,7 @@ if [ -L "/etc/cron.weekly/0xffcustom_restart.sh" ]; then
 fi
 
 # recover original lighttpd.conf
+echo "Recovering original lighttpd.conf from backup..."
 if [ -L /etc/lighttpd/lighttpd.conf ]; then
   # it is a link
   if [ -f /etc/lighttpd/lighttpd.old ]; then 
@@ -112,5 +113,7 @@ fi
 if [ -f "/etc/lighttpd/conf-enabled/99-bmk.conf" ]; then
   rm /etc/lighttpd/conf-enabled/99-bmk.conf
 fi
+
+echo "preinst finished"
 
 exit 0

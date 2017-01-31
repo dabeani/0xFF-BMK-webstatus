@@ -78,6 +78,7 @@ function getHostnameFromDB($ip) {
     
 function getOLSRLinks() {
 	global $get_nslookup_from_nodedb;
+	
     printLoadingText("Loading Status-TAB (generating link-table)...");
     $routes_raw = explode("\n",trim(shell_exec("/sbin/ip route | awk '{print $3,$1}'")));
     foreach ($routes_raw as $getroute) {
@@ -85,10 +86,12 @@ function getOLSRLinks() {
             $APP["default_route"] = trim(substr($getroute,0,strpos($getroute," ")));
         }
         $route = explode(" ",$getroute);
-        if(preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $route['0'], $ip_match)) {
-            $APP["routes"][$route['0']][] = trim($route['1']);
-            $APP["routes_".$route['0']] = count($APP["routes"][$route['0']]);
-        }
+	if(isset($route['0'])) {
+		if(preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $route['0'], $ip_match)) {
+		    $APP["routes"][$route['0']][] = trim($route['1']);
+		    $APP["routes_".$route['0']] = count($APP["routes"][$route['0']]);
+		}
+	}
     }
     
     $olsr_links_raw = explode("\n",trim(file_get_contents("http://127.0.0.1:2006/links")));
@@ -102,20 +105,24 @@ function getOLSRLinks() {
 
     // linkliste vorbereiten
     $olsr_links=array();
-    foreach ($olsr_links_raw as $getlink) {
-        $getlink = preg_replace('/\s+/',',',trim($getlink));
-        preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
-        if(!isset($APP["routes_".$link['2']])) {
-            $link['routes']=0;
-        } else {
-            $link['routes']=$APP["routes_".$link['2']];
-        }
-        $link['sort']=sprintf("%u", ip2long($link['2']));
-        array_push($olsr_links, $link);
+    if(isset($olsr_links_raw)) {
+	    foreach ($olsr_links_raw as $getlink) {
+		$getlink = preg_replace('/\s+/',',',trim($getlink));
+		preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
+		if(isset($link['2'])) {
+			if(!isset($APP["routes_".$link['2']])) {
+			    $link['routes']=0;
+			} else {
+			    $link['routes']=$APP["routes_".$link['2']];
+			}
+			$link['sort']=sprintf("%u", ip2long($link['2']));
+			array_push($olsr_links, $link);
+		}	
+	    }
+	    usort($olsr_links, build_sorter('sort'));
+	    unset($olsr_links_raw);
     }
-    usort($olsr_links, build_sorter('sort'));
-    unset($olsr_links_raw);
-	unset($getlink);
+    unset($getlink);
 
     foreach ($olsr_links as $link) {
         $tmp_output_route_text = "route";
@@ -388,24 +395,26 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2008"));
 							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
 							echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
 							echo "<tbody>\n";
-							foreach ($APP["devices_list"]['devices'] as $key=>$value) {
-									$APP["devices_list"]['devices'][$key]['sort']=sprintf("%u", ip2long($APP["devices_list"]['devices'][$key]['ipv4']));
+							if(isset($APP["devices_list"]['devices'])) {
+								foreach ($APP["devices_list"]['devices'] as $key=>$value) {
+										$APP["devices_list"]['devices'][$key]['sort']=sprintf("%u", ip2long($APP["devices_list"]['devices'][$key]['ipv4']));
+								}
+								usort($APP["devices_list"]['devices'], build_sorter('sort'));
+								foreach ($APP["devices_list"]['devices'] as $d) {
+									echo "<tr>";
+									echo "<td>".$d['hwaddr']."</td>";
+									echo "<td>".$d['ipv4']."</td>";
+									echo "<td>".$d['hostname']."</td>";
+									echo "<td>".$d['product']."</td>";
+									echo "<td>".format_duration($d['uptime'])."</td>";
+									echo "<td>".format_wmode($d['wmode'])."</td>";
+									echo "<td>".$d['essid']."</td>";
+									echo "<td>".parse_firmware($d['fwversion'])."</td>";
+									echo "</tr>\n";
+									flush();
+								}
+								unset($d);
 							}
-							usort($APP["devices_list"]['devices'], build_sorter('sort'));
-							foreach ($APP["devices_list"]['devices'] as $d) {
-								echo "<tr>";
-								echo "<td>".$d['hwaddr']."</td>";
-								echo "<td>".$d['ipv4']."</td>";
-								echo "<td>".$d['hostname']."</td>";
-								echo "<td>".$d['product']."</td>";
-								echo "<td>".format_duration($d['uptime'])."</td>";
-								echo "<td>".format_wmode($d['wmode'])."</td>";
-								echo "<td>".$d['essid']."</td>";
-								echo "<td>".parse_firmware($d['fwversion'])."</td>";
-								echo "</tr>\n";
-								flush();
-							}
-							unset($d);
 							echo "</tbody></table>";
 						  } else {
 							echo "No devices discovered";

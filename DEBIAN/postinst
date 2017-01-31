@@ -18,7 +18,19 @@ chmod 755 /config/letsencrypt/acme_tiny.py
 chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/scripts/post-config.d/install_letsencrypt.sh
+chmod 755 /config/scripts/port_81.sh
+chmod 755 /config/scripts/port_8443.sh
 chmod 755 /config/custom/bin/ip2dns
+
+# change original webserver http-port from 80 to 81
+if [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
+    /config/scripts/port_81.sh
+fi
+# change original webserver https-port from 443 to 8443
+# CPO: really needed? acme-chellange and cgi-status.php could be served without https:443 as well?
+if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
+    /config/scripts/port_8443.sh
+fi
 
 # hosts to check for online status
 v4iphost='8.8.8.8'

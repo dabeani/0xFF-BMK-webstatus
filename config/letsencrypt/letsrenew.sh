@@ -11,7 +11,7 @@ python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/accoun
 iptables -D $CHAIN 1
 
 # Copying files to lighttpd directory on success only (file domain.key is not empty)
-if [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]
+if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ]
   then
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem

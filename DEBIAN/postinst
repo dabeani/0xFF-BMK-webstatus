@@ -3,6 +3,7 @@
 # Exit on error
 #set -x
 
+echo "Preparing files and directories..."
 # create needed folder for letsencrypt initial setup files
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
 
@@ -21,6 +22,7 @@ chmod 755 /config/custom/bin/ip2dns
 
 # change original webserver http-port from 80 to 81
 if [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
+    echo "Changing http-port from 80 to 81..."
     /config/scripts/port_81.sh
 fi
 # change original webserver https-port from 443 to 8443
@@ -32,6 +34,7 @@ fi
 #
 # on order to allow original webserver to stay on port 443, all 3 lines on custom 10-ssl.conf need to be changed to i.e. to port 8443.
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
+    echo "Changing https-port from 443 to 8443..."
     /config/scripts/port_8443.sh
 fi
 
@@ -88,9 +91,11 @@ fi
 # --> try to establish a check for such a situation?
 chmod +w /etc/lighttpd/server.pem
 if [ -f "/config/letsencrypt/original_server.pem" ]; then
+  echo "Recovering original server.pem file..."
   cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
 fi
 
+echo "Fire up original webserver..."
 # start original EdgeOS webserver
 sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
@@ -101,6 +106,7 @@ sudo /sbin/start-stop-daemon --start --quiet \
 # CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]
 then
+        echo "Fire up custom webserver"
         # start custom script webserver
         sudo /sbin/start-stop-daemon --start --quiet \
                 --pidfile /var/run/lighttpd_custom.pid \
@@ -108,23 +114,35 @@ then
 
         ## calculate keys of not already there (could be done offline)
         if [ ! -s "/config/letsencrypt/account.key" ]; then
+                echo "Caculating account-key: this could take a minute or two..."
                 openssl genrsa 4096 | tee /config/letsencrypt/account.key
         fi
         if [ ! -s "/config/letsencrypt/domain.key" ]; then
+                echo "Caculating domain-key: this could take a minute or two..."
                 openssl genrsa 4096 | tee /config/letsencrypt/domain.key
         fi
-
+        echo "Perform online check..."
         onlinecheck
         if [[ $? == 0 ]]; then
+                echo "Retrieving IP and FQDN..."
                 # read activated PublicIP from OLSR Daemon
                 # it works only if txtinfo Plugin is activated in the OLSR Wizard!
                 PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
                 # correctly register csr file
+                echo "Creating domain-csr..."
                 openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr
 
                 # Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
+                echo "Starting registration procedure..."
                 bash /config/letsencrypt/letsrenew.sh
+                echo "Done!"
+        else
+                echo "NOT ONLINE: key registration not possible"
         fi
+else
+        echo "Custom webserver not started due to port conflicts (80/443)!"
 fi
+
+echo "postinst installation finished"
 
 exit 0

@@ -68,16 +68,10 @@ then
     chown www-data:www-data /var/log/lighttpd_custom
 fi
 
-# overwrite existing server.pem with original...
+# overwrite existing server.pem with original
 chmod +w /etc/lighttpd/server.pem
-cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
-
-# start custom script webserver, if default webserver is not configured to run on port 80...
-if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
-then
-        sudo /sbin/start-stop-daemon --start --quiet \
-                --pidfile /var/run/lighttpd_custom.pid \
-                --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+if [ -f "/config/letsencrypt/original_server.pem" ]; then
+  cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
 fi
 
 # start original EdgeOS webserver
@@ -85,9 +79,16 @@ sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 
-# to get the cert, you must have internet access and the custom webserver - does not work with the stock webserver from EdgeOS!
-if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
+# to get the cert, you must have internet access and the custom webserver on ports 80/443
+# does not work with the stock webserver from EdgeOS due to missing rewrite-exception for /.well-known/ directory
+# CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
+if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]
 then
+        # start custom script webserver
+        sudo /sbin/start-stop-daemon --start --quiet \
+                --pidfile /var/run/lighttpd_custom.pid \
+                --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+
         onlinecheck
         if [[ $? == 0 ]]; then
                 if [ ! -s "/config/letsencrypt/account.key" ]

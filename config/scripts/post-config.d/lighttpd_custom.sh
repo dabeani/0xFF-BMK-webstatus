@@ -6,11 +6,15 @@ if [ ! -d "/var/log/lighttpd_custom" ]; then
   chown www-data:www-data /var/log/lighttpd_custom
 fi
 
-# re-establish monthly renewal
-ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
+# re-establish monthly renewal if needed
+if [ ! -L /etc/cron.monthly/letsrenew.sh ]; then
+  ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
+fi
 
 # re-establish current certificate file, only of domain.key is not of zero file-size
-if [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]
+# original server.pem contains "BEGIN PRIVATE KEY", whereas LE-signed server.pem includes "BEGIN RSA PRIVATE KEY".
+# only renew server.pem file if needed and signature file is >0 bytes
+if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] && [ $(grep "BEGIN RSA PRIVATE KEY" /etc/lighttpd/server.pem | wc -l) -eq 0 ]
   then
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
@@ -24,16 +28,17 @@ if [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencry
         --pidfile /var/run/lighttpd.pid \
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
   
-  # Restart custom lighttpd webserver for custom scripts
-  # only if default webserver is not configured to run on port 80/443...
-  # CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
-  if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]
-    sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
-    if [ -f "/var/run/lighttpd_custom.pid" ]; then
-      rm /var/run/lighttpd_custom.pid
-    fi
-    sudo /sbin/start-stop-daemon --start --quiet \
-          --pidfile /var/run/lighttpd_custom.pid \
-          --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+  # stop custom webserver if already running
+  sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
+  if [ -f "/var/run/lighttpd_custom.pid" ]; then
+    rm /var/run/lighttpd_custom.pid
   fi
+fi
+
+# Start custom webserver
+# CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
+if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]
+  sudo /sbin/start-stop-daemon --start --quiet \
+        --pidfile /var/run/lighttpd_custom.pid \
+        --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
 fi

@@ -132,7 +132,7 @@ then
                         PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
                 else
                         # if OLSR is not activated or not used - we get the "public" IP from the default route iface
-                        PUBLICIP=$(echo $(/sbin/ifconfig $(ip r | grep default | awk {'print $5'}) | head -n2 | tail -n1 | awk {'print $2'} | sed -e s/addr://) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
+                        PUBLICIP=$(echo $(/sbin/ifconfig $(ip r | grep default | tail -n1 | awk {'print $5'}) | head -n2 | tail -n1 | awk {'print $2'} | sed -e s/addr://) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
                 fi
                 
                 # correctly register csr file

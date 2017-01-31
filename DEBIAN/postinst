@@ -106,16 +106,16 @@ then
                 --pidfile /var/run/lighttpd_custom.pid \
                 --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
 
+        ## calculate keys of not already there (could be done offline)
+        if [ ! -s "/config/letsencrypt/account.key" ]; then
+                openssl genrsa 4096 | tee /config/letsencrypt/account.key
+        fi
+        if [ ! -s "/config/letsencrypt/domain.key" ]; then
+                openssl genrsa 4096 | tee /config/letsencrypt/domain.key
+        fi
+
         onlinecheck
         if [[ $? == 0 ]]; then
-                if [ ! -s "/config/letsencrypt/account.key" ]
-                then
-                        openssl genrsa 4096 | tee /config/letsencrypt/account.key
-                fi
-                if [ ! -s "/config/letsencrypt/domain.key" ]
-                then
-                        openssl genrsa 4096 | tee /config/letsencrypt/domain.key
-                fi
                 # read activated PublicIP from OLSR Daemon
                 # it works only if txtinfo Plugin is activated in the OLSR Wizard!
                 PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)

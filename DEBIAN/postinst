@@ -7,8 +7,7 @@
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
 
 # if its not already created, create cronjob for LE
-if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]
-then
+if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]; then
         ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
 fi
 
@@ -27,7 +26,13 @@ if [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
     /config/scripts/port_81.sh
 fi
 # change original webserver https-port from 443 to 8443
-# CPO: really needed? acme-chellange and cgi-status.php could be served without https:443 as well?
+# CPO: really needed? acme-chellange and cgi-status.php could be served without https:443 as well.
+# custom-https-port is configured in /config/custom/lighttpd/conf-enabled/10-ssl.conf in following lines (3x: ipv4, ipv6, url.redirect)
+# $SERVER["socket"] == "0.0.0.0:443" {
+# $SERVER["socket"] == "[0::0]:443" {
+#                         "^(.*)$" => "https://%1:443$1"
+#
+# on order to allow original webserver to stay on port 443, all 3 lines on custom 10-ssl.conf need to be changed to i.e. to port 8443.
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
     /config/scripts/port_8443.sh
 fi
@@ -81,6 +86,8 @@ then
 fi
 
 # overwrite existing server.pem with original
+# CPO: only needed if original webserver is not running due to corrupted server.pem file
+# --> try to establish a check for such a situation?
 chmod +w /etc/lighttpd/server.pem
 if [ -f "/config/letsencrypt/original_server.pem" ]; then
   cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem

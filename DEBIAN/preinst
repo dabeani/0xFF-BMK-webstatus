@@ -3,46 +3,31 @@
 # Exit on error
 #set -e
 
-# CPO: problem: if https-port was changed to 8443 before, we will not clean old files
-# CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
-if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ]
-then
-        #(old bmk-webstatus version check) - check if we have the last original lighttpd.conf saved...
-        if [ -f "/etc/lighttpd/lighttpd.old" ]; then
-                cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
-                # remove old file...
-                rm /etc/lighttpd/lighttpd.old
-        fi
-        if [ -f "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
-                cp /etc/lighttpd/conf-enabled/10-ssl.old /etc/lighttpd/conf-enabled/10-ssl.conf
-                # remove old file...
-                rm /etc/lighttpd/conf-enabled/10-ssl.old
-        fi
-        if [ -f "/var/www/php/app/views/login.old" ]; then
-                cp /var/www/php/app/views/login.old /var/www/php/app/views/login.php
-                # remove old file...
-                rm /var/www/php/app/views/login.old
-        fi
-        # delete old status php files
-        if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
-                rm /var/www/htdocs/cgi-bin-status.php
-        fi
-        if [ -f "/var/www/htdocs/namevlans.php" ]; then
-                rm /var/www/htdocs/namevlans.php
-        fi
-        # CPO: delete old other files
-        if [ -d "/var/www/htdocs/.well-known" ]; then
-                rm -R /var/www/htdocs/.well-known
-        fi
-        if [ -d "/var/www/htdocs/css" ]; then
-                rm -R /var/www/htdocs/css
-        fi
-        if [ -d "/var/www/htdocs/fonts" ]; then
-                rm -R /var/www/htdocs/fonts
-        fi
-        if [ -d "/var/www/htdocs/js" ]; then
-                rm -R /var/www/htdocs/js
-        fi
+# clean up old files from previous versions
+# old bmk-webstatus login button
+if [ -f "/var/www/php/app/views/login.old" ]; then
+    cp /var/www/php/app/views/login.old /var/www/php/app/views/login.php
+    rm /var/www/php/app/views/login.old
+fi
+# delete old status php files
+if [ -f "/var/www/htdocs/cgi-bin-status.php" ]; then
+    rm /var/www/htdocs/cgi-bin-status.php
+fi
+if [ -f "/var/www/htdocs/namevlans.php" ]; then
+    rm /var/www/htdocs/namevlans.php
+fi
+# CPO: delete old other files
+if [ -d "/var/www/htdocs/.well-known" ]; then
+    rm -R /var/www/htdocs/.well-known
+fi
+if [ -d "/var/www/htdocs/css" ]; then
+    rm -R /var/www/htdocs/css
+fi
+if [ -d "/var/www/htdocs/fonts" ]; then
+    rm -R /var/www/htdocs/fonts
+fi
+if [ -d "/var/www/htdocs/js" ]; then
+    rm -R /var/www/htdocs/js
 fi
 
 # stop custom Webserver if running
@@ -78,14 +63,20 @@ if [ -f "/config/0xffcustom_restart.sh" ]; then
         rm /config/0xffcustom_restart.sh
 fi
 
-# recover original lighttpd.conf in
+# recover original lighttpd.conf
 if [ -L /etc/lighttpd/lighttpd.conf ]; then
   # it is a link
   if [ -f /etc/lighttpd/lighttpd.old ]; then 
+    ## .old files exist as well --> preferred over linked file!
     ## recover backup file
     rm /etc/lighttpd/lighttpd.conf
     cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
     rm /etc/lighttpd/lighttpd.old
+    ## when lighttpd.old exists, 10-ssl.old should be there as well
+    if [ -f "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
+      cp /etc/lighttpd/conf-enabled/10-ssl.old /etc/lighttpd/conf-enabled/10-ssl.conf
+      rm /etc/lighttpd/conf-enabled/10-ssl.old
+    fi
   else
     ## replace link by link-target
     cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd_linked.conf
@@ -94,6 +85,20 @@ if [ -L /etc/lighttpd/lighttpd.conf ]; then
     rm /etc/lighttpd/lighttpd_linked.conf
   fi
   rm /config/lighttpd/lighttpd.conf
+else
+  ## link does not exist, try .old file 
+  if [ -f "/etc/lighttpd/lighttpd.old" ]; then
+    cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
+    rm /etc/lighttpd/lighttpd.old
+  fi
+  if [ -f "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
+    cp /etc/lighttpd/conf-enabled/10-ssl.old /etc/lighttpd/conf-enabled/10-ssl.conf
+    rm /etc/lighttpd/conf-enabled/10-ssl.old
+  fi
+fi
+
+if [ -f "/etc/lighttpd/conf-enabled/99-bmk.conf" ]; then
+  rm /etc/lighttpd/conf-enabled/99-bmk.conf
 fi
 
 exit 0

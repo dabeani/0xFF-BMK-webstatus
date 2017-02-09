@@ -1,7 +1,5 @@
 #!/bin/sh
-
-# Exit on error
-#set -e
+#preinstall
 
 # clean up old files from previous versions
 # old bmk-webstatus login button
@@ -57,8 +55,7 @@ fi
 # remove old custom folder with content!! (WARNING)
 # custom contains lighttpd_custom.conf, www-directory, bin/ip2dns --> will be reinstalled from package
 echo "Removing /config/custom/ ..."
-if [ -d "/config/custom/" ]
-then
+if [ -d "/config/custom/" ]; then
         rm -R /config/custom/
 fi
 echo "Removing old 0xff-restart cronjob..."

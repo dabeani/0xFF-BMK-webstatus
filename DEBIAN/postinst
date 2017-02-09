@@ -1,11 +1,18 @@
 #!/bin/sh
-
-# Exit on error
-#set -x
+#postinst
+#change ports if needed
+#keep existing LE-certificates if exists
+#keep cronjob for renewal if existed
+#pre-calculate keys if missing
 
 echo "Preparing files and directories..."
 # create needed folder for letsencrypt initial setup files
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
+
+if [ ! -d "/var/log/lighttpd_custom" ]; then
+    mkdir /var/log/lighttpd_custom
+    chown www-data:www-data /var/log/lighttpd_custom
+fi
 
 # if its not already created, create cronjob for LE
 if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]; then
@@ -38,61 +45,19 @@ if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
     /config/scripts/port_8443.sh
 fi
 
-# hosts to check for online status
-v4iphost='8.8.8.8'
-v4dnshost='www.google.com'
-v6iphost='2001:4860:4860::8888'
-v6dnshost='www.google.com'
-
-# function to check if connectivity is given to download packages (script from vchrizz)
-onlinecheck () {
-    ping="ping -c 1 -W 1 ";
-    ping6="ping6 -c 1 -W 1 ";
-    $ping $v4iphost 2> /dev/null
-    if [[ $? == 0 ]]; then
-        # ipv4 ok
-        $ping6 $v6iphost > /dev/null
-        if [[ $? == 0 ]]; then
-            # ipv6 ok
-            $ping6 $v6dnshost > /dev/null
-            if [[ $? == 0 ]]; then
-                # ipv6dns ok
-                return 0
-            else
-                # ipv6dns not ok
-                return 1
-            fi
-        else
-            # ipv6 not ok, fallback to ipv4
-            # issue: dns resolver prefers v6 (if ipv6 is configured)
-            $ping $v4dnshost > /dev/null
-            if [[ $? == 0 ]]; then
-                # ipv4dns ok
-                return 0
-            else
-                # ipv4dns not ok
-                return 1
-            fi
-        fi
-    else
-        # ipv4 not ok
-        return 1
-    fi
-}
-
-if [ ! -d "/var/log/lighttpd_custom" ]
-then
-    mkdir /var/log/lighttpd_custom
-    chown www-data:www-data /var/log/lighttpd_custom
-fi
-
-# overwrite existing server.pem with original
-# CPO: only needed if original webserver is not running due to corrupted server.pem file
-# --> try to establish a check for such a situation?
+# reestablish server.pem with RSA key if possible
 chmod +w /etc/lighttpd/server.pem
-if [ -f "/config/letsencrypt/original_server.pem" ]; then
-  echo "Recovering original server.pem file..."
-  cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] &&
+   [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]
+then
+  cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
+  cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
+elif
+  # if not, recover original server.pem if possible
+  if [ -f "/config/letsencrypt/original_server.pem" ]; then
+    echo "Recovering original server.pem file..."
+    cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+  fi
 fi
 
 echo "Fire up original webserver..."
@@ -101,53 +66,20 @@ sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 
-# to get the cert, you must have internet access and the custom webserver on ports 80/443
-# does not work with the stock webserver from EdgeOS due to missing rewrite-exception for /.well-known/ directory
-# CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
-if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]
-then
-        echo "Fire up custom webserver"
-        # start custom script webserver
-        sudo /sbin/start-stop-daemon --start --quiet \
-                --pidfile /var/run/lighttpd_custom.pid \
-                --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+echo "Fire up custom webserver"
+# start custom script webserver
+sudo /sbin/start-stop-daemon --start --quiet \
+        --pidfile /var/run/lighttpd_custom.pid \
+        --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
 
-        ## calculate keys of not already there (could be done offline)
-        if [ ! -s "/config/letsencrypt/account.key" ]; then
-                echo "Caculating account-key: this could take a minute or two..."
-                openssl genrsa 4096 | tee /config/letsencrypt/account.key
-        fi
-        if [ ! -s "/config/letsencrypt/domain.key" ]; then
-                echo "Caculating domain-key: this could take a minute or two..."
-                openssl genrsa 4096 | tee /config/letsencrypt/domain.key
-        fi
-        echo "Perform online check..."
-        onlinecheck
-        if [[ $? == 0 ]]; then
-                echo "Retrieving IP and FQDN..."
-                
-                # read activated PublicIP from OLSR Daemon (should be optimized in the future)
-                if [ $(ps aux | grep olsr | grep -v grep | wc -l) -eq 0 ]; then
-                        # it works only if txtinfo Plugin is activated in the OLSR Wizard!
-                        PUBLICIP=$(echo $(curl -s -o- http://127.0.0.1:2006/interfaces | head -n3 | tail -n1 | awk {'print $5'}) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
-                else
-                        # if OLSR is not activated or not used - we get the "public" IP from the default route iface
-                        PUBLICIP=$(echo $(/sbin/ifconfig $(ip r | grep default | tail -n1 | awk {'print $5'}) | head -n2 | tail -n1 | awk {'print $2'} | sed -e s/addr://) | /config/custom/bin/ip2dns | awk {'print $2'} | sed -e s/dns.//)
-                fi
-                
-                # correctly register csr file
-                echo "Creating domain-csr..."
-                openssl req -new -sha256 -key /config/letsencrypt/domain.key -subj "/CN=$PUBLICIP" | tee /config/letsencrypt/domain.csr
-
-                # Run letsrenew.sh file for initial connect and/or renewal, doesn't matter
-                echo "Starting registration procedure..."
-                bash /config/letsencrypt/letsrenew.sh
-                echo "Done!"
-        else
-                echo "NOT ONLINE: key registration not possible"
-        fi
-else
-        echo "Custom webserver not started due to port conflicts (80/443)!"
+## calculate keys of not already there (could be done offline)
+if [ ! -f "/config/letsencrypt/account.key" ] || [ $(stat -c %s /config/letsencrypt/account.key) -eq 0 ]; then
+    echo "Calculating account-key: this could take a minute or two..."
+    openssl genrsa 4096 | tee /config/letsencrypt/account.key
+fi
+if [ ! -f "/config/letsencrypt/domain.key" ] || [ $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]; then
+    echo "Calculating domain-key: this could take a minute or two..."
+    openssl genrsa 4096 | tee /config/letsencrypt/domain.key
 fi
 
 echo "postinst installation finished"

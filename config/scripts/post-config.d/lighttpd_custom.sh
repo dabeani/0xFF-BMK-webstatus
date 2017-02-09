@@ -1,4 +1,8 @@
 #!/bin/sh
+#post-config.d/lighttpd_custom.sh
+#re-establishes server.pem with certificate (if possible or needed)
+#re-establishes renew-cronjob (if missing)
+#starts custom lighttpd
 
 # create missing log-directory if needed
 if [ ! -d "/var/log/lighttpd_custom" ]; then
@@ -14,7 +18,9 @@ fi
 # re-establish current certificate file, only of domain.key is not of zero file-size
 # original server.pem contains "BEGIN PRIVATE KEY", whereas LE-signed server.pem includes "BEGIN RSA PRIVATE KEY".
 # only renew server.pem file if needed and signature file is >0 bytes
-if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] && [ $(grep "BEGIN RSA PRIVATE KEY" /etc/lighttpd/server.pem | wc -l) -eq 0 ]
+if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] && 
+   [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ] &&
+   [ $(grep "BEGIN RSA PRIVATE KEY" /etc/lighttpd/server.pem | wc -l) -eq 0 ]
   then
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem

@@ -4,6 +4,10 @@
 #checks for needed files to continue
 #does nothing if no domain-registration is prepared from wizard
 
+#feature request
+#for renewal, custom lighttps must run on port 80
+#if not, move ports, renew, and switch back to previous ports
+
 # hosts to check for online status
 v4iphost='8.8.8.8'
 v4dnshost='www.google.com'

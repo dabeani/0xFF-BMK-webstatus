@@ -41,7 +41,7 @@ onlinecheck () {
 }
 
 # needed files available for renewal or initial creation?
-if [ ! $((onlinecheck)) == 0 ] ||
+if [ $((onlinecheck)) != 0 ] ||
    [ ! -f "/config/letsencrypt/domain.csr" ] ||
    [ $(stat -c %s /config/letsencrypt/domain.csr) -eq 0 ] ||
    [ ! -f "/config/letsencrypt/domain.key" ] ||

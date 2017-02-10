@@ -28,7 +28,7 @@ if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencry
   # Restarting original lighttpd webserver for EdgeOS
   sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
   if [ -f "/var/run/lighttpd.pid" ]; then
-    rm /var/run/lighttpd.pid
+    rm -f /var/run/lighttpd.pid
   fi
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
@@ -37,7 +37,7 @@ if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencry
   # stop custom webserver if already running
   sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
   if [ -f "/var/run/lighttpd_custom.pid" ]; then
-    rm /var/run/lighttpd_custom.pid
+    rm -f /var/run/lighttpd_custom.pid
   fi
 fi
 

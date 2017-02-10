@@ -52,12 +52,10 @@ if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencry
 then
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
-elif
+elif [ -f "/config/letsencrypt/original_server.pem" ]; then
   # if not, recover original server.pem if possible
-  if [ -f "/config/letsencrypt/original_server.pem" ]; then
-    echo "Recovering original server.pem file..."
-    cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
-  fi
+  echo "Recovering original server.pem file..."
+  cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
 fi
 
 echo "Fire up original webserver..."

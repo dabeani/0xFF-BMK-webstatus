@@ -2,11 +2,14 @@
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
 
-// define all possible management interfaces for status-output
+// define standard settings - just to be on the save side
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
 $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
+
+// load specific settings
+require 'settings.inc';
 
 // scripts should terminated after 1 minute!
 set_time_limit(60);

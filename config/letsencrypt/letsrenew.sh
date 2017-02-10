@@ -73,7 +73,7 @@ then
   # Restarting original lighttpd webserver for EdgeOS
   sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
   if [ -f "/var/run/lighttpd.pid" ]; then
-    rm /var/run/lighttpd.pid
+    rm -f /var/run/lighttpd.pid
   fi
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
@@ -85,7 +85,7 @@ then
   if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]; then
     sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
     if [ -f "/var/run/lighttpd_custom.pid" ]; then
-      rm /var/run/lighttpd_custom.pid
+      rm -f /var/run/lighttpd_custom.pid
     fi
     sudo /sbin/start-stop-daemon --start --quiet \
           --pidfile /var/run/lighttpd_custom.pid \

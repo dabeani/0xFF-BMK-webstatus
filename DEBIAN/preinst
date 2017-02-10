@@ -34,6 +34,18 @@ fi
 if [ -d "/var/www/htdocs/js" ]; then
     rm -R /var/www/htdocs/js
 fi
+if [ -f "/config/custom/www/css/bootstrap-theme.css.map" ]; then
+    rm /config/custom/www/css/bootstrap-theme.css.map
+fi
+if [ -f "/config/custom/www/css/bootstrap-theme.min.css.map" ]; then
+    rm /config/custom/www/css/bootstrap-theme.min.css.map
+fi
+if [ -f "/config/custom/www/css/bootstrap.css.map" ]; then
+    rm /config/custom/www/css/bootstrap.css.map
+fi
+if [ -f "/config/custom/www/css/bootstrap.min.css.map" ]; then
+    rm /config/custom/www/css/bootstrap.min.css.map
+fi
 
 echo "Stopping Webservers..."
 # stop custom Webserver if running

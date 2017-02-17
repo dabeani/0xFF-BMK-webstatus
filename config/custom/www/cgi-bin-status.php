@@ -20,8 +20,21 @@ $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
 $IP_RANGE["193er_range_low"] = ip2long("193.238.156.1");
 $IP_RANGE["193er_range_high"]= ip2long("193.238.159.254");
 
+$APP = Array();
+
+$APP["IPv4_TXTINFO_PORT"] = trim(shell_exec("cat /config/user-data/olsr*4.conf | grep -A2 txtinfo | grep port | awk {'print $3'} | sed -e s/'\"'//g"));
+$APP["IPv6_TXTINFO_PORT"] = trim(shell_exec("cat /config/user-data/olsr*6.conf | grep -A2 txtinfo | grep port | awk {'print $3'} | sed -e s/'\"'//g"));
+
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
+
+function validateIP($ip){
+	if (!filter_var($ip, FILTER_VALIDATE_IP) === false) {
+		return true;
+	} else {
+	    return false;
+	}	
+}
 
 function printLoadingText($text) {
     ?>
@@ -79,8 +92,151 @@ function getHostnameFromDB($ip) {
 	}
 }
     
+function getOLSRLinksv6() {
+	global $APP;
+	
+	printLoadingText("Loading Status-TAB (generating link-table IPv6)...");
+    $routes_raw = explode("\n",trim(shell_exec("/sbin/ip -f inet6 route | awk '{print $3,$1}'")));
+    foreach ($routes_raw as $getroute) {
+        if(strpos($getroute,'default') !== false) {
+            $APP["default_routev6"] = trim(substr($getroute,0,strpos($getroute," ")));
+            printLoadingText("Loading Status-TAB [IPv6]default-route: ".$APP["default_routev6"]."...");
+        }
+        $route = explode(" ",$getroute);
+		if(isset($route['0'])) {
+			if(validateIP($route['0'])) {
+			    $APP["routesv6"][$route['0']][] = trim($route['1']);
+			    $APP["routesv6_".$route['0']] = count($APP["routesv6"][$route['0']]);
+			}
+		}
+    }
+    $olsr_links_raw = explode("\n",trim(file_get_contents("http://127.0.0.1:".$APP["IPv6_TXTINFO_PORT"]."/links")));
+    if(isset($olsr_links_raw['0']) && isset($olsr_links_raw['1'])) {
+        unset($olsr_links_raw['0']);
+        unset($olsr_links_raw['1']);
+    }
+    printLoadingText("Loading Status-TAB [IPv6]get(olsr_links_raw) - ".count($olsr_links_raw)." neighbor found...");
+    
+    echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead>\n";
+    echo "<tbody>\n";
+    flush();
+    
+    // linkliste vorbereiten
+    $olsr_links=array();
+    if(isset($olsr_links_raw)) {
+	    foreach ($olsr_links_raw as $getlink) {
+			$getlink = preg_replace('/\s+/',',',trim($getlink));
+			preg_match('/(.*),(.*),(.*),(.*),(.*),(.*)/', $getlink, $link);
+			if(isset($link['2'])) {
+				if(!isset($APP["routesv6_".$link['2']])) {
+				    $link['routes']=0;
+				} else {
+				    $link['routes']=$APP["routesv6_".$link['2']];
+				}
+				//$link['sort']=sprintf("%u", ip2long($link['2']));
+				array_push($olsr_links, $link);
+			}
+	    }
+	    usort($olsr_links, build_sorter('sort'));
+	    unset($olsr_links_raw);
+    }
+    unset($getlink);
+
+    foreach ($olsr_links as $link) {
+        $tmp_output_route_text = "route";
+        $tmp_defaultroute = "";
+        // prepare the text of route or routes..
+        if(!isset($APP["routesv6_".$link['2']])) {
+            $tmp_output_route_text = "no routes";
+            $APP["routesv6_".$link['2']]=0;
+        }
+        if($APP["routesv6_".$link['2']] > 1) {
+            $tmp_output_route_text = "routes";
+        }
+        // if we know the default-route, set a colored background of that column
+        if($link['2'] == $APP["default_routev6"]) {
+           $tmp_defaultroute = " bgcolor=FFD700";
+        }
+        $neighbor = @gethostbyaddr($link['2']); // do this request only one time...
+		$nodes_at_this_route=array();
+        ?>
+        <!-- Modal -->
+<div class="modal fade" id="myModal<?= str_replace(':','',str_replace('.','',$link['2'])); ?>" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel"><?= $APP["routesv6_".$link['2']];?> <?= $tmp_output_route_text; ?> from <b><?= $neighbor; ?></b></h4>
+      </div>
+      <div class="modal-body"><?
+        if ($APP["routesv6_".$link['2']]>0) { 
+			foreach ($APP["routesv6"][$link['2']] as $listroutes) {
+				echo $listroutes;
+				if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
+					$lookup=getHostnameFromDB($listroutes);
+					if (isset($lookup['n'])) {
+						echo " - ";
+						echo $lookup['string'];
+						if (!in_array(strtolower($lookup['n']), $nodes_at_this_route )) {
+							array_push($nodes_at_this_route, strtolower($lookup['n']));
+						}
+					}
+				}
+				echo "<br>";
+			}
+        }
+        ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+        <? if (count($nodes_at_this_route)>0) {
+		?>
+        <!-- Modal -->
+<div class="modal fade" id="myModal<?= str_replace(':','',str_replace('.','',$link['2'])); ?>_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel"><?= count($nodes_at_this_route);?> nodes from <b><?= $neighbor; ?></b></h4>
+      </div>
+      <div class="modal-body"><?
+			foreach ($nodes_at_this_route as $node) {
+				echo "- ".$node;
+				echo "<br>";
+			}
+        ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+        <?
+		}
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
+		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace(':','',str_replace('.','',$link['2']))."\">".$APP["routesv6_".$link['2']]."</button></td>";
+		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace(':','',str_replace('.','',$link['2']))."_nodes\">". count($nodes_at_this_route) ."</button></td>";
+		echo "</tr>";
+		flush();
+    }
+    echo "</tbody></table>\n";
+    unset($routes_raw);
+    unset($olsr_links);
+	unset($link);
+    unset($nodes_at_this_route);
+}
+
 function getOLSRLinks() {
-	global $get_nslookup_from_nodedb;
+	global $APP,$get_nslookup_from_nodedb;
 	
     printLoadingText("Loading Status-TAB (generating link-table)...");
     $routes_raw = explode("\n",trim(shell_exec("/sbin/ip route | awk '{print $3,$1}'")));
@@ -89,15 +245,15 @@ function getOLSRLinks() {
             $APP["default_route"] = trim(substr($getroute,0,strpos($getroute," ")));
         }
         $route = explode(" ",$getroute);
-	if(isset($route['0'])) {
-		if(preg_match('/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/', $route['0'], $ip_match)) {
-		    $APP["routes"][$route['0']][] = trim($route['1']);
-		    $APP["routes_".$route['0']] = count($APP["routes"][$route['0']]);
+		if(isset($route['0'])) {
+			if(validateIP($route['0'])) {
+			    $APP["routes"][$route['0']][] = trim($route['1']);
+			    $APP["routes_".$route['0']] = count($APP["routes"][$route['0']]);
+			}
 		}
-	}
     }
     
-    $olsr_links_raw = explode("\n",trim(file_get_contents("http://127.0.0.1:2006/links")));
+    $olsr_links_raw = explode("\n",trim(file_get_contents("http://127.0.0.1:".$APP["IPv4_TXTINFO_PORT"]."/links")));
     if(isset($olsr_links_raw['0']) && isset($olsr_links_raw['1'])) {
         unset($olsr_links_raw['0']);
         unset($olsr_links_raw['1']);
@@ -110,17 +266,17 @@ function getOLSRLinks() {
     $olsr_links=array();
     if(isset($olsr_links_raw)) {
 	    foreach ($olsr_links_raw as $getlink) {
-		$getlink = preg_replace('/\s+/',',',trim($getlink));
-		preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
-		if(isset($link['2'])) {
-			if(!isset($APP["routes_".$link['2']])) {
-			    $link['routes']=0;
-			} else {
-			    $link['routes']=$APP["routes_".$link['2']];
+			$getlink = preg_replace('/\s+/',',',trim($getlink));
+			preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\,(.*)\,(.*)\,(.*)\,(.*)/', $getlink, $link);
+			if(isset($link['2'])) {
+				if(!isset($APP["routes_".$link['2']])) {
+				    $link['routes']=0;
+				} else {
+				    $link['routes']=$APP["routes_".$link['2']];
+				}
+				$link['sort']=sprintf("%u", ip2long($link['2']));
+				array_push($olsr_links, $link);
 			}
-			$link['sort']=sprintf("%u", ip2long($link['2']));
-			array_push($olsr_links, $link);
-		}	
 	    }
 	    usort($olsr_links, build_sorter('sort'));
 	    unset($olsr_links_raw);
@@ -277,7 +433,6 @@ $time = explode(' ', $time);
 $time = $time[1] + $time[0];
 $start = $time;
 
-$APP = Array();
 
 $APP["ip"] = $_SERVER["SERVER_ADDR"]; // $_SERVER["SERVER_NAME"];
 $APP["hostname"] = gethostbyaddr($APP["ip"]);
@@ -289,6 +444,7 @@ if (($APP["hostname"]==$APP["ip"]) || (strlen($APP["hostname"]) < 2)) {
 }
 
 $APP["v4defaultrouteviaip"] = trim(shell_exec("ip r | grep default | awk {'print $3'}"));
+$APP["v4defaultrouteviaport"] = trim(shell_exec("ip r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
 $APP["v4defaultrouteviadns"] = gethostbyaddr($APP["v4defaultrouteviaip"]);
 flush();
 //$APP["host"] = substr(shell_exec("/usr/bin/host ".$APP["ip"]." | cut -d ' ' -f 5"),0,-2);
@@ -365,13 +521,13 @@ flush();
 <?
 //$APP["devices"] = explode("\n",shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\""));
 //$APP["devices"][0]=str_replace("Local","Local  ",$APP["devices"][0]);
-$APP["v4defaultrouteviaport"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'print $3'}"));
+$APP["v6defaultrouteviaip"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'print $3'}"));
 $APP["v6defaultrouteviaport"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
-$APP["v6defaultrouteviadns"] = gethostbyaddr($APP["v6defaultrouteviaip"]);
+$APP["v6defaultrouteviadns"] = @gethostbyaddr($APP["v6defaultrouteviaip"]);
 if(strlen($APP["v6defaultrouteviadns"]) < 2) {                                                                                                                                                                                              
         $APP["v6defaultrouteviadns"] = $APP["v6defaultrouteviaip"];                                                                                                                                                                         
 }
-$APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2007 | grep tcp6"));
+$APP["ipv6_status"] = trim(shell_exec("netstat -na | grep ".$APP["IPv6_TXTINFO_PORT"]." | grep tcp6"));
 ?>
 <!-- Tab panes -->
 				<div class="tab-content">
@@ -394,7 +550,6 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2007 | grep tcp6"));
                     <div role="tabpanel" class="tab-pane active" id="status">
 						<dl class="dl-horizontal">
 						  <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><?php echo shell_exec("uptime") ?></dd>
-						  <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v4defaultrouteviadns"]."\">".$APP["v4defaultrouteviadns"]." (".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
 						  <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
 						  <?
 						  $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j"),true);
@@ -428,11 +583,12 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2007 | grep tcp6"));
 						  }
 						  ?>
 						  </dd>
+						  <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v4defaultrouteviadns"]."\">".$APP["v4defaultrouteviadns"]." (".$APP["v4defaultrouteviaip"].")</a> via ".$APP["v4defaultrouteviaport"]."<br>"; ?></dd>
 						  <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
 						  <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://[".$APP["v6defaultrouteviadns"]."]\">".$APP["v6defaultrouteviadns"]." (".$APP["v6defaultrouteviaip"].")</a> via ".$APP["v6defaultrouteviaport"]."<br>"; ?></dd>
-						  <dt>IPv6 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><pre><?php echo trim(str_replace($APP["v6defaultrouteviaip"],"<mark><b>".$APP["v6defaultrouteviaip"]."</b></mark>",file_get_contents("http://[::1]:2007/links"))); ?></pre></dd>
+						  <dt>IPv6 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><?php echo getOLSRLinksv6(); ?></dd>
 <?php } else { echo "<dt>IPv6</dt><dd><span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\"></span> disabled...</dd>"; }
 printLoadingText("Loading Status-TAB (do traceroute)...");
 ?>

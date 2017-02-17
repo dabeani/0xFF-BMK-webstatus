@@ -222,7 +222,7 @@ function getOLSRLinksv6() {
 </div>
         <?
 		}
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://".$link['2']." target=_blank>".$link['2']."</a></td><td><a href=https://".$neighbor." target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://[".$link['2']."] target=_blank>".$link['2']."</a></td><td><a href=https://[".$neighbor."] target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace(':','',str_replace('.','',$link['2']))."\">".$APP["routesv6_".$link['2']]."</button></td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace(':','',str_replace('.','',$link['2']))."_nodes\">". count($nodes_at_this_route) ."</button></td>";
 		echo "</tr>";

@@ -368,6 +368,9 @@ flush();
 $APP["v4defaultrouteviaport"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'print $3'}"));
 $APP["v6defaultrouteviaport"] = trim(shell_exec("ip -f inet6 r | grep default | awk {'sub(/^eth0./,\"\",$5);print $5'}"));
 $APP["v6defaultrouteviadns"] = gethostbyaddr($APP["v6defaultrouteviaip"]);
+if(strlen($APP["v6defaultrouteviadns"]) < 2) {                                                                                                                                                                                              
+        $APP["v6defaultrouteviadns"] = $APP["v6defaultrouteviaip"];                                                                                                                                                                         
+}
 $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2007 | grep tcp6"));
 ?>
 <!-- Tab panes -->
@@ -428,7 +431,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep 2007 | grep tcp6"));
 						  <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><?php echo getOLSRLinks(); ?></dd>
 <?php
 if(strlen($APP["ipv6_status"]) > 5) {?>
-						  <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://".$APP["v6defaultrouteviadns"]."\">".$APP["v6defaultrouteviadns"]." (".$APP["v6defaultrouteviaip"].")</a> via ".$APP["v6defaultrouteviaport"]."<br>"; ?></dd>
+						  <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><?php echo "<a href=\"https://[".$APP["v6defaultrouteviadns"]."]\">".$APP["v6defaultrouteviadns"]." (".$APP["v6defaultrouteviaip"].")</a> via ".$APP["v6defaultrouteviaport"]."<br>"; ?></dd>
 						  <dt>IPv6 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><pre><?php echo trim(str_replace($APP["v6defaultrouteviaip"],"<mark><b>".$APP["v6defaultrouteviaip"]."</b></mark>",file_get_contents("http://[::1]:2007/links"))); ?></pre></dd>
 <?php } else { echo "<dt>IPv6</dt><dd><span class=\"glyphicon glyphicon-remove-sign\" aria-hidden=\"true\"></span> disabled...</dd>"; }
 printLoadingText("Loading Status-TAB (do traceroute)...");

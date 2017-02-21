@@ -28,6 +28,31 @@ $APP["IPv6_TXTINFO_PORT"] = trim(shell_exec("cat /config/user-data/olsr*6.conf |
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 
+function parse_ipv6($ip) {
+        if (strpos($ip, '::') !== false) {
+                $ipf = str_replace('::', str_repeat(':0', 8 - substr_count($ip, ':')).':', $ip);
+        } else { 
+		$ipf=$ip; 
+	}
+        if (strpos($ipf, ':') === 0) $ipf = '0'.$ipf;
+        $hex=explode(':',$ipf);
+        $full='';
+        foreach ($hex as $key=>$digit) {
+                $full .= str_pad($digit, 4, "0", STR_PAD_LEFT);
+        }
+        $ipf=substr(preg_replace("/([A-f0-9]{4})/", "$1:", $full), 0, -1);
+        if (substr($ipf, 0, 22)=='2a02:0060:0100:0000:00') {
+                // encapsulated IPv4-Address
+                $ipv4=hexdec(substr($ipf, 22, 2)).".".hexdec(substr($ipf, 25, 2)).".".hexdec(substr($ipf, 27, 2)).".".hexdec(substr($ipf, 30, 2));
+                return array('data'=>$ipv4 ,'type'=>'IPv4');
+        } else if (substr($ipf, 0, 12)=='2a02:0060:01') {
+                // encoded node-id
+                $nodeid=hexdec(substr($ipf, 12, 2).substr($ipf, 15, 2));
+                return array('data'=>$nodeid, 'type'=>'nodeid');
+        }
+        return array('data'=>$ip, 'type'=>'IPv6');
+}
+
 function validateIP($ip){
 	if (!filter_var($ip, FILTER_VALIDATE_IP) === false) {
 		return true;
@@ -93,7 +118,7 @@ function getHostnameFromDB($ip) {
 }
     
 function getOLSRLinksv6() {
-	global $APP;
+	global $APP,$get_nslookup_from_nodedb;
 	
 	printLoadingText("Loading Status-TAB (generating link-table IPv6)...");
     $routes_raw = explode("\n",trim(shell_exec("/sbin/ip -f inet6 route | awk '{print $3,$1}'")));
@@ -174,6 +199,18 @@ function getOLSRLinksv6() {
         if ($APP["routesv6_".$link['2']]>0) { 
 			foreach ($APP["routesv6"][$link['2']] as $listroutes) {
 				echo $listroutes;
+				$ipv6_detail=parse_ipv6($listroutes);
+				if ($ipv6_detail['type']=='IPv4') {
+					$ipv6_text='v4: '.$ipv6_detail['data'];
+         				echo " - ";
+        				echo $ipv6_text;
+				} else if ($ipv6_detail['type']=='nodeid') {
+         				$ipv6_text='node: '.$ipv6_detail['data'];
+         				echo " - ";
+         				echo $ipv6_text;
+				} else {
+    					     $ipv6_text='';
+				}
 				if ((isset($get_nslookup_from_nodedb)) && ($get_nslookup_from_nodedb==1)) {
 					$lookup=getHostnameFromDB($listroutes);
 					if (isset($lookup['n'])) {
@@ -222,7 +259,15 @@ function getOLSRLinksv6() {
 </div>
         <?
 		}
-        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://[".$link['2']."] target=_blank>".$link['2']."</a></td><td><a href=https://[".$neighbor."] target=_blank>".$neighbor."</a></td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
+	    	$ipv6_detail=parse_ipv6($link['2']);
+		if ($ipv6_detail['type']=='IPv4') {
+        		$ipv6_text='v4: '.$ipv6_detail['data'];
+		} else if ($ipv6_detail['type']=='nodeid') {
+         		$ipv6_text='node: '.$ipv6_detail['data'];
+		} else {
+         		$ipv6_text='';
+		}
+        echo "<tr".$tmp_defaultroute."><td>".$link['1']."</td><td><a href=https://[".$link['2']."] target=_blank>".$link['2']."</a></td><td><a href=https://[".$neighbor."] target=_blank>".$neighbor."</a> ".$ipv6_text."</td><td>".$link['3']."</td><td>".$link['4']."</td><td>".$link['5']."</td><td>".$link['6']."</td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace(':','',str_replace('.','',$link['2']))."\">".$APP["routesv6_".$link['2']]."</button></td>";
 		echo "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal".str_replace(':','',str_replace('.','',$link['2']))."_nodes\">". count($nodes_at_this_route) ."</button></td>";
 		echo "</tr>";

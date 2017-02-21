@@ -48,8 +48,8 @@ function parse_ipv6($ip) {
         if (count($node_dns) > 1) {
             return array('data'=>$ipv4,
                          'type'=>'IPv4',
-                         'node'=>$node_dns[$ipv4],
-                         'text'=>'v4: '.$ipv4.'='.$node_dns[$ipv4]);
+                         'node'=>$node_dns[$ipv4]['n'],
+                         'text'=>'v4: '.$ipv4.'='.$node_dns[$ipv4]['n'].'/'.$node_dns[$ipv4]['d']);
         } else {
             return array('data'=>$ipv4,
                          'type'=>'IPv4',

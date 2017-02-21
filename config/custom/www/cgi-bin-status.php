@@ -229,10 +229,9 @@ function getOLSRLinksv6() {
                     if ((isset($ipv6_detail['node'])) && (!in_array(strtolower($ipv6_detail['node']), $nodes_at_this_route ))) {
                         array_push($nodes_at_this_route, strtolower($ipv6_detail['node']));
                     }
-                } else {
-                    if ((isset($ipv6_detail['nodeid'])) && (!in_array(strtolower($ipv6_detail['nodeid']), $nodes_at_this_route ))) {
-                        array_push($nodes_at_this_route, strtolower($ipv6_detail['nodeid']));
-                    }
+                }
+                if ((isset($ipv6_detail['nodeid'])) && (!in_array('ID-'.strtolower($ipv6_detail['nodeid']), $nodes_at_this_route ))) {
+                    array_push($nodes_at_this_route, 'ID-'.strtolower($ipv6_detail['nodeid']));
                 }
                 echo "<br>";
             }

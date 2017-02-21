@@ -45,7 +45,7 @@ function parse_ipv6($ip) {
     if (substr($ipf, 0, 22)=='2a02:0060:0100:0000:00') {
         // encapsulated IPv4-Address
         $ipv4=hexdec(substr($ipf, 22, 2)).".".hexdec(substr($ipf, 25, 2)).".".hexdec(substr($ipf, 27, 2)).".".hexdec(substr($ipf, 30, 2));
-        if (count($node_dns) > 1) {
+        if (isset($node_dns[$ipv4]['n'])) {
             return array('data'=>$ipv4,
                          'type'=>'IPv4',
                          'node'=>$node_dns[$ipv4]['n'],
@@ -58,7 +58,7 @@ function parse_ipv6($ip) {
     } else if (substr($ipf, 0, 12)=='2a02:0060:01') {
         // encoded node-id
         $nodeid=hexdec(substr($ipf, 12, 2).substr($ipf, 15, 2));
-        if (count($node_dns) > 1) {
+        if (isset($node_dns[$nodeid])) {
             return array('data'=>$nodeid,
                          'type'=>'nodeid',
                          'node'=>$node_dns[$nodeid],

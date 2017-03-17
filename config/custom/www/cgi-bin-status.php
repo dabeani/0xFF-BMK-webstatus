@@ -477,9 +477,9 @@ function format_duration($in) {
 
 function get_version() {
     global $version;
-    $wizv1version=stripslashes(trim(shell_exec("[ $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V1' | wc -l) == 0 ] && echo 'not installed' || head -n 10 $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V1') | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'}"),  " ()[]\n"));
-    $wizv2version=stripslashes(trim(shell_exec("[ $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V2' | wc -l) == 0 ] && echo 'not installed' || head -n 10 $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V2') | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'}"),  " ()[]\n"));
-    $wizWSLEversion=stripslashes(trim(shell_exec("[ $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep '0xFF-WSLE' | wc -l) == 0 ] && echo 'not installed' || head -n 8 $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep '0xFF-WSLE') | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'}"),  " ()[]\n"));
+    $wizv1version  =stripslashes(trim(shell_exec("[ $(grep -l 'OLSRd_V1'  /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n 10 $(grep -l 'OLSRd_V1'  /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed'"),  " ()[]\n"));
+    $wizv2version  =stripslashes(trim(shell_exec("[ $(grep -l 'OLSRd_V2'  /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n 10 $(grep -l 'OLSRd_V2'  /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed'"),  " ()[]\n"));
+    $wizWSLEversion=stripslashes(trim(shell_exec("[ $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n  8 $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed'"),  " ()[]\n"));
     if ($wizv1version=="") { $wizv1version="unknown"; }
     if ($wizv2version=="") { $wizv2version="unknown"; }
     if ($wizWSLEversion=="") { $wizWSLEversion="unknown"; }

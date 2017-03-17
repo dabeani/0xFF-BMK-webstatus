@@ -1,6 +1,7 @@
 <?php
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
+$version='4.3';
 
 // define standard settings - just to be on the save side
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
@@ -19,6 +20,8 @@ $IP_RANGE["78er_range_low"]  = ip2long("78.41.112.1");
 $IP_RANGE["78er_range_high"] = ip2long("78.41.119.254");
 $IP_RANGE["193er_range_low"] = ip2long("193.238.156.1");
 $IP_RANGE["193er_range_high"]= ip2long("193.238.159.254");
+$IP_RANGE["185er_range_low"] = ip2long("185.194.20.1");
+$IP_RANGE["185er_range_high"]= ip2long("185.194.23.254");
 
 $APP = Array();
 
@@ -100,7 +103,10 @@ function getHostnameFromDB($ip) {
     global $get_nslookup_from_nodedb;
     // IP-Check... funkfeuer ip-adresses are useable...
     $ip_long = ip2long($ip);
-    if (($ip_long >= $IP_RANGE["78er_range_low"] && $ip_long <= $IP_RANGE["78er_range_high"]) or ($ip_long >= $IP_RANGE["193er_range_low"] && $ip_long <= $IP_RANGE["193er_range_high"])) {
+    if (   ($ip_long >= $IP_RANGE["78er_range_low"] && $ip_long <= $IP_RANGE["78er_range_high"])
+        or ($ip_long >= $IP_RANGE["193er_range_low"] && $ip_long <= $IP_RANGE["193er_range_high"])
+        or ($ip_long >= $IP_RANGE["185er_range_low"] && $ip_long <= $IP_RANGE["185er_range_high"])
+       ) {
         // $ip is withing the range of 0xFF IP address space
         // if not yet done, load ip whois data from http://ff.cybercomm.at/node_db.json
         if (!isset($node_dns)) {
@@ -469,9 +475,27 @@ function format_duration($in) {
 * Diverse Daten auslesen um ScanTools zu supporten! (- andernfalls Statusseite ausgeben...)
 */
 
+function get_version() {
+    global $version;
+    $wizv1version=stripslashes(trim(shell_exec("[ $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V1' | wc -l) == 0 ] && echo 'not installed' || head -n 10 $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V1') | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'}"),  " ()[]\n"));
+    $wizv2version=stripslashes(trim(shell_exec("[ $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V2' | wc -l) == 0 ] && echo 'not installed' || head -n 10 $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep 'OLSRd_V2') | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'}"),  " ()[]\n"));
+    $wizWSLEversion=stripslashes(trim(shell_exec("[ $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep '0xFF-WSLE' | wc -l) == 0 ] && echo 'not installed' || head -n 8 $(find /config/wizard/feature/ -name wizard-run | head -n 10 | grep '0xFF-WSLE') | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'}"),  " ()[]\n"));
+    if ($wizv1version=="") { $wizv1version="unknown"; }
+    if ($wizv2version=="") { $wizv2version="unknown"; }
+    if ($wizWSLEversion=="") { $wizWSLEversion="unknown"; }
+    if ((!isset($version)) or ($version=="")) { $version="unknown"; }
+    return array('olsrv1'  =>$wizv1version
+                ,'olsrv2'  =>$wizv2version
+                ,'0xffwsle'=>$wizWSLEversion
+                ,'bmk-webstatus'=>$version
+                );
+}
+
 if(isset($get)) {
  if($get == "status") { 
-    echo shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j");
+    $output =json_decode(trim(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j")), true);
+    $output['wizards']=get_version();
+    echo json_encode($output);
  } elseif($get == "devices") {
     //echo shell_exec("/usr/sbin/ubnt-discover -d10 -ibr0.1100");
     echo shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\"");

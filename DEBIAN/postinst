@@ -66,7 +66,7 @@ chmod 755 /config/scripts/port_8443.sh
 chmod 755 /config/custom/bin/ip2dns
 
 # change original webserver http-port from 80 to 81 in case of 80 is used for custom webserver
-customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
+customhttpport="80"
 if [ $(grep -iE 'server.port.{0,4}=.{0,4}'$customhttpport /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
    [ $(grep -iE '\]:'$customhttpport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
    [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
@@ -75,7 +75,7 @@ if [ $(grep -iE 'server.port.{0,4}=.{0,4}'$customhttpport /config/custom/lighttp
     restart=""
 fi
 # change original webserver https-port from 443 to 8443 in case of 443 is used for custom webserver
-customhttpsport=$(grep -iE 'SERVER\["socket"\] == "0.0.0.0' /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F':' {'gsub(" ","",$3);gsub("{","",$3);gsub("\"","",$3);print $3;'})
+customhttpsport="443"
 if [ $(grep -iE ':'$customhttpsport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 2 ] &&
    [ $(grep -iE ':'$customhttpsport'\$1"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
    [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then

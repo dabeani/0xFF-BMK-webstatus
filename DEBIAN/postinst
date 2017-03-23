@@ -25,6 +25,13 @@ if [ ! -f "/config/custom/www/settings.inc" ]; then
 fi
 rm -f /config/custom/www/settings_default.inc
 
+# establish config from default, if missing - avoid killing custom https-port setting
+if [ ! -f "/config/custom/lighttpd/conf-enabled/10-ssl.conf" ]; then
+        cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf /config/custom/lighttpd/conf-enabled/10-ssl.conf
+fi
+rm -f cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf
+
+
 # start with permissions, ignore errors
 chmod 755 /config/letsencrypt/acme_tiny.py
 chmod 755 /config/letsencrypt/letsrenew.sh
@@ -35,13 +42,20 @@ chmod 755 /config/custom/bin/ip2dns
 
 # change original webserver http-port from 80 to 81
 # CPO: custom server MUST run on port http:80 for LetsEncrypt verification
-if [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
+# only if custom port config is http:80 by now
+customhttpport=80
+if [ $(grep -iE 'server.port.{0,4}=.{0,4}'$customhttpport /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
+   [ $(grep -iE '\]:'$customhttpport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
+   [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
     echo "Changing http-port from 80 to 81..."
     /config/scripts/port_81.sh
 fi
 # change original webserver https-port from 443 to 8443
-# CPO: not a MUST anymore, user can arrange ports back after install
-if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
+# only if custom port config is https:443 by now
+customhttpsport=443
+if [ $(grep -iE ':'$customhttpsport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 2 ] &&
+   [ $(grep -iE ':'$customhttpsport'\$1"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
+   [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
     echo "Changing https-port from 443 to 8443..."
     /config/scripts/port_8443.sh
 fi

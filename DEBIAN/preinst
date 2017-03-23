@@ -49,6 +49,9 @@ fi
 if [ -f /tmp/do_lighttpd_restart ]; then
     rm /tmp/do_lighttpd_restart
 fi
+if [ -f /tmp/custom_ports ]; then
+    rm /tmp/custom_ports
+fi
 
 echo "Stopping Custom Webserver..."
 # stop custom Webserver if running
@@ -61,6 +64,15 @@ fi
 
 # remove old custom folder with content!! (WARNING)
 # custom contains lighttpd_custom.conf, www-directory, bin/ip2dns --> will be reinstalled from package
+if [ -f /config/custom/lighttpd/conf-enabled/10-ssl.conf ]; then
+        # keep existing port settings!
+        customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
+        customhttpsport=$(grep -iE 'SERVER\["socket"\] == "0.0.0.0' /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F':' {'gsub(" ","",$3);gsub("{","",$3);gsub("\"","",$3);print $3;'})
+fi
+if [ "$customhttpport" ] && [ "$customhttpsport" ]; then
+        echo "$customhttpport $customhttpsport" >/tmp/custom_ports
+fi
+
 echo "Removing /config/custom/ ..."
 if [ -d "/config/custom/" ]; then
         rm -R /config/custom/
@@ -80,8 +92,8 @@ if [ -L "/etc/cron.weekly/0xffcustom_restart.sh" ]; then
 fi
 
 # recover original lighttpd.conf
-echo "Recovering original lighttpd.conf from backup..."
 if [ -L /etc/lighttpd/lighttpd.conf ]; then
+  echo "Recovering original lighttpd.conf from backup..."
   # it is a link
   if [ -f /etc/lighttpd/lighttpd.old ]; then 
     ## .old files exist as well --> preferred over linked file!
@@ -105,6 +117,7 @@ if [ -L /etc/lighttpd/lighttpd.conf ]; then
   fi
   rm /config/lighttpd/lighttpd.conf
 else
+  echo "Recovering original lighttpd.conf from .old-files..."
   ## link does not exist, try .old file 
   if [ -f "/etc/lighttpd/lighttpd.old" ]; then
     restart="3"
@@ -124,6 +137,7 @@ fi
 
 if [ $(ps aux | grep "openssl genrsa 4096"  | grep -v grep | wc -l) == "0" ]; then
   # no running calculation, so kill remaining files (from possible reboot)
+  echo "Removing broken files from key calculation..."
   calcscript="/config/letsencrypt/calc.sh"
   rm -f "$(dirname $calcscript)"/nohup.out 2>/dev/null
   rm -f $calcscript 2>/dev/null
@@ -134,6 +148,7 @@ fi
 if [ "$restart" ]; then
   #remember value for postinst procedure
   echo $restart >/tmp/do_lighttpd_restart
+  echo "Remember need to restart, code "$restart
 fi
 
 echo "preinst finished"

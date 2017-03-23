@@ -31,11 +31,24 @@ fi
 rm -f /config/custom/www/settings_default.inc
 
 # establish config from default, if missing - avoid killing custom https-port setting
+# damn! preinst deleted whole directory /config/custom, so previous config is always gone!
 if [ ! -f "/config/custom/lighttpd/conf-enabled/10-ssl.conf" ]; then
-        cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf /config/custom/lighttpd/conf-enabled/10-ssl.conf
+    cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf /config/custom/lighttpd/conf-enabled/10-ssl.conf
+    if [ -f /tmp/custom_ports ]; then
+        # what is in default config
+        customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
+        customhttpsport=$(grep -iE 'SERVER\["socket"\] == "0.0.0.0' /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F':' {'gsub(" ","",$3);gsub("{","",$3);gsub("\"","",$3);print $3;'})
+        # what was in user config
+        customhttpportnew=$(cat /tmp/custom_ports | awk {'print $1'})
+        customhttpsportnew=$(cat /tmp/custom_ports | awk {'print $2'})
+        sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpport'/server.port = '$customhttpportnew'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+        sed -i -r 's/\]:'$customhttpport'"/\]:'$customhttpportnew'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+        sed -i -r 's/:'$customhttpsport'"/:'$customhttpsportnew'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+        sed -i -r 's/:'$customhttpsport'\$1"/:'$customhttpsportnew'\$1"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+       #rm -f /tmp/custom_ports
+    fi
 fi
 rm -f cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf
-
 
 # start with permissions, ignore errors
 chmod 755 /config/letsencrypt/acme_tiny.py
@@ -45,10 +58,8 @@ chmod 755 /config/scripts/port_81.sh
 chmod 755 /config/scripts/port_8443.sh
 chmod 755 /config/custom/bin/ip2dns
 
-# change original webserver http-port from 80 to 81
-# CPO: custom server MUST run on port http:80 for LetsEncrypt verification
-# only if custom port config is http:80 by now
-customhttpport=80
+# change original webserver http-port from 80 to 81 in case of 80 is used for custom webserver
+customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
 if [ $(grep -iE 'server.port.{0,4}=.{0,4}'$customhttpport /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
    [ $(grep -iE '\]:'$customhttpport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
    [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
@@ -56,9 +67,8 @@ if [ $(grep -iE 'server.port.{0,4}=.{0,4}'$customhttpport /config/custom/lighttp
     /config/scripts/port_81.sh
     restart=""
 fi
-# change original webserver https-port from 443 to 8443
-# only if custom port config is https:443 by now
-customhttpsport=443
+# change original webserver https-port from 443 to 8443 in case of 443 is used for custom webserver
+customhttpsport=$(grep -iE 'SERVER\["socket"\] == "0.0.0.0' /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F':' {'gsub(" ","",$3);gsub("{","",$3);gsub("\"","",$3);print $3;'})
 if [ $(grep -iE ':'$customhttpsport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 2 ] &&
    [ $(grep -iE ':'$customhttpsport'\$1"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
    [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
@@ -74,7 +84,7 @@ if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencry
 then
   cat /config/letsencrypt/signed.crt | tee /tmp/server.pem >/dev/null
   cat /config/letsencrypt/domain.key | tee -a /tmp/server.pem >/dev/null
-  if [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /tmp/server.pem | awk {'print $1'}) ]; then
+  if [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) != $(sha1sum /tmp/server.pem | awk {'print $1'}) ]; then
     restart="A"
     echo "Put cert files to server.pem"
     cp /tmp/server.pem /etc/lighttpd/server.pem
@@ -82,7 +92,7 @@ then
   rm -f /tmp/server.pem
 elif [ -f "/config/letsencrypt/original_server.pem" ]; then
   # if not, recover original server.pem if possible
-  if [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /config/letsencrypt/original_server.pem | awk {'print $1'}) ]; then
+  if [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) != $(sha1sum /config/letsencrypt/original_server.pem | awk {'print $1'}) ]; then
     restart="B"
     echo "Recovering original server.pem file..."
     cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem

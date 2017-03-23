@@ -123,6 +123,15 @@ if [ -f "/etc/lighttpd/conf-enabled/99-bmk.conf" ]; then
   rm /etc/lighttpd/conf-enabled/99-bmk.conf
 fi
 
+if [ $(ps aux | grep "openssl genrsa 4096"  | grep -v grep | wc -l) == "0" ]; then
+  # no running calculation, so kill remaining files (from possible reboot)
+  calcscript="/config/letsencrypt/calc.sh"
+  rm -f "$(dirname $calcscript)"/nohup.out 2>/dev/null
+  rm -f $calcscript 2>/dev/null
+  rm -f /config/letsencrypt/account_tmp.key 2>/dev/null
+  rm -f /config/letsencrypt/domain_tmp.key 2>/dev/null
+fi
+
 echo "preinst finished"
 
 exit 0

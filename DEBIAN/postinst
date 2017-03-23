@@ -33,14 +33,17 @@ rm -f /config/custom/www/settings_default.inc
 # establish config from default, if missing - avoid killing custom https-port setting
 # damn! preinst deleted whole directory /config/custom, so previous config is always gone!
 if [ ! -f "/config/custom/lighttpd/conf-enabled/10-ssl.conf" ]; then
+    echo "Setup 10-ssl_default as config file"
     cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf /config/custom/lighttpd/conf-enabled/10-ssl.conf
     if [ -f /tmp/custom_ports ]; then
         # what is in default config
         customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
         customhttpsport=$(grep -iE 'SERVER\["socket"\] == "0.0.0.0' /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F':' {'gsub(" ","",$3);gsub("{","",$3);gsub("\"","",$3);print $3;'})
+        echo "conf "$customhttpport","$customhttpsport
         # what was in user config
         customhttpportnew=$(cat /tmp/custom_ports | awk {'print $1'})
         customhttpsportnew=$(cat /tmp/custom_ports | awk {'print $2'})
+        echo "user "$customhttpportnew","$customhttpsportnew
         sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpport'/server.port = '$customhttpportnew'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
         sed -i -r 's/\]:'$customhttpport'"/\]:'$customhttpportnew'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
         sed -i -r 's/:'$customhttpsport'"/:'$customhttpsportnew'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
@@ -49,6 +52,11 @@ if [ ! -f "/config/custom/lighttpd/conf-enabled/10-ssl.conf" ]; then
     fi
 fi
 rm -f cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf
+
+#sed: -e expression #1, char 28: unterminated `s' command
+#sed: -e expression #1, char 7: unterminated `s' command
+#sed: -e expression #1, char 6: unterminated `s' command
+#sed: -e expression #1, char 6: unterminated `s' command
 
 # start with permissions, ignore errors
 chmod 755 /config/letsencrypt/acme_tiny.py

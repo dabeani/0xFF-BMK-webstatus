@@ -19,6 +19,12 @@ if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]; then
         ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
 fi
 
+# establish config from default, if missing - avoid killing a custom setting
+if [ ! -f "/config/custom/www/settings.inc" ]; then
+        cp /config/custom/www/settings_default.inc /config/custom/www/settings.inc
+fi
+rm -f /config/custom/www/settings_default.inc
+
 # start with permissions, ignore errors
 chmod 755 /config/letsencrypt/acme_tiny.py
 chmod 755 /config/letsencrypt/letsrenew.sh
@@ -28,18 +34,13 @@ chmod 755 /config/scripts/port_8443.sh
 chmod 755 /config/custom/bin/ip2dns
 
 # change original webserver http-port from 80 to 81
+# CPO: custom server MUST run on port http:80 for LetsEncrypt verification
 if [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
     echo "Changing http-port from 80 to 81..."
     /config/scripts/port_81.sh
 fi
 # change original webserver https-port from 443 to 8443
-# CPO: really needed? acme-chellange and cgi-status.php could be served without https:443 as well.
-# custom-https-port is configured in /config/custom/lighttpd/conf-enabled/10-ssl.conf in following lines (3x: ipv4, ipv6, url.redirect)
-# $SERVER["socket"] == "0.0.0.0:443" {
-# $SERVER["socket"] == "[0::0]:443" {
-#                         "^(.*)$" => "https://%1:443$1"
-#
-# on order to allow original webserver to stay on port 443, all 3 lines on custom 10-ssl.conf need to be changed to i.e. to port 8443.
+# CPO: not a MUST anymore, user can arrange ports back after install
 if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
     echo "Changing https-port from 443 to 8443..."
     /config/scripts/port_8443.sh
@@ -70,16 +71,37 @@ sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd_custom.pid \
         --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
 
-## calculate keys of not already there (could be done offline)
-if [ ! -f "/config/letsencrypt/account.key" ] || [ $(stat -c %s /config/letsencrypt/account.key) -eq 0 ]; then
-    echo "Calculating account-key: this could take a minute or two..."
-    openssl genrsa 4096 | tee /config/letsencrypt/account.key
+## calculate keys of not already there (could be done offline and in backgroud)
+calcscript="/config/letsencrypt/calc.sh"
+# an interrupted calculation (force-reboot) was already cleaned from preinst
+# existing calc-script at this moment must be "active"
+if [ -f $calcscript ]; then
+    echo "Looks like calculation of keys is already in progress..."
+else
+    if [ ! -f "/config/letsencrypt/account.key" ] || [ $(stat -c %s /config/letsencrypt/account.key) -eq 0 ]; then
+        echo "Schedule account-key generation..."
+        echo "#!/bin/sh" >$calcscript
+        echo "openssl genrsa 4096 | tee /config/letsencrypt/account_tmp.key" >>$calcscript
+        echo "cp    /config/letsencrypt/account_tmp.key /config/letsencrypt/account.key"  >>$calcscript
+        echo "rm -f /config/letsencrypt/account_tmp.key"  >>$calcscript
+    fi
+    if [ ! -f "/config/letsencrypt/domain.key" ] || [ $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]; then
+        echo "Schedule domain-key generation..."
+        if [ ! -f $calcscript ]; then
+            echo "#!/bin/sh" >$calcscript
+        fi
+        echo "openssl genrsa 4096 | tee /config/letsencrypt/domain_tmp.key" >>$calcscript
+        echo "cp    /config/letsencrypt/domain_tmp.key /config/letsencrypt/domain.key"  >>$calcscript
+        echo "rm -f /config/letsencrypt/domain_tmp.key"  >>$calcscript
+    fi
+    if [ -f $calcscript ]; then
+        echo "rm -f "$(dirname $calcscript)"/nohup.out"  >>$calcscript
+        echo "rm -f "$(dirname $calcscript)"calc.sh"  >>$calcscript
+        chmod 755 $calcscript
+        echo "triggering openssl calculation in backgroud..."
+        nohup $calcscript &
+    fi
 fi
-if [ ! -f "/config/letsencrypt/domain.key" ] || [ $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]; then
-    echo "Calculating domain-key: this could take a minute or two..."
-    openssl genrsa 4096 | tee /config/letsencrypt/domain.key
-fi
-
 echo "postinst installation finished"
 
 exit 0

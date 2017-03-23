@@ -5,6 +5,11 @@
 #keep cronjob for renewal if existed
 #pre-calculate keys if missing
 
+if [ -f /tmp/do_lighttpd_restart ]; then
+    restart=$(cat /tmp/do_lighttpd_restart)
+   #rm -f /tmp/do_lighttpd_restart
+fi
+
 echo "Preparing files and directories..."
 # create needed folder for letsencrypt initial setup files
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/
@@ -49,6 +54,7 @@ if [ $(grep -iE 'server.port.{0,4}=.{0,4}'$customhttpport /config/custom/lighttp
    [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
     echo "Changing http-port from 80 to 81..."
     /config/scripts/port_81.sh
+    restart=""
 fi
 # change original webserver https-port from 443 to 8443
 # only if custom port config is https:443 by now
@@ -58,6 +64,7 @@ if [ $(grep -iE ':'$customhttpsport'"' /config/custom/lighttpd/conf-enabled/10-s
    [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
     echo "Changing https-port from 443 to 8443..."
     /config/scripts/port_8443.sh
+    restart=""
 fi
 
 # reestablish server.pem with RSA key if possible
@@ -65,19 +72,39 @@ chmod +w /etc/lighttpd/server.pem
 if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] &&
    [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]
 then
-  cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
-  cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
+  cat /config/letsencrypt/signed.crt | tee /tmp/server.pem
+  cat /config/letsencrypt/domain.key | tee -a /tmp/server.pem
+  if [ $(sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /tmp/server.pem | awk {'print $1'}) ]; then
+    restart="A"
+    cp /tmp/server.pem /etc/lighttpd/server.pem
+  fi
+  rm -f /tmp/server.pem
 elif [ -f "/config/letsencrypt/original_server.pem" ]; then
   # if not, recover original server.pem if possible
-  echo "Recovering original server.pem file..."
-  cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+  if [ $(sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /config/letsencrypt/original_server.pem | awk {'print $1'}) ]; then
+    restart="B"
+    echo "Recovering original server.pem file..."
+    cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+  fi
 fi
 
-echo "Fire up original webserver..."
-# start original EdgeOS webserver
-sudo /sbin/start-stop-daemon --start --quiet \
-        --pidfile /var/run/lighttpd.pid \
-        --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
+## only if restart=1, in this case try to stop first
+if [ "$restart" ]; then
+    echo "Stopping original webserver"
+    # stop EdgeOS original Webserver if running
+    if [ -f "/var/run/lighttpd.pid" ]; then
+            sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
+            if [ -f "/var/run/lighttpd.pid" ]; then
+                    rm /var/run/lighttpd.pid
+            fi
+    fi
+    echo "Fire up original webserver..."
+    # start original EdgeOS webserver
+    sudo /sbin/start-stop-daemon --start --quiet \
+            --pidfile /var/run/lighttpd.pid \
+            --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
+    echo "Restart-Reason: "$restart >/tmp/do_lighttpd_restart
+fi
 
 echo "Fire up custom webserver"
 # start custom script webserver

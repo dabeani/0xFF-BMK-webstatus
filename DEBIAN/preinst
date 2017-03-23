@@ -72,6 +72,9 @@ fi
 if [ "$customhttpport" ] && [ "$customhttpsport" ]; then
         echo "$customhttpport $customhttpsport" >/tmp/custom_ports
 fi
+if [ -f "/config/custom/www/settings.inc" ]; then
+        cp /config/custom/www/settings.inc /tmp/settings.inc
+fi
 
 echo "Removing /config/custom/ ..."
 if [ -d "/config/custom/" ]; then

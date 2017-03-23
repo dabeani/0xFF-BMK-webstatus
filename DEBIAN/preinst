@@ -46,21 +46,16 @@ fi
 if [ -f "/config/custom/www/css/bootstrap.min.css.map" ]; then
     rm /config/custom/www/css/bootstrap.min.css.map
 fi
+if [ -f /tmp/do_lighttpd_restart ]; then
+    rm /tmp/do_lighttpd_restart
+fi
 
-echo "Stopping Webservers..."
+echo "Stopping Custom Webserver..."
 # stop custom Webserver if running
 if [ -f "/var/run/lighttpd_custom.pid" ]; then
         sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
         if [ -f "/var/run/lighttpd_custom.pid" ]; then
                 rm /var/run/lighttpd_custom.pid
-        fi
-fi
-
-# stop EdgeOS original Webserver if running
-if [ -f "/var/run/lighttpd.pid" ]; then
-        sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
-        if [ -f "/var/run/lighttpd.pid" ]; then
-                rm /var/run/lighttpd.pid
         fi
 fi
 
@@ -91,6 +86,7 @@ if [ -L /etc/lighttpd/lighttpd.conf ]; then
   if [ -f /etc/lighttpd/lighttpd.old ]; then 
     ## .old files exist as well --> preferred over linked file!
     ## recover backup file
+    restart="1"
     rm /etc/lighttpd/lighttpd.conf
     cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
     rm /etc/lighttpd/lighttpd.old
@@ -101,6 +97,7 @@ if [ -L /etc/lighttpd/lighttpd.conf ]; then
     fi
   else
     ## replace link by link-target
+    restart="2"
     cp /etc/lighttpd/lighttpd.conf /etc/lighttpd/lighttpd_linked.conf
     rm /etc/lighttpd/lighttpd.conf
     cp /etc/lighttpd/lighttpd_linked.conf /etc/lighttpd/lighttpd.conf
@@ -110,10 +107,12 @@ if [ -L /etc/lighttpd/lighttpd.conf ]; then
 else
   ## link does not exist, try .old file 
   if [ -f "/etc/lighttpd/lighttpd.old" ]; then
+    restart="3"
     cp /etc/lighttpd/lighttpd.old /etc/lighttpd/lighttpd.conf
     rm /etc/lighttpd/lighttpd.old
   fi
   if [ -f "/etc/lighttpd/conf-enabled/10-ssl.old" ]; then
+    restart="4"
     cp /etc/lighttpd/conf-enabled/10-ssl.old /etc/lighttpd/conf-enabled/10-ssl.conf
     rm /etc/lighttpd/conf-enabled/10-ssl.old
   fi
@@ -130,6 +129,11 @@ if [ $(ps aux | grep "openssl genrsa 4096"  | grep -v grep | wc -l) == "0" ]; th
   rm -f $calcscript 2>/dev/null
   rm -f /config/letsencrypt/account_tmp.key 2>/dev/null
   rm -f /config/letsencrypt/domain_tmp.key 2>/dev/null
+fi
+
+if [ "$restart" ]; then
+  #remember value for postinst procedure
+  echo $restart >/tmp/do_lighttpd_restart
 fi
 
 echo "preinst finished"

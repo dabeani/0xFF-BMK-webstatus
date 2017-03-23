@@ -72,16 +72,17 @@ chmod +w /etc/lighttpd/server.pem
 if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] &&
    [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]
 then
-  cat /config/letsencrypt/signed.crt | tee /tmp/server.pem
-  cat /config/letsencrypt/domain.key | tee -a /tmp/server.pem
-  if [ $(sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /tmp/server.pem | awk {'print $1'}) ]; then
+  cat /config/letsencrypt/signed.crt | tee /tmp/server.pem >/dev/null
+  cat /config/letsencrypt/domain.key | tee -a /tmp/server.pem >/dev/null
+  if [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /tmp/server.pem | awk {'print $1'}) ]; then
     restart="A"
+    echo "Put cert files to server.pem"
     cp /tmp/server.pem /etc/lighttpd/server.pem
   fi
   rm -f /tmp/server.pem
 elif [ -f "/config/letsencrypt/original_server.pem" ]; then
   # if not, recover original server.pem if possible
-  if [ $(sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /config/letsencrypt/original_server.pem | awk {'print $1'}) ]; then
+  if [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) !== $(sha1sum /config/letsencrypt/original_server.pem | awk {'print $1'}) ]; then
     restart="B"
     echo "Recovering original server.pem file..."
     cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem

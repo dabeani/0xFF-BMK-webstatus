@@ -57,8 +57,53 @@ else
 CHAIN=$( iptables -L | awk '/^Chain WAN/ && /LOCAL/ {print $2;}' )
 iptables -I $CHAIN 1 -p tcp --dport 80 -j ACCEPT
 
+## check if custom_lighttpd runns http:80, if not: make it to!
+customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
+orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
+if [ "$orighttpport" == "80" ]; then
+    #stop orig server
+    sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
+    if [ -f "/var/run/lighttpd.pid" ]; then
+        rm -f /var/run/lighttpd.pid
+    fi
+    #remember to restart!
+    restart="A"
+fi
+
+if [ "$customhttpport" != "80" ]; then
+    #stop custom server
+    sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
+    if [ -f "/var/run/lighttpd_custom.pid" ]; then
+      rm -f /var/run/lighttpd_custom.pid
+    fi
+    #change port to 80
+    customhttpportnew="80"
+    echo "Current http settings located, changing ports in 10-ssl.conf" >> $log
+    sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpport'/server.port = '$customhttpportnew'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+    sed -i -r 's/\]:'$customhttpport'"/\]:'$customhttpportnew'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+    #start custom server
+    sudo /sbin/start-stop-daemon --start --quiet \
+          --pidfile /var/run/lighttpd_custom.pid \
+          --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+fi
+## Port preperation done
+
 # Run renewal script
 python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/account.key --csr /config/letsencrypt/domain.csr --acme-dir /config/custom/www/.well-known/acme-challenge/ > /config/letsencrypt/signed.crt
+
+## Restore original port settings, remember restart-need
+if [ "$customhttpport" != "80" ]; then
+    #stop custom server
+    sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
+    if [ -f "/var/run/lighttpd_custom.pid" ]; then
+      rm -f /var/run/lighttpd_custom.pid
+    fi
+    #change port back to original setting 80
+    echo "Current http settings located, changing ports in 10-ssl.conf" >> $log
+    sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpportnew'/server.port = '$customhttpport'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+    sed -i -r 's/\]:'$customhttpportnew'"/\]:'$customhttpport'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+fi
+## Restore done
 
 # Removing firewall rule added earlier
 iptables -D $CHAIN 1
@@ -78,19 +123,24 @@ then
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
+  #orig server already started
+  restart=""
   
   # Restart custom lighttpd webserver for custom scripts
-  # only if default webserver is not configured to run on port 80/443...
-  # CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
-  if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]; then
-    sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
-    if [ -f "/var/run/lighttpd_custom.pid" ]; then
-      rm -f /var/run/lighttpd_custom.pid
-    fi
-    sudo /sbin/start-stop-daemon --start --quiet \
-          --pidfile /var/run/lighttpd_custom.pid \
-          --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+  sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
+  if [ -f "/var/run/lighttpd_custom.pid" ]; then
+    rm -f /var/run/lighttpd_custom.pid
   fi
+  sudo /sbin/start-stop-daemon --start --quiet \
+        --pidfile /var/run/lighttpd_custom.pid \
+        --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
 fi
 ## end if from "check needed files"
+fi
+
+## restart orig server after port-changes in case LE-registration failed
+if [ "$restart" ]; then
+  sudo /sbin/start-stop-daemon --start --quiet \
+        --pidfile /var/run/lighttpd.pid \
+        --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 fi

@@ -2,9 +2,7 @@
 0xFF-BMK-webstatus for EdgeRouters / EdgePoints
 including Let's-Encrypt scripts to install and renew certificate
 
-!!! since Version 3.0+ the default Webserver Ports (80 & 443) must be set to different ones, because that tool now uses it own WebServer to not touch the default Webserver-Configuration. Useful Ports (81 and 8443). we plan to use a separate wizard to modify the hardcoded ports with you own values. Please change your default WebServer PORTS FIRST. !!!
-
-!!! since Version 4.0+ the detault Webserver Ports (80 & 443) will be automaticalle changed to 81 & 8443 !!!
+Version 4.5 installs without the need to change Original-Server http/https-ports. You can adopt all 4 port settings from within the wizard afterwards.
 
 Adds a Status-Page
 - Node-Status with olsrd links, vlan1100 devices, traceroute to 0xFF-gateway

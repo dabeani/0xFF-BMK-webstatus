@@ -2,7 +2,7 @@
 0xFF-BMK-webstatus for EdgeRouters / EdgePoints
 including Let's-Encrypt scripts to install and renew certificate
 
-Version 4.5 installs without the need to change Original-Server http/https-ports. You can adopt all 4 port settings from within the wizard afterwards.
+Version 4.5 installs without the need to change Original-Server http/https-ports. You can adopt all 4 port settings from within the wizard afterwards. Anyway, on initial install, http:80 will be moved to http:81 to better support cgi-bin-status API.
 
 Adds a Status-Page
 - Node-Status with olsrd links, vlan1100 devices, traceroute to 0xFF-gateway

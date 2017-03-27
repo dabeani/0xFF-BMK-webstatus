@@ -65,7 +65,7 @@ orighttpsport=$(grep "https-port" /config/config.boot | awk {'print $2;'})
 echo "conf-file custom "$customhttpport","$customhttpsport
 echo "orig-server actual "$orighttpport","$orighttpsport
 if [ "$orighttpport" == "$customhttpport" ]; then
-    if [ "$orighttpsport" == "80" ]; then
+    if [ "$orighttpport" == "80" ]; then
         # this happens on initial install, so for this case move orig-server to http:81
         echo "Changing orig ports via command wrapper"
         cmd="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper"

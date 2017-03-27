@@ -65,9 +65,35 @@ orighttpsport=$(grep "https-port" /config/config.boot | awk {'print $2;'})
 echo "conf-file custom "$customhttpport","$customhttpsport
 echo "orig-server actual "$orighttpport","$orighttpsport
 if [ "$orighttpport" == "$customhttpport" ]; then
-    customhttpport=$(($orighttpport +1))
-    sed -i -r 's/server.port.{0,4}=.{0,4}'$orighttpport'/server.port = '$customhttpport'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
-    sed -i -r 's/\]:'$orighttpport'"/\]:'$customhttpport'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+    if   [ "$orighttpsport" == "80"]; then
+        # this happens on initial install, so for this case move orig-server to http:81
+        echo "Changing orig ports via command wrapper"
+        cmd="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper"
+tfile=$(mktemp)
+(
+$cmd begin
+ret=0
+if [ $ret == 0 ]; then
+	$cmd set service gui http-port 81 || ret=1
+fi
+if [ $ret == 0 ]; then
+	$cmd commit || ret=1
+fi
+if [ $ret == 0 ]; then
+	$cmd save || ret=1
+fi
+$cmd end
+exit $ret
+) >$tfile 2>&1
+        ret=$?
+        output=$(cat $tfile)
+        rm -f $tfile
+        echo $output
+    else 
+        customhttpport=$(($orighttpport +1))
+        sed -i -r 's/server.port.{0,4}=.{0,4}'$orighttpport'/server.port = '$customhttpport'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+        sed -i -r 's/\]:'$orighttpport'"/\]:'$customhttpport'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+    fi
 fi
 if [ "$orighttpsport" == "$customhttpsport" ]; then
     if   [ "$orighttpsport" == "443"]; then

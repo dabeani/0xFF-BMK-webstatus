@@ -46,6 +46,12 @@ fi
 if [ -f "/config/custom/www/css/bootstrap.min.css.map" ]; then
     rm /config/custom/www/css/bootstrap.min.css.map
 fi
+if [ -f "/config/scripts/port_81.sh" ]; then
+    rm /config/scripts/port_81.sh
+fi
+if [ -f "/config/scripts/port_8443.sh" ]; then
+    rm /config/scripts/port_8443.sh
+fi
 if [ -f /tmp/do_lighttpd_restart ]; then
     rm /tmp/do_lighttpd_restart
 fi

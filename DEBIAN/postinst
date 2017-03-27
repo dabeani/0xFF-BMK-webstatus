@@ -65,25 +65,6 @@ chmod 755 /config/scripts/port_81.sh
 chmod 755 /config/scripts/port_8443.sh
 chmod 755 /config/custom/bin/ip2dns
 
-# change original webserver http-port from 80 to 81 in case of 80 is used for custom webserver
-customhttpport="80"
-if [ $(grep -iE 'server.port.{0,4}=.{0,4}'$customhttpport /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
-   [ $(grep -iE '\]:'$customhttpport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
-   [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 1 ]; then
-    echo "Changing http-port from 80 to 81..."
-    /config/scripts/port_81.sh
-    restart=""
-fi
-# change original webserver https-port from 443 to 8443 in case of 443 is used for custom webserver
-customhttpsport="443"
-if [ $(grep -iE ':'$customhttpsport'"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 2 ] &&
-   [ $(grep -iE ':'$customhttpsport'\$1"' /config/custom/lighttpd/conf-enabled/10-ssl.conf | wc -l) -eq 1 ] &&
-   [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 1 ]; then
-    echo "Changing https-port from 443 to 8443..."
-    /config/scripts/port_8443.sh
-    restart=""
-fi
-
 # reestablish server.pem with RSA key if possible
 chmod +w /etc/lighttpd/server.pem
 if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] &&

@@ -1,6 +1,7 @@
 <?php
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
+$version="4.5";
 
 // define standard settings - just to be on the save side
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
@@ -477,8 +478,7 @@ function format_duration($in) {
 function get_version() {
     $wizv1version  =stripslashes(trim(shell_exec("[ $(grep -l 'OLSRd_V1'  /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n 10 $(grep -l 'OLSRd_V1'  /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed'"),  " ()[]\n"));
     $wizv2version  =stripslashes(trim(shell_exec("[ $(grep -l 'OLSRd_V2'  /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n 10 $(grep -l 'OLSRd_V2'  /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed'"),  " ()[]\n"));
-    $wizWSLEversion=stripslashes(trim(shell_exec("[ $(dpkg -s 0xff-bmk-webstatus 2>/dev/null | grep -i version: | wc -l) == 1 ] && dpkg -s 0xff-bmk-webstatus 2>/dev/null | grep -i version: | awk {'print $2'} || echo 'not installed'"),  " ()[]\n"));
-    #$wizWSLEversion=stripslashes(trim(shell_exec("[ $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n  8 $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed'"),  " ()[]\n"));
+    $wizWSLEversion=stripslashes(trim(shell_exec("[ $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n  8 $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed'"),  " ()[]\n"));
     if ($wizv1version=="") { $wizv1version="unknown"; }
     if ($wizv2version=="") { $wizv2version="unknown"; }
     if ($wizWSLEversion=="") { $wizWSLEversion="unknown"; }

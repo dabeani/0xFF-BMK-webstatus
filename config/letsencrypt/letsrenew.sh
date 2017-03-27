@@ -78,7 +78,7 @@ if [ "$customhttpport" != "80" ]; then
     fi
     #change port to 80
     customhttpportnew="80"
-    echo "Current http settings located, changing ports in 10-ssl.conf" >> $log
+    echo "Current http settings located, changing ports in 10-ssl.conf"
     sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpport'/server.port = '$customhttpportnew'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
     sed -i -r 's/\]:'$customhttpport'"/\]:'$customhttpportnew'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
     #start custom server
@@ -99,7 +99,7 @@ if [ "$customhttpport" != "80" ]; then
       rm -f /var/run/lighttpd_custom.pid
     fi
     #change port back to original setting 80
-    echo "Current http settings located, changing ports in 10-ssl.conf" >> $log
+    echo "Current http settings located, changing ports in 10-ssl.conf"
     sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpportnew'/server.port = '$customhttpport'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
     sed -i -r 's/\]:'$customhttpportnew'"/\]:'$customhttpport'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
 fi
@@ -116,24 +116,29 @@ then
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
 
   # Restarting original lighttpd webserver for EdgeOS
-  sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
-  if [ -f "/var/run/lighttpd.pid" ]; then
-    rm -f /var/run/lighttpd.pid
-  fi
+  if [ ! "$restart" ]; then
+    sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
+    if [ -f "/var/run/lighttpd.pid" ]; then
+        rm -f /var/run/lighttpd.pid
+    fi
+  fi 
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
-  #orig server already started
-  restart=""
   
   # Restart custom lighttpd webserver for custom scripts
+  if [ ! "$restart" ]; then
   sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
-  if [ -f "/var/run/lighttpd_custom.pid" ]; then
-    rm -f /var/run/lighttpd_custom.pid
+    if [ -f "/var/run/lighttpd_custom.pid" ]; then
+        rm -f /var/run/lighttpd_custom.pid
+    fi
   fi
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd_custom.pid \
         --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+
+  #orig server already started
+  restart=""
 fi
 ## end if from "check needed files"
 fi

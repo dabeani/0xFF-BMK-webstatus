@@ -61,8 +61,6 @@ rm -f cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf
 chmod 755 /config/letsencrypt/acme_tiny.py
 chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
-chmod 755 /config/scripts/port_81.sh
-chmod 755 /config/scripts/port_8443.sh
 chmod 755 /config/custom/bin/ip2dns
 
 # reestablish server.pem with RSA key if possible

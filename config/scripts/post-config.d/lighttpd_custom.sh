@@ -25,6 +25,12 @@ if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencry
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
  
+  # stop custom webserver if already running
+  sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
+  if [ -f "/var/run/lighttpd_custom.pid" ]; then
+    rm -f /var/run/lighttpd_custom.pid
+  fi
+
   # Restarting original lighttpd webserver for EdgeOS
   sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
   if [ -f "/var/run/lighttpd.pid" ]; then
@@ -33,18 +39,9 @@ if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencry
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
-  
-  # stop custom webserver if already running
-  sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
-  if [ -f "/var/run/lighttpd_custom.pid" ]; then
-    rm -f /var/run/lighttpd_custom.pid
-  fi
 fi
 
 # Start custom webserver
-# CPO: improve: custom-server on port http-80, stock-server von https-443 should work as well!
-if [ $(grep "https-port 443" /config/config.boot | wc -l) -eq 0 ] && [ $(grep "http-port 80" /config/config.boot | wc -l) -eq 0 ]; then
-  sudo /sbin/start-stop-daemon --start --quiet \
-        --pidfile /var/run/lighttpd_custom.pid \
-        --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
-fi
+sudo /sbin/start-stop-daemon --start --quiet \
+      --pidfile /var/run/lighttpd_custom.pid \
+      --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf

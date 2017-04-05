@@ -6,6 +6,7 @@ Version 4.5 installs without the need to change Original-Server http/https-ports
 
 Adds a Status-Page
 - Node-Status with olsrd links, vlan1100 devices, traceroute to 0xFF-gateway
+- OLSRv2 Tab with neighbors, traceroute, default-route
 - Port-table with connected devices
 - json status API
 
@@ -24,5 +25,6 @@ Parameters directly in php source coude header:
 - $get_nslookup_from_nodedb: lookup IPs from Funkfeuer Map data source (DNS, HNA, MID, node names)
 - $show_link_to_adminlogin: add link to default EdgeMax login-page (including customized https-port!)
 - $traceroute_to: IP-address destination for traceroute table
+- $traceroute6_to: IPv6-address destination for traceroute6 table
 
 Build link: http://193.238.158.8/0xFF-BMK-webstatus/builds/

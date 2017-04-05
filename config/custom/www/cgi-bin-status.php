@@ -1121,7 +1121,7 @@ document.getElementById('overlay').style.padding='0';
                         ?>
                     </div>
 <!-- Status2 TAB -->
-<?php printLoadingText("Loading Port-Table TAB..."); ?>
+<?php printLoadingText("Loading OLSRv2 TAB..."); ?>
                     <div role="tabpanel" class="tab-pane" id="status2">
                         <dl class="dl-horizontal">
                           <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
@@ -1136,10 +1136,10 @@ document.getElementById('overlay').style.padding='0';
                                 $line=str_replace('  ',' ',$line); 
                                 $hop = explode(" ", trim($line));
 								echo str_pad($hop[0],5," ",STR_PAD_LEFT);
-								echo "<a href=\"http://[";
+								echo "  <a href=\"http://[";
 								echo $hop[1];
 								echo "]\" target='_new'>";
-								echo str_pad($hop[1],45," ",STR_PAD_LEFT);
+								echo str_pad($hop[1],45," ",STR_PAD_RIGHT);
 								echo "</a>";
 								//echo str_pad($hop[2],5," ",STR_PAD_LEFT);
 								echo str_pad($hop[3],10," ",STR_PAD_LEFT);

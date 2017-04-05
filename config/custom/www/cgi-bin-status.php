@@ -1,13 +1,15 @@
 <?php
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
-$version="4.5";
+$version="4.6";
 
 // define standard settings - just to be on the save side
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
 $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
+$traceroute6_to='2a02:61:0:ff:76d4:35ff:fe8a:382';    // defines destination for traceroute6 -> should be internet gateway, tunnelserver.funkfeuer.at
+
 
 // load specific settings
 require 'settings.inc';
@@ -577,6 +579,7 @@ flush();
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                     <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
+                    <li role="presentation"><a href="#status2" aria-controls="status2" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> OLSRv2</a></li>
                     <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Port-Table</a></li>
                     <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
                     <li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
@@ -1116,6 +1119,21 @@ document.getElementById('overlay').style.padding='0';
                         
                         echo "</tbody></table>";
                         ?>
+                    </div>
+<!-- Status2 TAB -->
+<?php printLoadingText("Loading Port-Table OLSRv2..."); ?>
+                    <div role="tabpanel" class="tab-pane" id="status2">
+                        <dl class="dl-horizontal">
+                          <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
+						       <dd><pre><?php echo shell_exec("traceroute6 2a02:61:0:ff:76d4:35ff:fe8a:382") ?>
+							   </pre></dd>
+                          <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
+						       <dd><pre><?php echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}") ?>
+							   </pre></dd>
+                          <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
+						       <dd><pre><?php echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}") ?>
+							   </pre></dd>
+                        </dl>
                     </div>
 <!-- Contact TAB -->
                     <div role="tabpanel" class="tab-pane" id="contact">

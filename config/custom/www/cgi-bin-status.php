@@ -1136,7 +1136,7 @@ document.getElementById('overlay').style.padding='0';
                                 $line=str_replace('  ',' ',$line); 
                                 $hop = explode(" ", trim($line));
 								echo str_pad($hop[0],5," ",STR_PAD_LEFT);
-								echo "  <a href=\"http://[";
+								echo "  <a href=\"https://[";
 								echo $hop[1];
 								echo "]\" target='_new'>";
 								echo str_pad($hop[1],45," ",STR_PAD_RIGHT);
@@ -1154,7 +1154,7 @@ document.getElementById('overlay').style.padding='0';
                             $tracelines=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($tracelines as $line) {
                                 $line=trim($line);
-								echo "<a href=\"http://[";
+								echo "<a href=\"https://[";
 								echo $line;
 								echo "]\" target='_new'>";
 								echo $line;

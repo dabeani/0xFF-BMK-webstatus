@@ -1151,7 +1151,7 @@ document.getElementById('overlay').style.padding='0';
 						       <dd><pre><?php //echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}"); 
                             $tracelines=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($tracelines as $line) {
-                                $line=trim($line));
+                                $line=trim($line);
 								echo "<a href=\"http://[";
 								echo $line;
 								echo "] target='_new'>";

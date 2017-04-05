@@ -1148,7 +1148,7 @@ document.getElementById('overlay').style.padding='0';
 ?>
 							   </pre></dd>
                           <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-						       <dd><pre><?php echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}") 
+						       <dd><pre><?php //echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}"); 
                             $tracelines=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($tracelines as $line) {
                                 $line=trim($line));

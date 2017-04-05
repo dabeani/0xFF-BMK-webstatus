@@ -1125,12 +1125,43 @@ document.getElementById('overlay').style.padding='0';
                     <div role="tabpanel" class="tab-pane" id="status2">
                         <dl class="dl-horizontal">
                           <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-						       <dd><pre><?php echo shell_exec("traceroute6 2a02:61:0:ff:76d4:35ff:fe8a:382") ?>
+						       <dd><pre><?php //echo shell_exec("traceroute6 2a02:61:0:ff:76d4:35ff:fe8a:382")
+                            $tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute6 -w 1 -q 1 ".$traceroute6_to)));
+                            array_shift($tracelines); // remove headline
+                            foreach ($tracelines as $line) {
+                                $line=str_replace('     ',' ',$line); 
+                                $line=str_replace('    ',' ',$line); 
+                                $line=str_replace('   ',' ',$line); 
+                                $line=str_replace('  ',' ',$line); 
+                                $hop = explode(" ", trim($line));
+								echo str_pad($hop[0],5," ",STR_PAD_LEFT);
+								echo "<a href=\"http://[";
+								echo $hop[1];
+								echo "] target='_new'>";
+								echo str_pad($hop[1],45," ",STR_PAD_LEFT);
+								echo "</a>";
+								//echo str_pad($hop[2],5," ",STR_PAD_LEFT);
+								echo str_pad($hop[3],10," ",STR_PAD_LEFT);
+								echo str_pad($hop[4],3," ",STR_PAD_LEFT);
+								echo "\n";
+							}
+?>
 							   </pre></dd>
                           <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-						       <dd><pre><?php echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}") ?>
+						       <dd><pre><?php echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}") 
+                            $tracelines=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
+                            foreach ($tracelines as $line) {
+                                $line=trim($line));
+								echo "<a href=\"http://[";
+								echo $line;
+								echo "] target='_new'>";
+								echo $line;
+								echo "</a>";
+								echo "\n";
+							}
+?>
 							   </pre></dd>
-                          <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
+                          <dt>Default-Route zu <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
 						       <dd><pre><?php echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}") ?>
 							   </pre></dd>
                         </dl>

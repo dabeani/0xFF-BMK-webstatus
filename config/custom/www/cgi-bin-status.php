@@ -1143,7 +1143,7 @@ if ($port=="8000") {
 ?>
                           <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
                                <dd><?php 
-							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td></tr></thead>\n";
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Hop</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Ping</b></td></tr></thead>\n";
 							echo "<tbody>\n";
 
                             $default6=trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}"));
@@ -1165,9 +1165,8 @@ if ($port=="8000") {
                                 if ($ip6 !== $host6) {
                                     echo "<a href=\"http://[".$host6."]\" target='_new'>".$host6."</a>"; // hostname
                                 } else {
-                                    echo "</td><td>"; //spaces
-									echo "<!-- hostname? --> &nbsp;"
-
+									echo "<!-- hostname? --> &nbsp;";
+								}
 								echo "</td><td align=right>";
                                 echo $hop[3]; //ping
                                 echo $hop[4]; //ms
@@ -1187,7 +1186,7 @@ if ($port=="8000") {
                                 $line=trim($line);
 								echo "<tr ";
 								if ($line == $default6) {
-									echo "bgcolor=FFD700"
+									echo "bgcolor=FFD700";
                                 }
 								echo "><td>";
                                 echo "<a href=\"http://[";
@@ -1196,7 +1195,7 @@ if ($port=="8000") {
                                 echo $line;
                                 echo "</a>";
 								echo "</td><td>";
-								echo "<!-- hostname? --> &nbsp;"
+								echo "<!-- hostname? --> &nbsp;";
                                 echo "</td></tr>\n";
                             }
 							echo "</tbody>\n";

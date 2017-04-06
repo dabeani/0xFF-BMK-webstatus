@@ -1142,10 +1142,9 @@ $port=trim(shell_exec("grep -vE \"^#\" $(ps ax | grep olsrd2.conf | grep -v grep
 if ($port=="8000") {
 ?>
                           <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-						       <dd><pre><?php 
-							   //echo shell_exec("traceroute6 2a02:61:0:ff:76d4:35ff:fe8a:382");
-							   
-							$default6=trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}"));
+                               <dd><pre><?php 
+                               
+                            $default6=trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}"));
                             $tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute6 -w 1 -q 1 ".$traceroute6_to)));
                             array_shift($tracelines); // remove headline
                             foreach ($tracelines as $line) {
@@ -1154,40 +1153,42 @@ if ($port=="8000") {
                                 $line=str_replace('   ',' ',$line); 
                                 $line=str_replace('  ',' ',$line); 
                                 $hop = explode(" ", trim($line));
-								$ip6=trim($hop[2],'-()[]');
-								$host6=$hop[1];
-								echo str_pad($hop[0],2," ",STR_PAD_LEFT);
-								if ($ip6 !== $host6) {
-									echo " <a href=\"http://[".$host6."]\" target='_new'>".str_pad($host6,45," ",STR_PAD_RIGHT)."</a>";
-								}
-								echo " <a href=\"http://[".$ip6."]\" target='_new'>".str_pad($ip6,45," ",STR_PAD_RIGHT)."</a>";
-								echo str_pad($hop[3],10," ",STR_PAD_LEFT);
-								echo str_pad($hop[4],3," ",STR_PAD_LEFT);
-								echo "\n";
-							}
+                                $ip6=trim($hop[2],'-()[]');
+                                $host6=$hop[1];
+                                echo str_pad($hop[0],2," ",STR_PAD_LEFT); // hop-number
+                                echo " <a href=\"http://[".$ip6."]\" target='_new'>".str_pad($ip6,45," ",STR_PAD_RIGHT)."</a>"; // ipv6
+                                if ($ip6 !== $host6) {
+                                    echo " <a href=\"http://[".$host6."]\" target='_new'>".str_pad($host6,45," ",STR_PAD_RIGHT)."</a>"; // hostname
+                                } else {
+                                    echo str_pad(" ",45," ",STR_PAD_RIGHT); //spaces
+                                }
+                                echo str_pad($hop[3],10," ",STR_PAD_LEFT); //ping
+                                echo str_pad($hop[4], 3," ",STR_PAD_LEFT); //ms
+                                echo "\n";
+                            }
 ?>
-							   </pre></dd>
+                               </pre></dd>
                           <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-						       <dd><pre><?php 
-							   //echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}"); 
+                               <dd><pre><?php 
+                               //echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}"); 
                             $neighbors=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($neighbors as $line) {
                                 $line=trim($line);
-								echo "<a href=\"http://[";
-								echo $line;
-								echo "]\" target='_new'>";
-								echo $line;
-								echo "</a>";
-								if ($line == $default6) {
-									echo "  &lt;-- default route";
-								}
-								echo "\n";
-							}
+                                echo "<a href=\"http://[";
+                                echo $line;
+                                echo "]\" target='_new'>";
+                                echo $line;
+                                echo "</a>";
+                                if ($line == $default6) {
+                                    echo "  &lt;-- default route";
+                                }
+                                echo "\n";
+                            }
 ?>
-							   </pre></dd>
+                               </pre></dd>
 <?php
 } else {
-    echo "OLSRv2 montioring not available"
+    echo "OLSRv2 montioring not available";
 }
 ?>                        </dl>
                     </div>

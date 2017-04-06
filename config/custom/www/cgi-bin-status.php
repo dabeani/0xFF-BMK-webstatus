@@ -1142,8 +1142,10 @@ $port=trim(shell_exec("grep -vE \"^#\" $(ps ax | grep olsrd2.conf | grep -v grep
 if ($port=="8000") {
 ?>
                           <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-                               <dd><pre><?php 
-                               
+                               <dd><?php 
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td></tr></thead>\n";
+							echo "<tbody>\n";
+
                             $default6=trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}"));
                             $tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute6 -w 1 -q 1 ".$traceroute6_to)));
                             array_shift($tracelines); // remove headline
@@ -1155,38 +1157,51 @@ if ($port=="8000") {
                                 $hop = explode(" ", trim($line));
                                 $ip6=trim($hop[2],'-()[]');
                                 $host6=$hop[1];
+								echo "<tr><td>";
                                 echo str_pad($hop[0],2," ",STR_PAD_LEFT); // hop-number
-                                echo " <a href=\"http://[".$ip6."]\" target='_new'>".str_pad($ip6,45," ",STR_PAD_RIGHT)."</a>"; // ipv6
+								echo "</td><td>";
+                                echo "<a href=\"http://[".$ip6."]\" target='_new'>".$ip6."</a>"; // ipv6
+								echo "</td><td>";
                                 if ($ip6 !== $host6) {
-                                    echo " <a href=\"http://[".$host6."]\" target='_new'>".str_pad($host6,45," ",STR_PAD_RIGHT)."</a>"; // hostname
+                                    echo "<a href=\"http://[".$host6."]\" target='_new'>".$host6."</a>"; // hostname
                                 } else {
-                                    echo str_pad(" ",45," ",STR_PAD_RIGHT); //spaces
-                                }
-                                echo str_pad($hop[3],10," ",STR_PAD_LEFT); //ping
-                                echo str_pad($hop[4], 3," ",STR_PAD_LEFT); //ms
+                                    echo "</td><td>"; //spaces
+									echo "<!-- hostname? --> &nbsp;"
+
+								echo "</td><td align=right>";
+                                echo $hop[3]; //ping
+                                echo $hop[4]; //ms
+								echo "</td></tr>";
                                 echo "\n";
                             }
+							echo "</tbody>\n";
+							echo "</table>\n";
+							echo "</dd>\n";
 ?>
-                               </pre></dd>
                           <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-                               <dd><pre><?php 
-                               //echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}"); 
+                               <dd><?php 
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td></tr></thead>\n";
+							echo "<tbody>\n";
                             $neighbors=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($neighbors as $line) {
                                 $line=trim($line);
+								echo "<tr ";
+								if ($line == $default6) {
+									echo "bgcolor=FFD700"
+                                }
+								echo "><td>";
                                 echo "<a href=\"http://[";
                                 echo $line;
                                 echo "]\" target='_new'>";
                                 echo $line;
                                 echo "</a>";
-                                if ($line == $default6) {
-                                    echo "  &lt;-- default route";
-                                }
-                                echo "\n";
+								echo "</td><td>";
+								echo "<!-- hostname? --> &nbsp;"
+                                echo "</td></tr>\n";
                             }
-?>
-                               </pre></dd>
-<?php
+							echo "</tbody>\n";
+							echo "</table>\n";
+							echo "</dd>\n";
 } else {
     echo "OLSRv2 montioring not available";
 }

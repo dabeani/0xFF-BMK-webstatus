@@ -495,7 +495,8 @@ function get_version() {
 
 function get_localips() {
     $v4=trim(shell_exec('ip -4 addr show $(awk -F= \'/MESH_IF=/ { print $2 }\' /config/user-data/olsrd.default | tr -d \") | grep inet | awk {\'print $2\'} | awk -F/ {\'print $1\'}'));
-    $originator=trim(shell_exec('if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {\'print $7\'} | wc -l) == "1" ]; then curl -s http://localhost:8000/telnet/olsrv2info%20originator | grep : | head -n 1; else echo "n/a"; fi'));
+    $originator=trim(shell_exec('if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {\'print $7\'} | wc -l) == "1" ]; then curl -s --connect-timeout 1 http://127.0.0.1:8000/telnet/olsrv2info%20originator 2>/dev/null | grep : | head -n 1; else echo "n/a"; fi'));
+    if ($originator == "") { $originator="n/a"; }
     $v6=trim(shell_exec("ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} | grep -iv ".$originator));
     return array('ipv4' => $v4
                 ,'ipv6' => $v6
@@ -1136,9 +1137,15 @@ document.getElementById('overlay').style.padding='0';
 <?php printLoadingText("Loading OLSRv2 TAB..."); ?>
                     <div role="tabpanel" class="tab-pane" id="status2">
                         <dl class="dl-horizontal">
+<?php
+$port=trim(shell_exec("grep -vE \"^#\" $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'}) | grep -A 10 \"\[http\]\" | grep -i port | awk {'print $2'}"));
+if ($port=="8000") {
+?>
                           <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
 						       <dd><pre><?php 
 							   //echo shell_exec("traceroute6 2a02:61:0:ff:76d4:35ff:fe8a:382");
+							   
+							$default6=trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}"));
                             $tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute6 -w 1 -q 1 ".$traceroute6_to)));
                             array_shift($tracelines); // remove headline
                             foreach ($tracelines as $line) {
@@ -1147,13 +1154,13 @@ document.getElementById('overlay').style.padding='0';
                                 $line=str_replace('   ',' ',$line); 
                                 $line=str_replace('  ',' ',$line); 
                                 $hop = explode(" ", trim($line));
+								$ip6=trim($hop[2],'-()[]');
+								$host6=$hop[1];
 								echo str_pad($hop[0],2," ",STR_PAD_LEFT);
-								echo "  <a href=\"http://[";
-								echo $hop[1];
-								echo "]\" target='_new'>";
-								echo str_pad($hop[1],45," ",STR_PAD_RIGHT);
-								echo "</a>";
-								//echo str_pad($hop[2],5," ",STR_PAD_LEFT);
+								if ($ip6 !== $host6) {
+									echo " <a href=\"http://[".$host6."]\" target='_new'>".str_pad($host6,45," ",STR_PAD_RIGHT)."</a>";
+								}
+								echo " <a href=\"http://[".$ip6."]\" target='_new'>".str_pad($ip6,45," ",STR_PAD_RIGHT)."</a>";
 								echo str_pad($hop[3],10," ",STR_PAD_LEFT);
 								echo str_pad($hop[4],3," ",STR_PAD_LEFT);
 								echo "\n";
@@ -1163,22 +1170,26 @@ document.getElementById('overlay').style.padding='0';
                           <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
 						       <dd><pre><?php 
 							   //echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}"); 
-                            $tracelines=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
-                            foreach ($tracelines as $line) {
+                            $neighbors=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
+                            foreach ($neighbors as $line) {
                                 $line=trim($line);
 								echo "<a href=\"http://[";
 								echo $line;
 								echo "]\" target='_new'>";
 								echo $line;
 								echo "</a>";
+								if ($line == $default6) {
+									echo "  &lt;-- default route";
+								}
 								echo "\n";
 							}
 ?>
 							   </pre></dd>
-                          <dt>Default-Route zu <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
-						       <dd><pre><?php echo shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}") ?>
-							   </pre></dd>
-                        </dl>
+<?php
+} else {
+    echo "OLSRv2 montioring not available"
+}
+?>                        </dl>
                     </div>
 <!-- Contact TAB -->
                     <div role="tabpanel" class="tab-pane" id="contact">

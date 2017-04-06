@@ -493,10 +493,22 @@ function get_version() {
                 );
 }
 
+function get_localips() {
+    $v4=trim(shell_exec('ip -4 addr show $(awk -F= \'/MESH_IF=/ { print $2 }\' /config/user-data/olsrd.default | tr -d \") | grep inet | awk {\'print $2\'} | awk -F/ {\'print $1\'}'));
+    $originator=trim(shell_exec('if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {\'print $7\'}) == "1" ]; then curl -s http://localhost:8000/telnet/olsrv2info%20originator | grep : | head -n 1; else echo "n/a"; fi'));
+    $v6=trim(shell_exec("ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} | grep -iv ".$originator));
+    return array('ipv4' => $v4
+                ,'ipv6' => $v6
+                ,'originator' => $originator
+                 );
+}
+
+
 if(isset($get)) {
  if($get == "status") { 
     $output =json_decode(trim(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j")), true);
     $output['wizards']=get_version();
+    $output['local_ips']=get_localips();
     echo json_encode($output);
  } elseif($get == "devices") {
     //echo shell_exec("/usr/sbin/ubnt-discover -d10 -ibr0.1100");
@@ -1135,8 +1147,8 @@ document.getElementById('overlay').style.padding='0';
                                 $line=str_replace('   ',' ',$line); 
                                 $line=str_replace('  ',' ',$line); 
                                 $hop = explode(" ", trim($line));
-								echo str_pad($hop[0],5," ",STR_PAD_LEFT);
-								echo "  <a href=\"https://[";
+								echo str_pad($hop[0],2," ",STR_PAD_LEFT);
+								echo "  <a href=\"http://[";
 								echo $hop[1];
 								echo "]\" target='_new'>";
 								echo str_pad($hop[1],45," ",STR_PAD_RIGHT);
@@ -1154,7 +1166,7 @@ document.getElementById('overlay').style.padding='0';
                             $tracelines=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($tracelines as $line) {
                                 $line=trim($line);
-								echo "<a href=\"https://[";
+								echo "<a href=\"http://[";
 								echo $line;
 								echo "]\" target='_new'>";
 								echo $line;

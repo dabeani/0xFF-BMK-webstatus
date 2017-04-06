@@ -495,7 +495,7 @@ function get_version() {
 
 function get_localips() {
     $v4=trim(shell_exec('ip -4 addr show $(awk -F= \'/MESH_IF=/ { print $2 }\' /config/user-data/olsrd.default | tr -d \") | grep inet | awk {\'print $2\'} | awk -F/ {\'print $1\'}'));
-    $originator=trim(shell_exec('if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {\'print $7\'}) == "1" ]; then curl -s http://localhost:8000/telnet/olsrv2info%20originator | grep : | head -n 1; else echo "n/a"; fi'));
+    $originator=trim(shell_exec('if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {\'print $7\'} | wc -l) == "1" ]; then curl -s http://localhost:8000/telnet/olsrv2info%20originator | grep : | head -n 1; else echo "n/a"; fi'));
     $v6=trim(shell_exec("ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} | grep -iv ".$originator));
     return array('ipv4' => $v4
                 ,'ipv6' => $v6

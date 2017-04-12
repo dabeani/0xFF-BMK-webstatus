@@ -1,13 +1,15 @@
 <?php
 # required: aptitude install traceroute snmp bind9-host dnsutils nginx php5-fpm php5-curl php5-snmp
 # required: /etc/sudoers: www-data ALL=NOPASSWD: ALL
-$version="4.5";
+$version="4.6";
 
 // define standard settings - just to be on the save side
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
 $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
+$traceroute6_to='2a02:61:0:ff:76d4:35ff:fe8a:382';    // defines destination for traceroute6 -> should be internet gateway, tunnelserver.funkfeuer.at
+
 
 // load specific settings
 require 'settings.inc';
@@ -491,10 +493,23 @@ function get_version() {
                 );
 }
 
+function get_localips() {
+    $v4=trim(shell_exec('ip -4 addr show $(awk -F= \'/MESH_IF=/ { print $2 }\' /config/user-data/olsrd.default | tr -d \") | grep inet | awk {\'print $2\'} | awk -F/ {\'print $1\'}'));
+    $originator=trim(shell_exec('if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {\'print $7\'} | wc -l) == "1" ]; then curl -s --connect-timeout 1 http://127.0.0.1:8000/telnet/olsrv2info%20originator 2>/dev/null | grep : | head -n 1; else echo "n/a"; fi'));
+    if ($originator == "") { $originator="n/a"; }
+    $v6=trim(shell_exec("ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} | grep -iv ".$originator));
+    return array('ipv4' => $v4
+                ,'ipv6' => $v6
+                ,'originator' => $originator
+                 );
+}
+
+
 if(isset($get)) {
  if($get == "status") { 
     $output =json_decode(trim(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j")), true);
     $output['wizards']=get_version();
+    $output['local_ips']=get_localips();
     echo json_encode($output);
  } elseif($get == "devices") {
     //echo shell_exec("/usr/sbin/ubnt-discover -d10 -ibr0.1100");
@@ -577,6 +592,7 @@ flush();
                 <ul class="nav nav-tabs" role="tablist">
                     <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                     <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
+                    <li role="presentation"><a href="#status2" aria-controls="status2" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> OLSRv2</a></li>
                     <li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-list" aria-hidden="true"></span> Port-Table</a></li>
                     <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
                     <li role="presentation"><a href="#"><?php echo  $APP["ip"] ." - ".$APP["hostname"]; ?></a></li>
@@ -1116,6 +1132,79 @@ document.getElementById('overlay').style.padding='0';
                         
                         echo "</tbody></table>";
                         ?>
+                    </div>
+<!-- Status2 TAB -->
+<?php printLoadingText("Loading OLSRv2 TAB..."); ?>
+                    <div role="tabpanel" class="tab-pane" id="status2">
+                        <dl class="dl-horizontal">
+<?php
+$port=trim(shell_exec("grep -vE \"^#\" $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'}) | grep -A 10 \"\[http\]\" | grep -i port | awk {'print $2'}"));
+if ($port=="8000") {
+?>
+                          <dt>Traceroute6 <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
+                               <dd><?php 
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Hop</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Ping</b></td></tr></thead>\n";
+							echo "<tbody>\n";
+
+                            $default6=trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | grep $(ip -6 r | grep default | awk {'print $3'}) | awk {'print $3'}"));
+                            $tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute6 -w 1 -q 1 ".$traceroute6_to)));
+                            array_shift($tracelines); // remove headline
+                            foreach ($tracelines as $line) {
+                                $line=str_replace('     ',' ',$line); 
+                                $line=str_replace('    ',' ',$line); 
+                                $line=str_replace('   ',' ',$line); 
+                                $line=str_replace('  ',' ',$line); 
+                                $hop = explode(" ", trim($line));
+                                $ip6=trim($hop[2],'-()[]');
+                                $host6=$hop[1];
+								echo "<tr><td>";
+                                echo str_pad($hop[0],2," ",STR_PAD_LEFT); // hop-number
+								echo "</td><td>";
+                                echo "<a href=\"http://[".$ip6."]\" target='_new'>".$ip6."</a>"; // ipv6
+								echo "</td><td>";
+                                if ($ip6 !== $host6) {
+                                    echo "<a href=\"http://[".$host6."]\" target='_new'>".$host6."</a>"; // hostname
+                                } else {
+									echo "<!-- hostname? --> &nbsp;";
+								}
+								echo "</td><td align=right>";
+                                echo $hop[3]; //ping
+                                echo $hop[4]; //ms
+								echo "</td></tr>";
+                                echo "\n";
+                            }
+							echo "</tbody>\n";
+							echo "</table>\n";
+							echo "</dd>\n";
+?>
+                          <dt>Nachbarn <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt>
+                               <dd><?php 
+							echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td></tr></thead>\n";
+							echo "<tbody>\n";
+                            $neighbors=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
+                            foreach ($neighbors as $line) {
+                                $line=trim($line);
+								echo "<tr ";
+								if ($line == $default6) {
+									echo "bgcolor=FFD700";
+                                }
+								echo "><td>";
+                                echo "<a href=\"http://[";
+                                echo $line;
+                                echo "]\" target='_new'>";
+                                echo $line;
+                                echo "</a>";
+								echo "</td><td>";
+								echo "<!-- hostname? --> &nbsp;";
+                                echo "</td></tr>\n";
+                            }
+							echo "</tbody>\n";
+							echo "</table>\n";
+							echo "</dd>\n";
+} else {
+    echo "OLSRv2 montioring not available";
+}
+?>                        </dl>
                     </div>
 <!-- Contact TAB -->
                     <div role="tabpanel" class="tab-pane" id="contact">

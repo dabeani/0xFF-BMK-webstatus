@@ -199,6 +199,15 @@ else
         nohup $calcscript &
     fi
 fi
+
+# prepare ssh keys
+if [ ! -f /config/letsencrypt/id_rsa ] && [ ! -f /config/letsencrypt/id_rsa.pub ]; then
+  echo "preparnig ssh keys"
+  ssh-keygen -C "$(hostname)" -f /config/letsencrypt/id_rsa -N ""
+  chown ubnt:users /config/letsencrypt/id_rsa
+  chown ubnt:users /config/letsencrypt/id_rsa.pub
+fi 
+
 echo "postinst installation finished"
 
 exit 0

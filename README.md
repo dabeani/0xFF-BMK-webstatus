@@ -2,6 +2,8 @@
 0xFF-BMK-webstatus for EdgeRouters / EdgePoints
 including Let's-Encrypt scripts to install and renew certificate
 
+Use this EdgeRouter-Wizard to install and manage functions of this package: https://github.com/pocki80/ER-wizard-0xFF-WSLE
+
 Version 4.5 installs without the need to change Original-Server http/https-ports. You can adopt all 4 port settings from within the wizard afterwards. Anyway, on initial install, http:80 will be moved to http:81 to better support cgi-bin-status API.
 
 Adds a Status-Page
@@ -28,3 +30,4 @@ Parameters directly in php source coude header:
 - $traceroute6_to: IPv6-address destination for traceroute6 table
 
 Build link: http://193.238.158.8/0xFF-BMK-webstatus/builds/
+Wizard: https://github.com/pocki80/ER-wizard-0xFF-WSLE

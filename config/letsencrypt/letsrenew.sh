@@ -139,6 +139,13 @@ then
 
   #orig server already started
   restart=""
+
+  ## try to deploy new key to antennas if enabled
+  if [ -f /config/letsencrypt/deploysetting.dat ] &&
+     [ "$(grep -i "deploycertificate=yes" /config/letsencrypt/deploysetting.dat |wc -l)" == "1" ] &&
+     [ -f /config/letsencrypt/deploycertificate.sh ] ; then
+        sudo /config/letsencrypt/deploycertificate.sh
+  fi
 fi
 ## end if from "check needed files"
 fi

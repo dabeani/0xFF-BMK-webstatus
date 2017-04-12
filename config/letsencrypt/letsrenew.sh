@@ -4,6 +4,9 @@
 #checks for needed files to continue
 #does nothing if no domain-registration is prepared from wizard
 
+log="/tmp/0xffletsrenew.log"
+echo "Renew procedure started $(date +%H:%M:%S.%N)" >>$log
+
 #feature request
 #for renewal, custom lighttps must run on port 80
 #if not, move ports, renew, and switch back to previous ports
@@ -50,8 +53,9 @@ if [ $((onlinecheck)) != 0 ] ||
    [ $(stat -c %s /config/letsencrypt/account.key) -eq 0 ] ||
    [ ! -d "/config/custom/www/.well-known/acme-challenge/" ]
 then
-  echo "error: offline, missing or empty files, or challenge-directory!"
+  echo "error: offline, missing or empty files, or challenge-directory!" >>$log 2>>$log
 else
+  echo "initial check passed, starting renewal prococedure" >>$log 2>>$log
 
 # Opening up firewall on port 80
 CHAIN=$( iptables -L | awk '/^Chain WAN/ && /LOCAL/ {print $2;}' )
@@ -62,6 +66,7 @@ customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/cust
 orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
 if [ "$orighttpport" == "80" ]; then
     #stop orig server
+    echo "stopping orig server" >>$log 2>>$log
     sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd.pid
     if [ -f "/var/run/lighttpd.pid" ]; then
         rm -f /var/run/lighttpd.pid
@@ -72,16 +77,19 @@ fi
 
 if [ "$customhttpport" != "80" ]; then
     #stop custom server
+    echo "stopping custom server" >>$log 2>>$log
     sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
     if [ -f "/var/run/lighttpd_custom.pid" ]; then
       rm -f /var/run/lighttpd_custom.pid
     fi
     #change port to 80
+    echo "changing ports" >>$log 2>>$log
     customhttpportnew="80"
-    echo "Current http settings located, changing ports in 10-ssl.conf"
+    echo "Current http settings located, changing ports in 10-ssl.conf" >>$log 2>>$log
     sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpport'/server.port = '$customhttpportnew'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
     sed -i -r 's/\]:'$customhttpport'"/\]:'$customhttpportnew'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
     #start custom server
+    echo "starting custom server on port 80" >>$log 2>>$log
     sudo /sbin/start-stop-daemon --start --quiet \
           --pidfile /var/run/lighttpd_custom.pid \
           --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
@@ -89,17 +97,20 @@ fi
 ## Port preperation done
 
 # Run renewal script
+echo "renewing certificate..." >>$log 2>>$log
 python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/account.key --csr /config/letsencrypt/domain.csr --acme-dir /config/custom/www/.well-known/acme-challenge/ > /config/letsencrypt/signed.crt
 
 ## Restore original port settings, remember restart-need
 if [ "$customhttpport" != "80" ]; then
     #stop custom server
+    echo "stoping custom server" >>$log 2>>$log
     sudo /sbin/start-stop-daemon --stop --pidfile /var/run/lighttpd_custom.pid
     if [ -f "/var/run/lighttpd_custom.pid" ]; then
       rm -f /var/run/lighttpd_custom.pid
     fi
     #change port back to original setting 80
-    echo "Current http settings located, changing ports in 10-ssl.conf"
+    echo "changing port back to "$customhttpport >>$log 2>>$log
+    echo "Current http settings located, changing ports in 10-ssl.conf" >>$log 2>>$log
     sed -i -r 's/server.port.{0,4}=.{0,4}'$customhttpportnew'/server.port = '$customhttpport'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
     sed -i -r 's/\]:'$customhttpportnew'"/\]:'$customhttpport'"/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
 fi
@@ -112,6 +123,7 @@ iptables -D $CHAIN 1
 if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] &&
    [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]
 then
+  echo "copy new certificates to server.pem" >>$log 2>>$log
   cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
   cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
 
@@ -144,15 +156,21 @@ then
   if [ -f /config/letsencrypt/deploysetting.dat ] &&
      [ "$(grep -i "deploycertificate=yes" /config/letsencrypt/deploysetting.dat |wc -l)" == "1" ] &&
      [ -f /config/letsencrypt/deploycertificate.sh ] ; then
-        sudo /config/letsencrypt/deploycertificate.sh
+      echo "deploy new certificate to AirOS-Devices" >>$log 2>>$log
+      sudo /config/letsencrypt/deploycertificate.sh >>$log 2>>$log
   fi
+elif
+  echo "renewal somehow did not work..." >>$log 2>>$log
 fi
 ## end if from "check needed files"
 fi
 
 ## restart orig server after port-changes in case LE-registration failed
 if [ "$restart" ]; then
+  echo "starting orig server again..." >>$log 2>>$log
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 fi
+
+echo "Renew procedure ended $(date +%H:%M:%S.%N)" >>$log

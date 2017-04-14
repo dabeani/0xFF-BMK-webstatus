@@ -15,6 +15,11 @@ if [ ! -L /etc/cron.monthly/letsrenew.sh ]; then
   ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
 fi
 
+# re-establish daily restart script
+if [ ! -L "/etc/cron.daily/restartservers.sh" ] && [ -f /config/letsencrypt/restartservers.sh ]; then
+    ln -sf /config/letsencrypt/restartservers.sh /etc/cron.daily/restartservers.sh
+fi
+
 # re-establish current certificate file, only of domain.key is not of zero file-size
 # original server.pem contains "BEGIN PRIVATE KEY", whereas LE-signed server.pem includes "BEGIN RSA PRIVATE KEY".
 # only renew server.pem file if needed and signature file is >0 bytes

@@ -20,18 +20,20 @@ if [ ! -d "/var/log/lighttpd_custom" ]; then
 fi
 
 # re-establish monthly renewal if needed
-if [ ! -f /etc/cron.monthly/letsrenew.sh ] && [ -f /config/letsencrypt/letsrenew.sh ]; then
-    echo "#!/bin/sh" >/etc/cron.monthly/letsrenew.sh
-    echo "/config/letsencrypt/letsrenew.sh" >>/etc/cron.monthly/letsrenew.sh
-    chmod 755 /etc/cron.monthly/letsrenew.sh
+if [ ! -f /etc/cron.monthly/letsrenew ] && [ -f /config/letsencrypt/letsrenew.sh ]; then
+    echo "#!/bin/sh" >/etc/cron.monthly/letsrenew
+    echo "/config/letsencrypt/letsrenew.sh" >>/etc/cron.monthly/letsrenew
 fi
+chmod 755 /config/letsencrypt/letsrenew.sh
+chmod 755 /etc/cron.monthly/letsrenew
 
 # re-establish daily restart script
-if [ ! -f /etc/cron.daily/restartservers.sh ] && [ -f /config/letsencrypt/restartservers.sh ]; then
-    echo "#!/bin/sh" >/etc/cron.daily/restartservers.sh
-    echo "/config/letsencrypt/restartservers.sh" >>/etc/cron.daily/restartservers.sh
-    chmod 755 /etc/cron.daily/restartservers.sh
+if [ ! -f /etc/cron.daily/restartservers ] && [ -f /config/letsencrypt/restartservers.sh ]; then
+    echo "#!/bin/sh" >/etc/cron.daily/restartservers
+    echo "/config/letsencrypt/restartservers.sh" >>/etc/cron.daily/restartservers
 fi
+chmod 755 /config/letsencrypt/restartservers.sh
+chmod 755 /etc/cron.daily/restartservers
 
 # establish config from default, if missing - avoid killing a custom setting
 if [ -f "/tmp/settings.inc" ]; then

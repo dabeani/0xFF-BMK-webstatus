@@ -102,6 +102,12 @@ fi
 if [ -L "/etc/cron.weekly/0xffcustom_restart.sh" ]; then
         rm /etc/cron.weekly/0xffcustom_restart.sh
 fi
+if [ -L "/etc/cron.monthly/letsrenew.sh" ]; then
+        rm /etc/cron.monthly/letsrenew.sh
+fi
+if [ -L "/etc/cron.daily/restartservers.sh" ]; then
+        rm /etc/cron.daily/restartservers.sh
+fi
 
 # recover original lighttpd.conf
 if [ -L /etc/lighttpd/lighttpd.conf ]; then

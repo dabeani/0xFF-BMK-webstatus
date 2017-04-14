@@ -19,9 +19,18 @@ if [ ! -d "/var/log/lighttpd_custom" ]; then
     chown www-data:www-data /var/log/lighttpd_custom
 fi
 
-# if its not already created, create cronjob for LE
-if [ ! -f "/etc/cron.monthly/letsrenew.sh" ]; then
-        ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
+# re-establish monthly renewal if needed
+if [ ! -f /etc/cron.monthly/letsrenew.sh ] && [ -f /config/letsencrypt/letsrenew.sh ]; then
+    echo "#!/bin/sh" >/etc/cron.monthly/letsrenew.sh
+    echo "/config/letsencrypt/letsrenew.sh" >>/etc/cron.monthly/letsrenew.sh
+    chmod 755 /etc/cron.monthly/letsrenew.sh
+fi
+
+# re-establish daily restart script
+if [ ! -f /etc/cron.daily/restartservers.sh ] && [ -f /config/letsencrypt/restartservers.sh ]; then
+    echo "#!/bin/sh" >/etc/cron.daily/restartservers.sh
+    echo "/config/letsencrypt/restartservers.sh" >>/etc/cron.daily/restartservers.sh
+    chmod 755 /etc/cron.daily/restartservers.sh
 fi
 
 # establish config from default, if missing - avoid killing a custom setting

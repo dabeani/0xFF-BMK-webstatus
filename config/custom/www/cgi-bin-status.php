@@ -1286,5 +1286,3 @@ unset($finish);
 unset($total_time);
 
 ?>
-
-0

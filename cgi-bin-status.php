@@ -53,7 +53,6 @@ function parse_ipv6($ip) {
         $full .= str_pad($digit, 4, "0", STR_PAD_LEFT);
     }
     $ipf=substr(preg_replace("/([A-f0-9]{4})/", "$1:", $full), 0, -1);
-    echo $ipf."\n";
     if ((substr($ipf, 0, 10)=='2a02:0061:') && (substr($ipf, 0, 15)!=='2a02:0061:0000:')) {
         // encoded node-id
         $nodeid=hexdec(substr($ipf, 10, 4));

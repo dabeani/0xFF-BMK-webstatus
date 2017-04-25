@@ -10,6 +10,9 @@ $get_nslookup_from_nodedb=1;
 $show_link_to_adminlogin=0;
 
 // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
-$traceroute_to='78.41.115.228';
+$traceroute_to='subway.funkfeuer.at';
+
+// defines destination for traceroute6 -> should be internet gateway IPv6
+$traceroute6_to='subway.funkfeuer.at';
 
 ?>

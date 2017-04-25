@@ -1212,6 +1212,7 @@ if ($port=="8000") {
                                 $line=trim($line);
 								$ipv6_detail=parse_ipv6($line);
 								if ($ipv6_detail['text'] !== '') { $ipv6_text=$ipv6_detail['text']; }
+								else { $ipv6_text=""; }
 								echo "<tr ";
 								if ($line == $default6) {
 									echo "bgcolor=FFD700";

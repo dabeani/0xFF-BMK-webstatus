@@ -33,7 +33,7 @@ $APP["IPv6_TXTINFO_PORT"] = trim(shell_exec("cat /config/user-data/olsr*6.conf |
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 
-if (!isset(networks_json)) {
+if (!isset($networks_json)) {
 	$networks_json=json_decode(trim(shell_exec("curl --connect-timeout 1 --speed-time 1 http://127.0.0.1:8000/telnet/"."olsrv2info".'%20json%20'."attached_network")), true);
 	if (count($networks_json)<=1) { $networks_json=array(); }
 }
@@ -70,7 +70,7 @@ function parse_ipv6($ip) {
                          'type'=>'nodeid',
                          'text'=>'nodeid:'.$nodeid);
         }
-    elseif (substr($ipf, 0, 22)=='2a02:0060:0100:0000:00') {
+    } else if (substr($ipf, 0, 22)=='2a02:0060:0100:0000:00') {
         // encapsulated IPv4-Address
         $ipv4=hexdec(substr($ipf, 22, 2)).".".hexdec(substr($ipf, 25, 2)).".".hexdec(substr($ipf, 27, 2)).".".hexdec(substr($ipf, 30, 2));
         if (isset($node_dns[$ipv4]['n'])) {
@@ -1180,6 +1180,9 @@ if ($port=="8000") {
                                 $hop = explode(" ", trim($line));
                                 $ip6=trim($hop[2],'-()[]');
                                 $host6=$hop[1];
+								$ipv6_detail=parse_ipv6($ip6);
+								if ($ipv6_detail['text'] !== '') { $ipv6_text=$ipv6_detail['text']; }
+								else { $ipv6_text=""; }
 								echo "<tr><td>";
                                 echo str_pad($hop[0],2," ",STR_PAD_LEFT); // hop-number
 								echo "</td><td>";
@@ -1188,7 +1191,7 @@ if ($port=="8000") {
                                 if ($ip6 !== $host6) {
                                     echo "<a href=\"http://[".$host6."]\" target='_new'>".$host6."</a>"; // hostname
                                 } else {
-									echo "<!-- hostname? --> &nbsp;";
+									echo $ipv6_text." &nbsp;";
 								}
 								echo "</td><td align=right>";
                                 echo $hop[3]; //ping
@@ -1207,6 +1210,8 @@ if ($port=="8000") {
                             $neighbors=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($neighbors as $line) {
                                 $line=trim($line);
+								$ipv6_detail=parse_ipv6($line);
+								if ($ipv6_detail['text'] !== '') { $ipv6_text=$ipv6_detail['text']; }
 								echo "<tr ";
 								if ($line == $default6) {
 									echo "bgcolor=FFD700";
@@ -1218,7 +1223,7 @@ if ($port=="8000") {
                                 echo $line;
                                 echo "</a>";
 								echo "</td><td>";
-								echo "<!-- hostname? --> &nbsp;";
+								echo $ipv6_text." &nbsp;";
                                 echo "</td></tr>\n";
                             }
 							echo "</tbody>\n";

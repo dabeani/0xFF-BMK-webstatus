@@ -33,10 +33,12 @@ $APP["IPv6_TXTINFO_PORT"] = trim(shell_exec("cat /config/user-data/olsr*6.conf |
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 
-if (!isset($networks_json)) {
+//if (!isset($networks_json)) {
 	$networks_json=json_decode(trim(shell_exec("curl --connect-timeout 1 --speed-time 1 http://127.0.0.1:8000/telnet/"."olsrv2info".'%20json%20'."attached_network")), true);
-	if (count($networks_json)<=1) { $networks_json=array(); }
-}
+	if (count($networks_json['attached_network'])<=1) { $networks_json=array(); }
+//}
+
+
 
 function parse_ipv6($ip) {
     global $networks_json;

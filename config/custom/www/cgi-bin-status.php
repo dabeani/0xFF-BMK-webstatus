@@ -70,6 +70,17 @@ function parse_ipv6($ip) {
                          'type'=>'nodeid',
                          'text'=>'nodeid:'.$nodeid);
         }
+    } else if (substr($ipf, 0, 20)=='2a02:0061:0000:00ff:') {
+		foreach ($networks_json['attached_network'] as $lan) {
+			if ($lan['node']==$ip) {
+				// found correct originator
+				// $lan['attached_net'] might contain node-id
+				$check=parse_ipv6($lan['attached_net']);
+				if (isset($check['node'])) {
+					return $check;
+				}
+			}
+	}
     } else if (substr($ipf, 0, 22)=='2a02:0060:0100:0000:00') {
         // encapsulated IPv4-Address
         $ipv4=hexdec(substr($ipf, 22, 2)).".".hexdec(substr($ipf, 25, 2)).".".hexdec(substr($ipf, 27, 2)).".".hexdec(substr($ipf, 30, 2));

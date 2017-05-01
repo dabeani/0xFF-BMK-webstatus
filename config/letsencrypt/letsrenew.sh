@@ -59,7 +59,7 @@ else
 
 # Opening up firewall on port 80
 CHAIN=$( iptables -L | awk '/^Chain WAN/ && /LOCAL/ {print $2;}' )
-iptables -I $CHAIN 1 -p tcp --dport 80 -j ACCEPT
+iptables -I $CHAIN 1 -p tcp --dport 80 -j ACCEPT >>$log 2>>$log
 
 ## check if custom_lighttpd runns http:80, if not: make it to!
 customhttpport=$(grep -i server.port /config/custom/lighttpd/*.conf /config/custom/lighttpd/conf-enabled/*.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
@@ -159,7 +159,7 @@ then
       echo "deploy new certificate to AirOS-Devices" >>$log 2>>$log
       sudo /config/letsencrypt/deploycertificate.sh >>$log 2>>$log
   fi
-elif
+else
   echo "renewal somehow did not work..." >>$log 2>>$log
 fi
 ## end if from "check needed files"

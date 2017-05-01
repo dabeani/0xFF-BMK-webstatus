@@ -7,8 +7,8 @@ $version="4.6";
 $interface_1100_list='br0.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100,eth5.1100,br1.1100,br2.1100';
 $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node database (originally taken from map meta data at map.funkfeuer.at/wien
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
-$traceroute_to='78.41.115.228';    // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
-$traceroute6_to='2a02:61:0:ff:76d4:35ff:fe8a:382';    // defines destination for traceroute6 -> should be internet gateway, tunnelserver.funkfeuer.at
+$traceroute_to='subway.funkfeuer.at';     // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
+$traceroute6_to='subway.funkfeuer.at';    // defines destination for traceroute6 -> should be internet gateway, tunnelserver.funkfeuer.at
 
 
 // load specific settings
@@ -33,7 +33,15 @@ $APP["IPv6_TXTINFO_PORT"] = trim(shell_exec("cat /config/user-data/olsr*6.conf |
 // URI in Variablen umwandeln!
 parse_str(parse_url($_SERVER["REQUEST_URI"],PHP_URL_QUERY));
 
+//if (!isset($networks_json)) {
+	$networks_json=json_decode(trim(shell_exec("curl --connect-timeout 1 --speed-time 1 http://127.0.0.1:8000/telnet/"."olsrv2info".'%20json%20'."attached_network")), true);
+	if (count($networks_json['attached_network'])<=1) { $networks_json=array(); }
+//}
+
+
+
 function parse_ipv6($ip) {
+    global $networks_json;
     global $node_dns;
     if (strpos($ip, '::') !== false) {
             $ipf = str_replace('::', str_repeat(':0', 8 - substr_count($ip, ':')).':', $ip);
@@ -47,7 +55,35 @@ function parse_ipv6($ip) {
         $full .= str_pad($digit, 4, "0", STR_PAD_LEFT);
     }
     $ipf=substr(preg_replace("/([A-f0-9]{4})/", "$1:", $full), 0, -1);
-    if (substr($ipf, 0, 22)=='2a02:0060:0100:0000:00') {
+    if ((substr($ipf, 0, 10)=='2a02:0061:') && (substr($ipf, 0, 15)!=='2a02:0061:0000:')) {
+        // encoded node-id
+        $nodeid=hexdec(substr($ipf, 10, 4));
+        $routerid=hexdec(substr($ipf, 17, 1));
+        if ($routerid=='1') { $suffix=""; }
+        else { $suffix="/".$routerid; }
+        $nic=hexdec(substr($ipf, 18, 1));
+        if (isset($node_dns[$nodeid])) {
+            return array('data'=>$nodeid,
+                         'type'=>'nodeid',
+                         'node'=>$node_dns[$nodeid],
+                         'text'=>$node_dns[$nodeid].$suffix);
+        } else {
+            return array('data'=>$nodeid,
+                         'type'=>'nodeid',
+                         'text'=>'nodeid:'.$nodeid);
+        }
+    } else if (substr($ipf, 0, 20)=='2a02:0061:0000:00ff:') {
+		foreach ($networks_json['attached_network'] as $lan) {
+			if ($lan['node']==$ip) {
+				// found correct originator
+				// $lan['attached_net'] might contain node-id
+				$check=parse_ipv6($lan['attached_net']);
+				if (isset($check['node'])) {
+					return $check;
+				}
+			}
+	}
+    } else if (substr($ipf, 0, 22)=='2a02:0060:0100:0000:00') {
         // encapsulated IPv4-Address
         $ipv4=hexdec(substr($ipf, 22, 2)).".".hexdec(substr($ipf, 25, 2)).".".hexdec(substr($ipf, 27, 2)).".".hexdec(substr($ipf, 30, 2));
         if (isset($node_dns[$ipv4]['n'])) {
@@ -1157,6 +1193,9 @@ if ($port=="8000") {
                                 $hop = explode(" ", trim($line));
                                 $ip6=trim($hop[2],'-()[]');
                                 $host6=$hop[1];
+								$ipv6_detail=parse_ipv6($ip6);
+								if ($ipv6_detail['text'] !== '') { $ipv6_text=$ipv6_detail['text']; }
+								else { $ipv6_text=""; }
 								echo "<tr><td>";
                                 echo str_pad($hop[0],2," ",STR_PAD_LEFT); // hop-number
 								echo "</td><td>";
@@ -1165,7 +1204,7 @@ if ($port=="8000") {
                                 if ($ip6 !== $host6) {
                                     echo "<a href=\"http://[".$host6."]\" target='_new'>".$host6."</a>"; // hostname
                                 } else {
-									echo "<!-- hostname? --> &nbsp;";
+									echo $ipv6_text." &nbsp;";
 								}
 								echo "</td><td align=right>";
                                 echo $hop[3]; //ping
@@ -1184,6 +1223,9 @@ if ($port=="8000") {
                             $neighbors=explode("\n",trim(shell_exec("curl -s localhost:8000/telnet/nhdpinfo%20link_addr | awk {'print $3'}")));
                             foreach ($neighbors as $line) {
                                 $line=trim($line);
+								$ipv6_detail=parse_ipv6($line);
+								if ($ipv6_detail['text'] !== '') { $ipv6_text=$ipv6_detail['text']; }
+								else { $ipv6_text=""; }
 								echo "<tr ";
 								if ($line == $default6) {
 									echo "bgcolor=FFD700";
@@ -1195,7 +1237,7 @@ if ($port=="8000") {
                                 echo $line;
                                 echo "</a>";
 								echo "</td><td>";
-								echo "<!-- hostname? --> &nbsp;";
+								echo $ipv6_text." &nbsp;";
                                 echo "</td></tr>\n";
                             }
 							echo "</tbody>\n";

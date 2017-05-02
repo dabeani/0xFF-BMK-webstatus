@@ -4,8 +4,8 @@
 #checks for needed files to continue
 #does nothing if no domain-registration is prepared from wizard
 
-log="/tmp/0xffletsrenew.log"
-echo "Renew procedure started $(date +%H:%M:%S.%N)" >>$log
+log="/var/log/0xffletsrenew.log"
+echo "Renew procedure started $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
 
 #feature request
 #for renewal, custom lighttps must run on port 80
@@ -98,7 +98,7 @@ fi
 
 # Run renewal script
 echo "renewing certificate..." >>$log 2>>$log
-python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/account.key --csr /config/letsencrypt/domain.csr --acme-dir /config/custom/www/.well-known/acme-challenge/ > /config/letsencrypt/signed.crt
+python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/account.key --csr /config/letsencrypt/domain.csr --acme-dir /config/custom/www/.well-known/acme-challenge/ >/config/letsencrypt/signed.crt 2>>$log
 
 ## Restore original port settings, remember restart-need
 if [ "$customhttpport" != "80" ]; then
@@ -117,15 +117,15 @@ fi
 ## Restore done
 
 # Removing firewall rule added earlier
-iptables -D $CHAIN 1
+iptables -D $CHAIN 1 >>$log 2>>$log
 
 # Copying files to lighttpd directory on success only (file domain.key is not empty)
 if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] &&
    [ -f "/config/letsencrypt/domain.key" ] && [ ! $(stat -c %s /config/letsencrypt/domain.key) -eq 0 ]
 then
   echo "copy new certificates to server.pem" >>$log 2>>$log
-  cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem
-  cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem
+  cat /config/letsencrypt/signed.crt | tee /etc/lighttpd/server.pem >>$log 2>>$log
+  cat /config/letsencrypt/domain.key | tee -a /etc/lighttpd/server.pem >>$log 2>>$log
 
   # Restarting original lighttpd webserver for EdgeOS
   if [ ! "$restart" ]; then
@@ -159,7 +159,7 @@ then
       echo "deploy new certificate to AirOS-Devices" >>$log 2>>$log
       sudo /config/letsencrypt/deploycertificate.sh >>$log 2>>$log
   fi
-else
+elif
   echo "renewal somehow did not work..." >>$log 2>>$log
 fi
 ## end if from "check needed files"
@@ -173,4 +173,4 @@ if [ "$restart" ]; then
         --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf
 fi
 
-echo "Renew procedure ended $(date +%H:%M:%S.%N)" >>$log
+echo "Renew procedure ended $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log

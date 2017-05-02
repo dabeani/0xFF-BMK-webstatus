@@ -159,7 +159,7 @@ then
       echo "deploy new certificate to AirOS-Devices" >>$log 2>>$log
       sudo /config/letsencrypt/deploycertificate.sh >>$log 2>>$log
   fi
-elif
+else
   echo "renewal somehow did not work..." >>$log 2>>$log
 fi
 ## end if from "check needed files"

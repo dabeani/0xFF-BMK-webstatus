@@ -132,7 +132,7 @@ chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/custom/bin/ip2dns
 # fix erlachp permission issue with user "funkfeuer"
-chmod 666 /config/custom/www/.well-known/acme-challenge
+chmod 777 /config/custom/www/.well-known/acme-challenge
 
 # reestablish server.pem with RSA key if possible
 chmod +w /etc/lighttpd/server.pem

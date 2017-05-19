@@ -725,7 +725,7 @@ printLoadingText("Loading Status-TAB (do traceroute)...");
                             echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>";
                             echo "<td><b>Ping</b></td></tr></thead>\n";
                             echo "<tbody>\n";
-                            $tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -w 1 -q 1 ".$traceroute_to)));
+                            $tracelines=explode("\n",trim(shell_exec("/usr/bin/traceroute -4 -w 1 -q 1 ".$traceroute_to)));
                             array_shift($tracelines); // remove headline
                             foreach ($tracelines as $line) {
                                 $line=str_replace('     ',' ',$line); 

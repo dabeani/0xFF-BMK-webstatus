@@ -61,7 +61,7 @@ def show_html():
     # get default v4 route
     exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3'}"
     args = shlex.split(exec_command)
-    defaultv4ip=subprocess.check_output(args)
+    #defaultv4ip=subprocess.check_output(args)
 
     # get uptime
     uptime = subprocess.check_output("uptime")
@@ -120,7 +120,7 @@ def show_html():
     print data
     print """</pre></dd>
                       <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><pre>"""
-    print defaultv4ip
+    #print defaultv4ip
     print """</pre></dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><pre>"""
     print olsr_links

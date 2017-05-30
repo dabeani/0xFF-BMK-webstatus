@@ -43,6 +43,9 @@ def show_html():
     args = shlex.split(exec_command)
     data = subprocess.check_output(args)
 
+    # get uptime
+    uptime = subprocess.check_output("uptime")
+
     # get local olsr infos
     import urllib2
     olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links").read()
@@ -90,10 +93,12 @@ def show_html():
 <!-- Status TAB -->
                 <div role="tabpanel" class="tab-pane active" id="status">
                     <dl class="dl-horizontal">
-                      <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><pre>...</pre></dd>
+                      <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><pre>"""
+    print uptime
+    print """</pre></dd>
                       <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre>"""
     print data
-    print "...</pre></dd>"
+    print "</pre></dd>"
     print """                      <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><pre>...</pre></dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><pre>"""
     print olsr_links

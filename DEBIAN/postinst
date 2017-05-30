@@ -68,6 +68,14 @@ if [ ! -f "/config/custom/lighttpd/conf-enabled/10-ssl.conf" ]; then
 fi
 rm -f cp /config/custom/lighttpd/conf-enabled/10-ssl_default.conf
 
+# 1.9.7aplha3 and later has no preinstalled php5 - remove php-setup from config
+if [ ! -d /var/run/php5 ]; then
+    echo "php5 missing, removing setup from .conf files"
+    linenumber=$(grep -ni "conf-enabled/15-fastcgi-php.conf" /config/custom/lighttpd/lighttpd_custom.conf | awk -F: {'print $1'})
+    sed -i $linenumber'd' /config/custom/lighttpd/lighttpd_custom.conf
+    #rm /config/custom/lighttpd/conf-enabled/15-fastcgi-php.conf
+fi
+
 # double check against conflicts with current orig server ports
 customhttpport=$(grep -i server.port /config/custom/lighttpd/conf-enabled/10-ssl.conf | awk -F'=' {'gsub(" ","",$2);print $2;'})
 customhttpsport=$(grep -iEn 'SERVER\["socket"\] == "0.0.0.0' /config/custom/lighttpd/conf-enabled/10-ssl.conf | awk -F':' {'gsub(" ","",$3);gsub("{","",$3);gsub("\"","",$3);print $3;'})

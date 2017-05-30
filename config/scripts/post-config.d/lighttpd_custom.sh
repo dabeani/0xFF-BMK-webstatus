@@ -22,7 +22,7 @@ fi
 
 # 1.9.7aplha3 and later has no preinstalled php5 - remove php-setup from config
 # this logic supports only oneway php->python, will not reestablish php-setup later on!
-if [ ! -d /var/run/php5 ]; then
+if [ ! -d /var/run/php5 ] && [ "$(grep -ni conf-enabled/15-fastcgi-php.conf /config/custom/lighttpd/lighttpd_custom.conf | wc -l)" == "1" ]; then
     linenumber=$(grep -ni "conf-enabled/15-fastcgi-php.conf" /config/custom/lighttpd/lighttpd_custom.conf | awk -F: {'print $1'})
     sed -i $linenumber'd' /config/custom/lighttpd/lighttpd_custom.conf
     #rm /config/custom/lighttpd/conf-enabled/15-fastcgi-php.conf

@@ -19,6 +19,21 @@ if (GET.get('get') is None):
 if (GET.get('get') == ""):
     GET["get"]="default"
 
+def show_test():
+    exec_command="/usr/bin/traceroute -4 -w 1 -q 1 subway.funkfeuer.at"
+    args = shlex.split(exec_command)
+    data = subprocess.check_output(args)
+    lines=data.split('\n')
+    for key,line in enumerate(lines):
+        if (key == 0): continue
+        if (len(line) == 0): continue
+        print key, ": ", line,
+        traceline=line.split()
+        print traceline[0] #HOP
+        print traceline[1] #HOST
+        print traceline[2].strip("()") #IP
+        print traceline[3],"ms" #PING
+
 def show_status():
     # get ubnt-discover
     exec_command="/usr/sbin/ubnt-discover -d150 -V -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100 -j"
@@ -42,6 +57,11 @@ def show_html():
     exec_command="/usr/sbin/ubnt-discover -d150 -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100"
     args = shlex.split(exec_command)
     data = subprocess.check_output(args)
+    
+    # get default v4 route
+    exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3'}"
+    args = shlex.split(exec_command)
+    defaultv4ip=subprocess.check_output(args)
 
     # get uptime
     uptime = subprocess.check_output("uptime")
@@ -98,12 +118,29 @@ def show_html():
     print """</pre></dd>
                       <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre>"""
     print data
-    print "</pre></dd>"
-    print """                      <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><pre>...</pre></dd>
+    print """</pre></dd>
+                      <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><pre>"""
+    print defaultv4ip
+    print """</pre></dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><pre>"""
     print olsr_links
-    print "</pre></dd>"
-    print """                      <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd><pre>...</pre></dd>
+    print """</pre></dd>
+                      <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd><pre>"""
+    
+    exec_command="/usr/bin/traceroute -4 -w 1 -q 1 subway.funkfeuer.at"
+    args = shlex.split(exec_command)
+    data = subprocess.check_output(args)
+    lines=data.split('\n')
+    for key,line in enumerate(lines):
+        if (key == 0): continue
+        if (len(line) == 0): continue
+        traceline=line.split()
+        print traceline[0]," ", #HOP
+        print traceline[1]," ", #HOST
+        print traceline[2].strip("()")," ", #IP
+        print traceline[3],"ms" #PING
+    
+    print """</pre></dd>
                     </dl>
                 </div>
 <!-- Contact TAB -->
@@ -132,6 +169,7 @@ def show_html():
 
 if (GET.get('get') == "status"):
     show_status()
+elif (GET.get('get') == "test"):
+    show_test()
 else:
     show_html()
-

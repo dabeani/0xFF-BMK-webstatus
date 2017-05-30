@@ -11,17 +11,13 @@ if [ ! -d "/var/log/lighttpd_custom" ]; then
 fi
 
 # re-establish monthly renewal if needed
-if [ ! -f /etc/cron.monthly/letsrenew.sh ] && [ -f /config/letsencrypt/letsrenew.sh ]; then
-    echo "#!/bin/sh" >/etc/cron.monthly/letsrenew.sh
-    echo "/config/letsencrypt/letsrenew.sh" >>/etc/cron.monthly/letsrenew.sh
-    chmod 755 /etc/cron.monthly/letsrenew.sh
+if [ ! -L /etc/cron.monthly/letsrenew.sh ]; then
+  ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
 fi
 
 # re-establish daily restart script
-if [ ! -f /etc/cron.daily/restartservers.sh ] && [ -f /config/letsencrypt/restartservers.sh ]; then
-    echo "#!/bin/sh" >/etc/cron.daily/restartservers.sh
-    echo "/config/letsencrypt/restartservers.sh" >>/etc/cron.daily/restartservers.sh
-    chmod 755 /etc/cron.daily/restartservers.sh
+if [ ! -L "/etc/cron.daily/restartservers.sh" ] && [ -f /config/letsencrypt/restartservers.sh ]; then
+    ln -sf /config/letsencrypt/restartservers.sh /etc/cron.daily/restartservers.sh
 fi
 
 # 1.9.7aplha3 and later has no preinstalled php5 - remove php-setup from config
@@ -61,4 +57,5 @@ fi
 # Start custom webserver
 sudo /sbin/start-stop-daemon --start --quiet \
       --pidfile /var/run/lighttpd_custom.pid \
-      --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+--exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+

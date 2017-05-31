@@ -60,9 +60,8 @@ def show_html():
     
     # get default v4 route
     exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3'}"
-    args = shlex.split(exec_command)
-    #defaultv4ip=subprocess.check_output(args)
-
+    defaultv4ip=subprocess.check_output(exec_command, shell=True)
+    
     # get uptime
     uptime = subprocess.check_output("uptime")
 
@@ -113,20 +112,39 @@ def show_html():
 <!-- Status TAB -->
                 <div role="tabpanel" class="tab-pane active" id="status">
                     <dl class="dl-horizontal">
-                      <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><pre>"""
+                      <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
     print uptime
-    print """</pre></dd>
+    print """</dd>
                       <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre>"""
     print data
-    print """</pre></dd>
-                      <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><pre>"""
+    #print """</pre></dd>                      <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><pre>"""
     #print defaultv4ip
-    print """</pre></dd>
-                      <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd><pre>"""
-    print olsr_links
-    print """</pre></dd>
-                      <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd><pre>"""
     
+    print """</pre></dd>
+                      <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>
+                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
+                        <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+"""
+    lines=olsr_links.split('\n')
+    for key,line in enumerate(lines):
+        if (key <= 1): continue
+        if (len(line) == 0): continue
+        link=line.split()
+        print "<tr"
+        if (link[1] == defaultv4ip): print " bgcolor=FFD700"
+        print "><td>"+link[0]+"</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
+        print "<td><a href=https://"+" target=_blank>"+"</a> "+"</td>" #link-hostname
+        print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
+        print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
+        print "<td></td>" #routes
+        print "<td></td>" #nodes
+        print "</tr>"
+
+    print """</tbody></table></dd>
+                      <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
+                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>
+                        <td><b>Ping</b></td></tr></thead><tbody>
+"""
     exec_command="/usr/bin/traceroute -4 -w 1 -q 1 subway.funkfeuer.at"
     args = shlex.split(exec_command)
     data = subprocess.check_output(args)
@@ -135,12 +153,13 @@ def show_html():
         if (key == 0): continue
         if (len(line) == 0): continue
         traceline=line.split()
-        print traceline[0]," ", #HOP
-        print traceline[1]," ", #HOST
-        print traceline[2].strip("()")," ", #IP
-        print traceline[3],"ms" #PING
+        print "<tr><td>"+traceline[0]+"<td>", #HOP
+        print "<td>"+traceline[1]+"<td>", #HOST
+        print "<td>"+traceline[2].strip("()")+"<td>", #IP
+        print "<td>"+traceline[3]+"<td>", #PING
+        print "</tr>"
     
-    print """</pre></dd>
+    print """</tbody></table></dd>
                     </dl>
                 </div>
 <!-- Contact TAB -->

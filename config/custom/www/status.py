@@ -125,23 +125,23 @@ def show_html():
         print type(e)    #catched
         
     # get node-db info
-	global get_nslookup_from_nodedb
-	try: nodedb_raw=urllib2.urlopen("http://ff.cybercomm.at/node_db.json", timeout = 1)
-	except urllib2.URLError:
-		get_nslookup_from_nodedb=0
-	except socket.timeout:
-		get_nslookup_from_nodedb=0
+    global get_nslookup_from_nodedb
+    try: nodedb_raw=urllib2.urlopen("http://ff.cybercomm.at/node_db.json", timeout = 1)
+    except urllib2.URLError:
+        get_nslookup_from_nodedb=0
+    except socket.timeout:
+        get_nslookup_from_nodedb=0
 
-	if (str(get_nslookup_from_nodedb)=="1"):
-		node_dns=json.loads(nodedb_raw.read())
-	else: node_dns={}
+    if (str(get_nslookup_from_nodedb)=="1"):
+        node_dns=json.loads(nodedb_raw.read())
+    else: node_dns={}
 
     # get routing table
     exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
     routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
 
     gatewaylist={}
-	nodelist={}
+    nodelist={}
     for route in routinglist:
         line=route.split()
         if (line[1] == 'default'):
@@ -151,12 +151,12 @@ def show_html():
             continue
         try: gatewaylist[line[0]].extend([str(line[1])])
         except KeyError: gatewaylist[line[0]]=[str(line[1])]
-		try: tmp=len(nodelist[line[0]])
-		except KeyError: nodelist[line[0]]=[]
-		try: 
-			n=node_dns[line[1]]['n']
-			if (n not in nodelist[line[0]]): nodelist[line[0]].extend([str(n)])
-		except KeyError: n=""
+        try: tmp=len(nodelist[line[0]])
+        except KeyError: nodelist[line[0]]=[]
+        try: 
+            n=node_dns[line[1]]['n']
+            if (n not in nodelist[line[0]]): nodelist[line[0]].extend([str(n)])
+        except KeyError: n=""
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")

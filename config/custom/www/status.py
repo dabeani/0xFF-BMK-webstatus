@@ -85,22 +85,30 @@ def format_wmode(me):
     return str(me)
 
 def format_duration(me):
-    return str(me)
+    if (me <=120):      return str(me)+"sek"     # 0-120sek
+    if (me <=120*60):   return str(me/60)+"min"  # 2-120min
+    if (me <=50*60*60): return str(me/60/60)+"h" # 2-50h
+    return str(me/60/60/24)+"d"                  # 2+ tage
 
 def format_hostname(me):
     dn=me.split(".")
     if (me.find("wien.funkfeuer.at")>=0 and len(dn)==5):
         dn=me.split(".")
-        return dn[0]+"<b>"+dn[1]+"</b>.wien.funkfeuer.at"
+        return dn[0]+".<b>"+dn[1]+"</b>.wien.funkfeuer.at"
     else: return str(me)
 
 def show_html():
     # local hostname
-    hostname=socket.gethostname()
+    try: 
+        # could be IP or hostname
+        hostname=os.environ['SERVER_NAME']
+    except KeyError: 
+        hostname=socket.gethostname()
+        ## locally assign name, not fqdn
+
 
     # host,aliaslist,ipaddrlist=socket.gethostbyattr('78.41.113.155')
     # host=socket.getfqdn('78.41.113.155')
-
 
     # get ubnt-discover
     exec_command="/usr/sbin/ubnt-discover -d150 -V -i "+interface_list+" -j"
@@ -111,7 +119,7 @@ def show_html():
     # get default v4 route
     exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3\" \"$5'}"
     defaultv4ip,defaultv4dev=subprocess.check_output(exec_command, shell=True).strip("\n ").split()
-    #missing interface name, it's just the IP
+    defaultv4host=socket.getfqdn(defaultv4ip)
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
@@ -132,7 +140,9 @@ def show_html():
     <meta name="viewport" content="width=1000, initial-scale=0.5">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Status/OLSR EdgeOS</title>
+    <title>"""
+    print hostname
+    print """</title>
     <link href="/css/bootstrap.min.css" rel="stylesheet">
   </head>
   <body>
@@ -144,12 +154,17 @@ def show_html():
                 <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                 <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
                 <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
+                <li role="presentation"><a href="#">"""
+    print hostname
+    print """</a></li>
             </ul><br>
             <div class="tab-content">
 <!-- Main TAB -->
                 <div role="tabpanel" class="tab-pane" id="main">
                     <div class="page-header">
-                        <h1>Willkommen</small></h1>
+                        <h1>Willkommen auf """
+    print hostname
+    print """</small></h1>
                     </div>
                     <div class="panel panel-default">
                         <div class="panel-body"><b>WAS?</b></div>
@@ -183,7 +198,8 @@ def show_html():
 
     print """</tbody></table></dd>
                       <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-    print defaultv4ip+" ("+format_hostname(socket.getfqdn(defaultv4ip))+") via "+defaultv4dev
+    print "<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a> "
+    print "(<a href=\"https://"+defaultv4host+"\" target=_blank>"+format_hostname(defaultv4host)+"</a>) via "+defaultv4dev
     print """</dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
@@ -219,9 +235,9 @@ def show_html():
         if (len(line) == 0): continue
         traceline=line.split()
         print "<tr><td>"+traceline[0]+"</td>", #HOP
-        print "<td>"+format_hostname(traceline[1])+"</td>", #HOST
-        print "<td>"+traceline[2].strip("()")+"</td>", #IP
-        print "<td>"+traceline[3]+"</td>", #PING
+        print "<td><a href=\"https://"+traceline[1]+"\" target=_blank>"+format_hostname(traceline[1])+"</a></td>", #HOST
+        print "<td><a href=\"https://"+traceline[2].strip("()")+"\" target=_blank>"+traceline[2].strip("()")+"</a></td>", #IP
+        print "<td>"+traceline[3]+"ms</td>", #PING
         print "</tr>"
     
     print """</tbody></table></dd>

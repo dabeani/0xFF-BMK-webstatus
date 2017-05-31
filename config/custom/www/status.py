@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#version=4.7 
+#version=4.7
 
 #load settings
 interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100'

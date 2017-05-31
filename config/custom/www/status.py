@@ -211,8 +211,29 @@ def show_html():
     print "<a href=\"https://"+defaultv4host+"\" target=_blank>"+format_hostname(defaultv4host)+"</a> "
     print "(<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a>) via "+defaultv4dev
     print """</dd>
-                      <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>
-                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
+                      <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
+    #insert olsr-route-divs here
+    for key,destinationlist in enumerate(gatewaylist):
+        print """<!-- Modal -->
+<div class="modal fade" id="myModal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">"""+key+""" from <b> $neighbor </b></h4>
+      </div>
+      <div class="modal-body">"""+destinationlist+"""
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+"""
+    print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
                         <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
     lines=olsr_links.split('\n')
@@ -227,7 +248,7 @@ def show_html():
         print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
         print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
         print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[0].replace(".","")+"\">"+str(len(gatewaylist[link[0]]))+"</button></td>"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"\">"+str(len(gatewaylist[link[1]]))+"</button></td>"
         print "<td></td>" #nodes
         print "</tr>"
 

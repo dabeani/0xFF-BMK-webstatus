@@ -52,6 +52,25 @@ def show_status():
     print         # blank line, end of headers
     print json.dumps(data)
 
+def parse_firmware(me):
+    fw=me.split(".")
+    out=str(fw[2])
+    for f in range(3,5):
+        out=out+"."+str(fw[f])
+        #continue until length>=5 and not alpha,beta,rc
+        #stop when fw[x] is out of list-index!
+    
+    return out
+
+def format_wmode(me):
+    if (me == -1): return "CABLE"
+    if (me ==  3): return "AP"
+    if (me ==  2): return "STA"
+    return str(me)
+
+def format_duration(me):
+    return str(me)
+
 def show_html():
     # get ubnt-discover
     exec_command="/usr/sbin/ubnt-discover -d150 -V -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100 -j"
@@ -124,10 +143,10 @@ def show_html():
         print "<td>"+device['ipv4']+"</td>"
         print "<td>"+device['hostname']+"</td>"
         print "<td>"+device['product']+"</td>"
-        print "<td>"+str(device['uptime'])+"</td>"
-        print "<td>"+str(device['wmode'])+"</td>"
+        print "<td>"+format_duration(device['uptime'])+"</td>" #needs formating
+        print "<td>"+str(device['wmode'])+"</td>"  #needs conversion
         print "<td>"+device['essid']+"</td>"
-        print "<td>"+device['fwversion']+"</td>"
+        print "<td>"+parse_firmware(device['fwversion'])+"</td>"   #need extraction of version
         print "</tr>"
 
     print """</tbody></table></dd>

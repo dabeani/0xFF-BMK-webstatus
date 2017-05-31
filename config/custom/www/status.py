@@ -73,8 +73,8 @@ def parse_firmware(me):
     out=str(fw[2])
     for f in range(3,len(fw)-1):
         c=str(fw[f])
+        if (f>4 and len(c)>4 and c.find('alpha')==-1 and c.find('beta')==-1 and c.find('rc')==-1): break
         out=out+"."+c
-        if (f>5 and len(c)>4 and c.find('alpha')==-1 and c.find('beta')==-1 and c.find('rc')==-1): break
     
     return out
 
@@ -86,6 +86,13 @@ def format_wmode(me):
 
 def format_duration(me):
     return str(me)
+
+def format_hostname(me):
+    dn=me.split(".")
+    if (me.find("wien.funkfeuer.at")>=0 and len(dn)==5):
+        dn=me.split(".")
+        return dn[0]+"<b>"+dn[1]+"</b>.wien.funkfeuer.at"
+    else: return str(me)
 
 def show_html():
     # local hostname
@@ -176,7 +183,7 @@ def show_html():
 
     print """</tbody></table></dd>
                       <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-    print defaultv4ip+" via "+defaultv4dev
+    print defaultv4ip+" ("+format_hostname(socket.getfqdn(defaultv4ip))+") via "+defaultv4dev
     print """</dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
@@ -191,7 +198,7 @@ def show_html():
         if (link[1] == defaultv4ip): print " bgcolor=FFD700"
         host=socket.getfqdn(link[1])
         print "><td>"+link[0]+"</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
-        print "<td><a href=https://"+host+" target=_blank>"+host+"</a></td>" #link-hostname
+        print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
         print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
         print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
         print "<td></td>" #routes
@@ -212,7 +219,7 @@ def show_html():
         if (len(line) == 0): continue
         traceline=line.split()
         print "<tr><td>"+traceline[0]+"</td>", #HOP
-        print "<td>"+traceline[1]+"</td>", #HOST
+        print "<td>"+format_hostname(traceline[1])+"</td>", #HOST
         print "<td>"+traceline[2].strip("()")+"</td>", #IP
         print "<td>"+traceline[3]+"</td>", #PING
         print "</tr>"

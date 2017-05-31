@@ -56,18 +56,18 @@ def show_html():
     # get ubnt-discover
     exec_command="/usr/sbin/ubnt-discover -d150 -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100"
     args = shlex.split(exec_command)
-    data = subprocess.check_output(args)
+    data = subprocess.check_output(args).strip("\n ")
     
     # get default v4 route
     exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3'}"
-    defaultv4ip=subprocess.check_output(exec_command, shell=True)
+    defaultv4ip=subprocess.check_output(exec_command, shell=True).strip("\n ")
     
     # get uptime
-    uptime = subprocess.check_output("uptime")
+    uptime = subprocess.check_output("uptime").strip("\n ")
 
     # get local olsr infos
     import urllib2
-    olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links").read()
+    olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links").read().strip("\n ")
 
     # start to print content
     print("Content-Type: text/html")
@@ -147,16 +147,16 @@ def show_html():
 """
     exec_command="/usr/bin/traceroute -4 -w 1 -q 1 subway.funkfeuer.at"
     args = shlex.split(exec_command)
-    data = subprocess.check_output(args)
+    data = subprocess.check_output(args).strip("\n ")
     lines=data.split('\n')
     for key,line in enumerate(lines):
         if (key == 0): continue
         if (len(line) == 0): continue
         traceline=line.split()
-        print "<tr><td>"+traceline[0]+"<td>", #HOP
-        print "<td>"+traceline[1]+"<td>", #HOST
-        print "<td>"+traceline[2].strip("()")+"<td>", #IP
-        print "<td>"+traceline[3]+"<td>", #PING
+        print "<tr><td>"+traceline[0]+"</td>", #HOP
+        print "<td>"+traceline[1]+"</td>", #HOST
+        print "<td>"+traceline[2].strip("()")+"</td>", #IP
+        print "<td>"+traceline[3]+"</td>", #PING
         print "</tr>"
     
     print """</tbody></table></dd>

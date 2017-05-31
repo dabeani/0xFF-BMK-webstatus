@@ -272,7 +272,7 @@ def show_html():
     #insert olsr-node-layover
     for key,destinationlist in nodelist.items():
         print """<!-- Modal -->
-<div class="modal fade" id="myModal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="myModal"""+key.replace(".","")+"""_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">

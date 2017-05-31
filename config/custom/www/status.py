@@ -118,28 +118,30 @@ def show_html():
     
     # get local olsr infos
     import urllib2
-    olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links", timeout = 1).read().strip("\n ")
+    try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links", timeout = 1).read().strip("\n ")
     except urllib2.URLError as e:
         print type(e)    #not catch
     except socket.timeout as e:
         print type(e)    #catched
-        raise MyException("There was an error: %r" % e)
         
     # get node-db info
-    try: nodedb_raw=urllib2.urlopen("http://ff.cybercomm.at/node_db.json", timeout = 1)
-    except urllib2.URLError:
-        get_nslookup_from_nodedb=0
-    except socket.timeout:
-        get_nslookup_from_nodedb=0
-    
-    if (get_nslookup_from_nodedb==1):
-        node_dns=json.loads(nodedb_raw.read())
+	global get_nslookup_from_nodedb
+	try: nodedb_raw=urllib2.urlopen("http://ff.cybercomm.at/node_db.json", timeout = 1)
+	except urllib2.URLError:
+		get_nslookup_from_nodedb=0
+	except socket.timeout:
+		get_nslookup_from_nodedb=0
+
+	if (str(get_nslookup_from_nodedb)=="1"):
+		node_dns=json.loads(nodedb_raw.read())
+	else: node_dns={}
 
     # get routing table
     exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
     routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
 
     gatewaylist={}
+	nodelist={}
     for route in routinglist:
         line=route.split()
         if (line[1] == 'default'):
@@ -149,6 +151,12 @@ def show_html():
             continue
         try: gatewaylist[line[0]].extend([str(line[1])])
         except KeyError: gatewaylist[line[0]]=[str(line[1])]
+		try: tmp=len(nodelist[line[0]])
+		except KeyError: nodelist[line[0]]=[]
+		try: 
+			n=node_dns[line[1]]['n']
+			if (n not in nodelist[line[0]]): nodelist[line[0]].extend([str(n)])
+		except KeyError: n=""
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
@@ -227,7 +235,7 @@ def show_html():
     print "(<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a>) via "+defaultv4dev
     print """</dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
-    #insert olsr-route-divs here
+    #insert olsr-route-layover
     for key,destinationlist in gatewaylist.items():
         print """<!-- Modal -->
 <div class="modal fade" id="myModal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -241,15 +249,41 @@ def show_html():
       </div>
       <div class="modal-body">"""
         for dest in destinationlist:
-            print dest
+            print dest, 
             try: 
                 n=node_dns[dest]['n']
-                print n
+                print n, 
             except KeyError: n=""
             try: 
                 d=node_dns[dest]['d']
-                print d
+                print d, 
             except KeyError: d=""
+
+            print "<br>"
+
+        print """</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+"""
+    #insert olsr-node-layover
+    for key,destinationlist in nodelist.items():
+        print """<!-- Modal -->
+<div class="modal fade" id="myModal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">"""+str(len(destinationlist))+""" nodes via <b>"""+key+"""</b></h4>
+      </div>
+      <div class="modal-body">"""
+        for dest in destinationlist:
+            print dest, 
             print "<br>"
 
         print """</div>
@@ -276,7 +310,7 @@ def show_html():
         print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
         print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
         print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"\">"+str(len(gatewaylist[link[1]]))+"</button></td>"
-        print "<td></td>" #nodes
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"_nodes\">"+str(len(nodelist[link[1]]))+"</button></td>"
         print "</tr>"
 
     print """</tbody></table></dd>

@@ -1,7 +1,23 @@
 #!/usr/bin/env python
+#version=4.7
+
+#load settings
+interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100'
+get_nslookup_from_nodedb=1
+show_link_to_adminlogin=0
+traceroute_to='subway.funkfeuer.at'
+traceroute6_to='subway.funkfeuer.at'
+for line in open("/config/custom/www/settings.inc"):
+    if (line.find("=")==-1): continue
+    dat=line.split("=")
+    if (line.find("interface_1100_list")>0): interface_list=dat[1].strip(";'\n ")
+    if (line.find("get_nslookup_from_nodedb")>0): get_nslookup_from_nodedb=dat[1].strip(";'\n ")
+    if (line.find("show_link_to_adminlogin")>0): show_link_to_adminlogin=dat[1].strip(";'\n ")
+    if (line.find("traceroute_to")>0): traceroute_to=dat[1].strip(";'\n ")
+    if (line.find("traceroute6_to")>0): traceroute6_to=dat[1].strip(";'\n ")
 
 import shlex, subprocess
-import json, os
+import json, os, socket
 
 # get http-get variables
 GET={}
@@ -36,7 +52,7 @@ def show_test():
 
 def show_status():
     # get ubnt-discover
-    exec_command="/usr/sbin/ubnt-discover -d150 -V -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100 -j"
+    exec_command="/usr/sbin/ubnt-discover -d150 -V -i "+interface_list+" -j"
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
 
@@ -55,32 +71,39 @@ def show_status():
 def parse_firmware(me):
     fw=me.split(".")
     out=str(fw[2])
-    for f in range(3,5):
-        out=out+"."+str(fw[f])
-        #continue until length>=5 and not alpha,beta,rc
-        #stop when fw[x] is out of list-index!
+    for f in range(3,len(fw)-1):
+        c=str(fw[f])
+        out=out+"."+c
+        if (f>5 and len(c)>4 and c.find('alpha')==-1 and c.find('beta')==-1 and c.find('rc')==-1): break
     
     return out
 
 def format_wmode(me):
-    if (me == -1): return "CABLE"
     if (me ==  3): return "AP"
     if (me ==  2): return "STA"
+    if (me == -1): return "CABLE"
     return str(me)
 
 def format_duration(me):
     return str(me)
 
 def show_html():
+    # local hostname
+    hostname=socket.gethostname()
+
+    # host,aliaslist,ipaddrlist=socket.gethostbyattr('78.41.113.155')
+    # host=socket.getfqdn('78.41.113.155')
+
+
     # get ubnt-discover
-    exec_command="/usr/sbin/ubnt-discover -d150 -V -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100 -j"
+    exec_command="/usr/sbin/ubnt-discover -d150 -V -i "+interface_list+" -j"
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
     #need sorting by IP last octet: 100..255, 1...99
     
     # get default v4 route
-    exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3'}"
-    defaultv4ip=subprocess.check_output(exec_command, shell=True).strip("\n ")
+    exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3\" \"$5'}"
+    defaultv4ip,defaultv4dev=subprocess.check_output(exec_command, shell=True).strip("\n ").split()
     #missing interface name, it's just the IP
     
     # get uptime
@@ -153,7 +176,7 @@ def show_html():
 
     print """</tbody></table></dd>
                       <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-    print defaultv4ip
+    print defaultv4ip+" via "+defaultv4dev
     print """</dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
@@ -166,8 +189,9 @@ def show_html():
         link=line.split()
         print "<tr"
         if (link[1] == defaultv4ip): print " bgcolor=FFD700"
+        host=socket.getfqdn(link[1])
         print "><td>"+link[0]+"</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
-        print "<td><a href=https://"+" target=_blank>"+"</a> "+"</td>" #link-hostname
+        print "<td><a href=https://"+host+" target=_blank>"+host+"</a></td>" #link-hostname
         print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
         print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
         print "<td></td>" #routes

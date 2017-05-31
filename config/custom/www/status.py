@@ -76,10 +76,12 @@ def show_html():
     exec_command="/usr/sbin/ubnt-discover -d150 -V -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100 -j"
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
+    #need sorting by IP last octet: 100..255, 1...99
     
     # get default v4 route
     exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3'}"
     defaultv4ip=subprocess.check_output(exec_command, shell=True).strip("\n ")
+    #missing interface name, it's just the IP
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
@@ -143,10 +145,10 @@ def show_html():
         print "<td>"+device['ipv4']+"</td>"
         print "<td>"+device['hostname']+"</td>"
         print "<td>"+device['product']+"</td>"
-        print "<td>"+format_duration(device['uptime'])+"</td>" #needs formating
-        print "<td>"+str(device['wmode'])+"</td>"  #needs conversion
+        print "<td>"+format_duration(device['uptime'])+"</td>"
+        print "<td>"+format_wmode(device['wmode'])+"</td>"
         print "<td>"+device['essid']+"</td>"
-        print "<td>"+parse_firmware(device['fwversion'])+"</td>"   #need extraction of version
+        print "<td>"+parse_firmware(device['fwversion'])+"</td>"
         print "</tr>"
 
     print """</tbody></table></dd>

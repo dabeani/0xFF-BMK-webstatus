@@ -54,9 +54,9 @@ def show_status():
 
 def show_html():
     # get ubnt-discover
-    exec_command="/usr/sbin/ubnt-discover -d150 -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100"
+    exec_command="/usr/sbin/ubnt-discover -d150 -V -i br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100 -j"
     args = shlex.split(exec_command)
-    data = subprocess.check_output(args).strip("\n ")
+    data = json.loads(subprocess.check_output(args))
     
     # get default v4 route
     exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3'}"
@@ -115,12 +115,18 @@ def show_html():
                       <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
     print uptime
     print """</dd>
-                      <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd><pre>"""
-    print data
-    #print """</pre></dd>                      <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd><pre>"""
-    #print defaultv4ip
-    
-    print """</pre></dd>
+                      <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
+                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>
+                        <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead><tbody>"""
+    for key,device in enumerate(data['devices']):
+        print "<tr>"
+        print "<td>"+device['hwaddr']+"</td>"
+        print "</tr>"
+
+    print """</tbody></table></dd>
+                      <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
+    print defaultv4ip
+    print """</dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
                         <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>

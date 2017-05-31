@@ -117,19 +117,19 @@ def show_html():
     #need sorting by IP last octet: 100..255, 1...99
     
     # get routing table
-exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
-routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+    exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
+    routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
 
-gatewaylist={}
-for route in routinglist:
-    line=route.split()
-    if (line[1] == 'default'):
-        defaultv4ip=line[0]
-        defaultv4dev=line[2]
-        defaultv4host=socket.getfqdn(defaultv4ip)
-        continue
-    try: gatewaylist[line[0]].extend([str(line[1])])
-    except KeyError: gatewaylist[line[0]]=[str(line[1])]
+    gatewaylist={}
+    for route in routinglist:
+        line=route.split()
+        if (line[1] == 'default'):
+            defaultv4ip=line[0]
+            defaultv4dev=line[2]
+            defaultv4host=socket.getfqdn(defaultv4ip)
+            continue
+        try: gatewaylist[line[0]].extend([str(line[1])])
+        except KeyError: gatewaylist[line[0]]=[str(line[1])]
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
@@ -225,8 +225,9 @@ for route in routinglist:
         <h4 class="modal-title" id="myModalLabel">"""+len(destinationlist)+""" routes via <b>"""+key+"""</b></h4>
       </div>
       <div class="modal-body">"""
-            for dest in destinationlist:
-                print dest+"<br>"
+        for dest in destinationlist:
+            print dest+"<br>"
+
         print """</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

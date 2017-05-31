@@ -117,19 +117,19 @@ def show_html():
     #need sorting by IP last octet: 100..255, 1...99
     
     # get routing table
-    exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
-    routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
+routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
 
-    gatewaylist={}
-    for route in routinglist:
-        line=route.split()
-        if (line[1] == 'default'):
-            defaultv4ip=line[0]
-            defaultv4dev=line[2]
-            defaultv4host=socket.getfqdn(defaultv4ip)
-            continue
-        try: gatewaylist[line[0]].extend([str(line[1])])
-        except KeyError: gatewaylist[line[0]]=[str(line[1])]
+gatewaylist={}
+for route in routinglist:
+    line=route.split()
+    if (line[1] == 'default'):
+        defaultv4ip=line[0]
+        defaultv4dev=line[2]
+        defaultv4host=socket.getfqdn(defaultv4ip)
+        continue
+    try: gatewaylist[line[0]].extend([str(line[1])])
+    except KeyError: gatewaylist[line[0]]=[str(line[1])]
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
@@ -213,7 +213,7 @@ def show_html():
     print """</dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
     #insert olsr-route-divs here
-    for key,destinationlist in enumerate(gatewaylist):
+    for key,destinationlist in gatewaylist.items():
         print """<!-- Modal -->
 <div class="modal fade" id="myModal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -222,10 +222,12 @@ def show_html():
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
-        <h4 class="modal-title" id="myModalLabel">"""+key+""" from <b> $neighbor </b></h4>
+        <h4 class="modal-title" id="myModalLabel">"""+len(destinationlist)+""" routes via <b>"""+key+"""</b></h4>
       </div>
-      <div class="modal-body">"""+destinationlist+"""
-      </div>
+      <div class="modal-body">"""
+            for dest in destinationlist:
+                print dest+"<br>"
+        print """</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>

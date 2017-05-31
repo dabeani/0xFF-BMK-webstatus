@@ -116,6 +116,25 @@ def show_html():
     data = json.loads(subprocess.check_output(args))
     #need sorting by IP last octet: 100..255, 1...99
     
+    # get local olsr infos
+    import urllib2
+    olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links", timeout = 1).read().strip("\n ")
+    except urllib2.URLError as e:
+        print type(e)    #not catch
+    except socket.timeout as e:
+        print type(e)    #catched
+        raise MyException("There was an error: %r" % e)
+        
+    # get node-db info
+    try: nodedb_raw=urllib2.urlopen("http://ff.cybercomm.at/node_db.json", timeout = 1)
+    except urllib2.URLError:
+        get_nslookup_from_nodedb=0
+    except socket.timeout:
+        get_nslookup_from_nodedb=0
+    
+    if (get_nslookup_from_nodedb==1):
+        node_dns=json.loads(nodedb_raw.read())
+
     # get routing table
     exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
     routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
@@ -133,10 +152,6 @@ def show_html():
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
-
-    # get local olsr infos
-    import urllib2
-    olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links").read().strip("\n ")
 
     # start to print content
     print("Content-Type: text/html")
@@ -226,7 +241,16 @@ def show_html():
       </div>
       <div class="modal-body">"""
         for dest in destinationlist:
-            print dest+"<br>"
+            print dest
+            try: 
+                n=node_dns[dest]['n']
+                print n
+            except KeyError: n=""
+            try: 
+                d=node_dns[dest]['d']
+                print d
+            except KeyError: d=""
+            print "<br>"
 
         print """</div>
       <div class="modal-footer">

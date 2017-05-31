@@ -121,6 +121,13 @@ def show_html():
     for key,device in enumerate(data['devices']):
         print "<tr>"
         print "<td>"+device['hwaddr']+"</td>"
+        print "<td>"+device['ipv4']+"</td>";
+        print "<td>"+device['hostname']+"</td>";
+        print "<td>"+device['product']+"</td>";
+        print "<td>"+device['uptime']+"</td>";
+        print "<td>"+device['wmode']+"</td>";
+        print "<td>"+device['essid']+"</td>";
+        print "<td>"+device['fwversion']+"</td>";
         print "</tr>"
 
     print """</tbody></table></dd>

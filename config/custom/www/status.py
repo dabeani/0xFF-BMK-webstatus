@@ -116,10 +116,20 @@ def show_html():
     data = json.loads(subprocess.check_output(args))
     #need sorting by IP last octet: 100..255, 1...99
     
-    # get default v4 route
-    exec_command="ip -4 r | grep default | head -n 1 | awk {'print $3\" \"$5'}"
-    defaultv4ip,defaultv4dev=subprocess.check_output(exec_command, shell=True).strip("\n ").split()
-    defaultv4host=socket.getfqdn(defaultv4ip)
+    # get routing table
+    exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
+    routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+
+    gatewaylist={}
+    for route in routinglist:
+        line=route.split()
+        if (line[1] == 'default'):
+            defaultv4ip=line[0]
+            defaultv4dev=line[2]
+            defaultv4host=socket.getfqdn(defaultv4ip)
+            continue
+        try: gatewaylist[line[0]].extend([str(line[1])])
+        except KeyError: gatewaylist[line[0]]=[str(line[1])]
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
@@ -198,8 +208,8 @@ def show_html():
 
     print """</tbody></table></dd>
                       <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-    print "<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a> "
-    print "(<a href=\"https://"+defaultv4host+"\" target=_blank>"+format_hostname(defaultv4host)+"</a>) via "+defaultv4dev
+    print "<a href=\"https://"+defaultv4host+"\" target=_blank>"+format_hostname(defaultv4host)+"</a> "
+    print "(<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a>) via "+defaultv4dev
     print """</dd>
                       <dt>IPv4 OLSR-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
@@ -217,7 +227,7 @@ def show_html():
         print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
         print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
         print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
-        print "<td></td>" #routes
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[0].replace(".","")+"\">"+str(len(gatewaylist[link[0]]))+"</button></td>"
         print "<td></td>" #nodes
         print "</tr>"
 

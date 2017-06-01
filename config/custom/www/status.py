@@ -61,6 +61,7 @@ def show_status():
     # merge it to data array
     data["wizards"]=versions["wizards"]
     data["local_ips"]=versions["local_ips"]
+    data["autoupdate"]=versions["autoupdate"]
 
     # return json output
     print("Content-Type: text/json")

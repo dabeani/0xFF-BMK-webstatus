@@ -11,7 +11,7 @@
 
 #get wizard versions
 for i in $(ls /config/wizard/feature/*/wizard-run 2>/dev/null); do
-    vers=$(head -n 10 $i | grep -ioE -m 1 'version.*' | awk -F' ' '{print $2;}')
+    vers=$(head -n 10 $i | grep -ioE -m 1 'version.*' | awk -F' ' '{print $2;}' | tr -d "[]() ")
     [ $(head -n 10 $i | grep -l 'OLSRd_V1' | wc -l) == 1 ] && olsrv1=$vers && continue
     [ $(head -n 10 $i | grep -l 'OLSRd_V2' | wc -l) == 1 ] && olsrv2=$vers && continue
     [ $(head -n 10 $i | grep -l '0xFF-BMK-Webstatus-LetsEncrypt' | wc -l) == 1 ] && wsle=$vers && continue

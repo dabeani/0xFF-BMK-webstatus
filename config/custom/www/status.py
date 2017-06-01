@@ -97,6 +97,12 @@ def format_hostname(me):
         return dn[0]+".<b>"+dn[1]+"</b>.wien.funkfeuer.at"
     else: return str(me)
 
+def ip4_to_integer(s):
+    #transform IP to interger
+    i=s['ipv4'].split(".")
+    l=i[0].rjust(3,'0')+i[1].rjust(3,'0')+i[2].rjust(3,'0')+i[3].rjust(3,'0')
+    return int(l)
+
 def show_html():
     # local hostname
     try: 
@@ -217,7 +223,7 @@ def show_html():
                       <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>
                         <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead><tbody>"""
-    for key,device in enumerate(data['devices']):
+    for key,device in enumerate(sorted(data['devices'], key=ip4_to_integer)):
         print "<tr>"
         print "<td>"+device['hwaddr']+"</td>"
         print "<td>"+device['ipv4']+"</td>"

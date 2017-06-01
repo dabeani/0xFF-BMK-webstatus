@@ -1,15 +1,32 @@
 #!/bin/bash
 # put version info to getter to support status.py
 
-olsrv1=$([ $(grep -l 'OLSRd_V1'  /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n 10 $(grep -l 'OLSRd_V1'  /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed')
-olsrv2=$([ $(grep -l 'OLSRd_V2'  /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n 10 $(grep -l 'OLSRd_V2'  /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed')
-wsle=$([ $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run | wc -l) == 1 ] && head -n  8 $(grep -l '0xFF-WSLE' /config/wizard/feature/*/wizard-run) | grep -ioE -m 1 'version.*' | awk -F' ' {'print $2;'} || echo 'not installed')
+#get autoupdate-settings
+[ -L /etc/cron.daily/autoupdatewizards ] && auon="yes" || auon="no"
+[ $(grep "wizard-autoupdate=yes" /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aa="on"    || aa="off"
+[ $(grep "wizard-olsrd_v1=yes"   /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aa1="on"   || aa1="off"
+[ $(grep "wizard-olsrd_v2=yes"   /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aa2="on"   || aa2="off"
+[ $(grep "wizard-0xffwsle=yes"   /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aale="on"  || aale="off"
+[ $(grep "wizard-ebtables=yes"   /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aaebt="on" || aaebt="off"
+
+#get wizard versions
+for i in $(ls /config/wizard/feature/*/wizard-run 2>/dev/null); do
+    vers=$(head -n 10 $i | grep -ioE -m 1 'version.*' | awk -F' ' '{print $2;}')
+    [ $(head -n 10 $i | grep -l 'OLSRd_V1' | wc -l) == 1 ] && olsrv1=$vers && continue
+    [ $(head -n 10 $i | grep -l 'OLSRd_V2' | wc -l) == 1 ] && olsrv2=$vers && continue
+    [ $(head -n 10 $i | grep -l '0xFF-BMK-Webstatus-LetsEncrypt' | wc -l) == 1 ] && wsle=$vers && continue
+    [ $(head -n 10 $i | grep -l 'ER-wizard-ebtables' | wc -l) == 1 ] && ebtables=$vers && continue
+    [ $(head -n 10 $i | grep -l 'ER-wizard-AutoUpdate' | wc -l) == 1 ] && autoupdate=$vers && continue
+done
+[ ! "$olsrv1" ] && olsrv1="n/a" && aa1="n/a"
+[ ! "$olsrv2" ] && olsrv2="n/a" && aa2="n/a"
+[ ! "$wsle" ] && wsle="n/a" && aale="n/a"
+[ ! "$autoupdate" ] && autoupdate="n/a" && aa="n/a"
+[ ! "$ebtables" ] && ebtables="n/a" && aaebt="n/a"
 bmkwebstatus=$(head -n 12 /config/custom/www/cgi-bin-status*.php 2>/dev/null | grep version= | cut -d'"' -f2 | head -n 1)
-[ ! "$olsrv1" ] && olsrv1="n/a"
-[ ! "$olsrv2" ] && olsrv2="n/a"
-[ ! "$wsle" ] && wsle="n/a"
 [ ! "$bmkwebstatus" ] && bmkwebstatus="n/a"
 
+#get local ips
 v4=$(ip -4 addr show $(awk -F= '/MESH_IF=/ { print $2 }' /config/user-data/olsrd.default | tr -d \") | grep inet | awk {'print $2'} | awk -F/ {'print $1'})
 orig=$(if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'} | wc -l) == "1" ]; then curl -s --connect-timeout 1 http://127.0.0.1:8000/telnet/olsrv2info%20originator 2>/dev/null | grep : | head -n 1; else echo "n/a"; fi)
 [ ! "$orig" ] && orig="n/a"
@@ -17,7 +34,10 @@ orig=$(if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'} | wc -l
 v6=$(ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} | grep -iv $orig)
 [ ! "$v6" ] && v6="n/a"
 
-echo -n '{"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle'","bmk-webstatus":"'$bmkwebstatus'"},'
-echo    '"local_ips":{"ipv4":"'$v4'","ipv6":"'$v6'","originator":"'$orig'"}}'
+echo -n '{'
+echo -n '"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle'","bmk-webstatus":"'$bmkwebstatus'","ebtables":"'$ebtables'"},'
+echo -n '"local_ips":{"ipv4":"'$v4'","ipv6":"'$v6'","originator":"'$orig'"},'
+echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$aa'","olsrv1":"'$aa1'","olsrv2":"'$aa2'","0xffwsle":"'$aale'","ebtables":"'$aaebt'"}'
+echo    '}'
 
 exit 0

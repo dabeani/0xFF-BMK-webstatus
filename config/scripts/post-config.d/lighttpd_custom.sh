@@ -26,6 +26,7 @@ if [ ! -d /var/run/php5 ] && [ "$(grep -ni conf-enabled/15-fastcgi-php.conf /con
     linenumber=$(grep -ni "conf-enabled/15-fastcgi-php.conf" /config/custom/lighttpd/lighttpd_custom.conf | awk -F: {'print $1'})
     sed -i $linenumber'd' /config/custom/lighttpd/lighttpd_custom.conf
     #rm /config/custom/lighttpd/conf-enabled/15-fastcgi-php.conf
+    mv /config/custom/www/cgi-bin-status.php /config/custom/www/cgi-bin-status-dead.php 2>/dev/null
 fi
 
 # re-establish current certificate file, only of domain.key is not of zero file-size

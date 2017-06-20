@@ -318,12 +318,12 @@ def show_html():
         print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
         try: 
             g=gatewaylist[link[1]]
-            str(len(g))
+            g=str(len(g))
         except KeyError: g="0"
         print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"\">"+g+"</button></td>"
         try: 
             l=nodelist[link[1]]
-            str(len(l))
+            l=str(len(l))
         except KeyError: l="0"
         print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"_nodes\">"+l+"</button></td>"
         print "</tr>"

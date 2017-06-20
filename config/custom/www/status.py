@@ -316,8 +316,16 @@ def show_html():
         print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
         print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
         print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"\">"+str(len(gatewaylist[link[1]]))+"</button></td>"
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"_nodes\">"+str(len(nodelist[link[1]]))+"</button></td>"
+        try: 
+            g=gatewaylist[link[1]]
+            str(len(g))
+        except KeyError: g="0"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"\">"+g+"</button></td>"
+        try: 
+            l=nodelist[link[1]]
+            str(len(l))
+        except KeyError: l="0"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#myModal"+link[1].replace(".","")+"_nodes\">"+l+"</button></td>"
         print "</tr>"
 
     print """</tbody></table></dd>

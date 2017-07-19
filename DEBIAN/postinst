@@ -228,8 +228,12 @@ fi
 if [ ! -f /config/letsencrypt/id_rsa ] && [ ! -f /config/letsencrypt/id_rsa.pub ]; then
   echo "preparnig ssh keys"
   ssh-keygen -C "$(hostname)" -f /config/letsencrypt/id_rsa -N ""
-  chown ubnt:users /config/letsencrypt/id_rsa
-  chown ubnt:users /config/letsencrypt/id_rsa.pub
+  if   [ -d /home/ubnt ]; then user=ubnt
+  elif [ -d /home/funkfeuer ]; then user=funkfeuer
+  else user=$(ls -1 /home | head -n 1)
+  fi
+  chown $user:users /config/letsencrypt/id_rsa
+  chown $user:users /config/letsencrypt/id_rsa.pub
 fi 
 
 echo "postinst installation finished"

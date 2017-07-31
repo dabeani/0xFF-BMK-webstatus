@@ -2,8 +2,8 @@ Package: 0xFF-BMK-webstatus
 Version: 4.7
 Section: base
 Priority: optional
-Multi-Arch: same
-Architecture: mipsel mips
+Multi-Arch: foreign
+Architecture: mipsel,mips
 Maintainer: Bernhard Marker <bernhard@cybercomm.at>
 Description: EDGERouter Webserver Erweiterung mit LetsEncrypt-Skript, damit OLSR-Status, Uptime,... dargestellt wird.      
  Es muessen zwingend der EdgeOS WebserverPorts von 80 und 443 abgeaendert werden. (z.b 81 und 8443)

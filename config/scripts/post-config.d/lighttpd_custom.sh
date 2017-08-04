@@ -20,6 +20,11 @@ if [ ! -L "/etc/cron.daily/restartservers.sh" ] && [ -f /config/letsencrypt/rest
     ln -sf /config/letsencrypt/restartservers.sh /etc/cron.daily/restartservers.sh
 fi
 
+# re-establish hourly AirOS fetching
+if [ ! -L "/etc/cron.hourly/loopairos" ] && [ -f /config/custom/loopairos.sh ]; then
+    ln -sf /config/custom/loopairos.sh /etc/cron.hourly/loopairos
+fi
+
 # 1.9.7aplha3 and later has no preinstalled php5 - remove php-setup from config
 # this logic supports only oneway php->python, will not reestablish php-setup later on!
 if [ ! -d /var/run/php5 ] && [ "$(grep -ni conf-enabled/15-fastcgi-php.conf /config/custom/lighttpd/lighttpd_custom.conf | wc -l)" == "1" ]; then

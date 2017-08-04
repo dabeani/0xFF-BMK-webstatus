@@ -1,6 +1,10 @@
 #!/bin/bash
 # put version info to getter to support status.py
 
+# start background job to retrieve status and connections from AirOS-Antennas (if the routers SSH-key was deployed)
+# fetching might take several seconds, so the result from the current job will be available on next run
+cd /tmp; rm /tmp/nohup.out; nohup /config/custom/loopairos.sh &
+
 #get autoupdate-settings
 [ -L /etc/cron.daily/autoupdatewizards ] && auon="yes" || auon="no"
 [ $(grep "wizard-autoupdate=yes" /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aa="on"    || aa="off"

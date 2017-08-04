@@ -20,7 +20,7 @@ for IP in $(echo "${ANTENNEN[@]}" | awk {'print $3'}); do
     sed -i 's/},"connections":/,"connections":/' /tmp/$IP.tmp
     jq -M -r '.host.devmodel' /tmp/$IP.tmp
     mv /tmp/$IP.tmp /tmp/$IP.json
-  elif
+  else
     echo "error: something went wrong"
   fi
   echo ""

@@ -35,6 +35,11 @@ fi
 chmod 755 /config/letsencrypt/restartservers.sh
 chmod 755 /etc/cron.daily/restartservers
 
+# re-establish hourly AirOS fetching
+if [ ! -L "/etc/cron.hourly/loopairos" ] && [ -f /config/custom/loopairos.sh ]; then
+    ln -sf /config/custom/loopairos.sh /etc/cron.hourly/loopairos
+fi
+
 # establish config from default, if missing - avoid killing a custom setting
 if [ -f "/tmp/settings.inc" ]; then
         cp /tmp/settings.inc /config/custom/www/settings.inc

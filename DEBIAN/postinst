@@ -142,6 +142,8 @@ chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/custom/bin/ip2dns
 chmod 755 /config/custom/www/status.py
 chmod 755 /config/custom/versions.sh
+chmod 755 /config/custom/loopairos.sh
+chmod 755 /config/custom/getairos.sh
 # fix erlachp permission issue with user "funkfeuer"
 chmod 777 /config/custom/www/.well-known/acme-challenge
 

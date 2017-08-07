@@ -264,18 +264,18 @@ def show_html():
                 center1=airos[device['ipv4']]['wireless']['center1_freq']
                 freq_start=center1-(chanbw/2)
                 freq_end=center1+(chanbw/2)
-                
+            
             except: 
                 opmode=airos[device['ipv4']]['wireless']['opmode']
                 chwidth=airos[device['ipv4']]['wireless']['chwidth']
                 opmode=opmode.lower()
-                freq_start=frequency-(chwidth/2)
-                freq_end=frequency+(chwidth/2)
+                freq_start=frequency-(chanbw/2)
+                freq_end=frequency+(chanbw/2)
                 if (opmode.find('plus') >0) : 
-                    freq_end=freq_end+(chanbw/2)
-
+                    freq_end=freq_end+(chwidth/2)
+                
                 if (opmode.find('minus') >0): 
-                    freq_start=freq_start-(chanbw/2)
+                    freq_start=freq_start-(chwidth/2)
             
             if (stationcount=="1"):
                 try:
@@ -285,7 +285,7 @@ def show_html():
             else:
                 stationtext=str(stationcount)+" Stations"
             
-            wirelessdata=stationtext+"@"+str(freq_start)+"-"+str(freq_end)+"("+str(chanbw)+")"
+            wirelessdata=str(freq_start)+"-"+str(freq_end)+"("+str(chanbw)+"): "+stationtext
             
         except: 
             wirelessdata=""

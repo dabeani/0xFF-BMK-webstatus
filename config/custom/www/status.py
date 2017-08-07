@@ -254,40 +254,40 @@ def show_html():
     for key,device in enumerate(sorted(data['devices'], key=ip4_to_integer)):
         try:    
             stationcount=str(airos[device['ipv4']]['wireless']['count'])
-            frequency=airos[device['ipv4']]['wireless']['frequency']
-            frequency.replace("MHz","")
-            frequency.strip(" ")
+            frequency=str(airos[device['ipv4']]['wireless']['frequency'])
+            frequency=frequency.replace("MHz","")
+            frequency=frequency.strip(" ")
             frequency=int(frequency)
             chanbw=airos[device['ipv4']]['wireless']['chanbw']
             try:    
                 center1=airos[device['ipv4']]['wireless']['center1_freq']
-                plusminus=""
-                if (center1>frequency): 
-                    plusminus="upper"
-                if (center1<=frequency): 
-                    plusminus="lower"
                 freq_start=center1-(chanbw/2)
                 freq_end=center1+(chanbw/2)
                 
             except: 
                 opmode=airos[device['ipv4']]['wireless']['opmode']
+                chwidth=airos[device['ipv4']]['wireless']['chwidth']
                 opmode=opmode.lower()
-                plusminus=""
-                freq_start=frequency-(chanbw/2)
-                freq_end=frequency+(chanbw/2)
+                freq_start=frequency-(chwidth/2)
+                freq_end=frequency+(chwidth/2)
                 if (opmode.find('plus') >0) : 
-                    plusminus="upper"
-                    freq_end=freq_end+chanbw
+                    freq_end=freq_end+(chanbw/2)
+
                 if (opmode.find('minus') >0): 
-                    plusminus="lower"
-                    freq_start=freq_start-chanbw
+                    freq_start=freq_start-(chanbw/2)
+            
+            if (stationcount=="1"):
+                try:
+                    stationtext=airos[device['ipv4']]['connections'][0]['remote']['hostname']
+                except:
+                    stationtext=str(stationcount)+" Station"
+            else:
+                stationtext=str(stationcount)+" Stations"
+            
+            wirelessdata=stationtext+"@"+str(freq_start)+"-"+str(freq_end)+"("+str(chanbw)+")"
             
         except: 
-            stationcount="?"
-            frequency="?"
-            plusminus="?"
-            freq_start="?"
-            freq_end="?"
+            wirelessdata="unkown"
         
         print "<tr>"
         print "<td>"+device['hwaddr']+"</td>"
@@ -298,7 +298,7 @@ def show_html():
         print "<td>"+format_wmode(device['wmode'])+"</td>"
         print "<td>"+device['essid']+"</td>"
         print "<td>"+parse_firmware(device['fwversion'])+"</td>"
-        print "<td>"+stationcount+"@"+freq_start+"-"+freq_start+"("+chanbw+")</td>"
+        print "<td>"+wirelessdata+"</td>"
         print "</tr>"
 
     print """</tbody></table></dd>

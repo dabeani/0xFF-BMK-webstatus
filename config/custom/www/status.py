@@ -249,7 +249,8 @@ def show_html():
     print uptime
     print """</dd>
                       <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
-                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>
+                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top>
+                        <!--td><b>HW Address</b></td--><td><b>Local IP</b></td><td><b>Hostname</b></td>
                         <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td><td><b>Wireless</b></td></tr></thead><tbody>"""
     for key,device in enumerate(sorted(data['devices'], key=ip4_to_integer)):
         try:    
@@ -287,10 +288,10 @@ def show_html():
             wirelessdata=stationtext+"@"+str(freq_start)+"-"+str(freq_end)+"("+str(chanbw)+")"
             
         except: 
-            wirelessdata="unkown"
+            wirelessdata=""
         
         print "<tr>"
-        print "<td>"+device['hwaddr']+"</td>"
+        print "<!--td>"+device['hwaddr']+"</td-->"
         print "<td>"+device['ipv4']+"</td>"
         print "<td>"+device['hostname']+"</td>"
         print "<td>"+device['product']+"</td>"

@@ -280,26 +280,31 @@ def show_html():
             if (stationcount=="1"):
                 try:
                     stationtext=airos[device['ipv4']]['connections'][0]['remote']['hostname']
+                    tx=str(int(airos[device['ipv4']]['connections'][0]['tx']))
+                    rx=str(int(airos[device['ipv4']]['connections'][0]['rx']))
+                    signal=str(airos[device['ipv4']]['connections'][0]['signal'])
+                    stationtext=stationtext+ ": "+tx+"/"+rx+" ("+signal+")"
                 except:
-                    stationtext=str(stationcount)+" Station"
+                    stationtext=""
             else:
                 stationtext=str(stationcount)+" Stations"
             
-            wirelessdata=str(freq_start)+"-"+str(freq_end)+"("+str(chanbw)+"): "+stationtext
+            wirelessdata=str(freq_start)+"-"+str(freq_end)+" ("+str(chanbw)+")<br>"+stationtext
             
         except: 
             wirelessdata=""
         
         print "<tr>"
-        print "<!--td>"+device['hwaddr']+"</td-->"
-        print "<td>"+device['ipv4']+"</td>"
+        #print "<!--td>"+device['hwaddr']+"</td-->"
+        #print "<td title=\""+device['hwaddr']+"\">"+device['ipv4']+"</td>"
+        print "<td style=\"font-size:60%\">"+device['ipv4']+"<br>"+device['hwaddr']+"</td>"
         print "<td>"+device['hostname']+"</td>"
         print "<td>"+device['product']+"</td>"
         print "<td>"+format_duration(device['uptime'])+"</td>"
         print "<td>"+format_wmode(device['wmode'])+"</td>"
         print "<td>"+device['essid']+"</td>"
         print "<td>"+parse_firmware(device['fwversion'])+"</td>"
-        print "<td>"+wirelessdata+"</td>"
+        print "<td style=\"font-size:60%\">"+wirelessdata+"</td>"
         print "</tr>"
 
     print """</tbody></table></dd>

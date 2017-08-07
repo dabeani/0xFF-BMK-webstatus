@@ -50,6 +50,18 @@ def show_test():
         print traceline[2].strip("()") #IP
         print traceline[3],"ms" #PING
 
+def show_airos():
+    # return output
+    print("Content-Type: text/json")
+    print("X-Powered-By: cpo/bmk-v4.7")
+    print         # blank line, end of headers
+    try: 
+        f = open('/tmp/10-all.json', 'r')
+        print f.read()
+        f.close()
+    except IOError: 
+        print '{"return":"IOError"}'
+
 def show_status():
     # get ubnt-discover
     exec_command="/usr/sbin/ubnt-discover -d150 -V -i "+interface_list+" -j"
@@ -376,6 +388,8 @@ def show_html():
 
 if (GET.get('get') == "status"):
     show_status()
+elif (GET.get('get') == "airos"):
+    show_airos()
 elif (GET.get('get') == "test"):
     show_test()
 else:

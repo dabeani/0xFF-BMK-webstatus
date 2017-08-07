@@ -11,10 +11,8 @@ echo "${ANTENNEN[@]}" >>$LOG
 
 for IP in $(echo "${ANTENNEN[@]}" | awk {'print $3'}); do
   echo "Fetching status from "$IP"..." >>$LOG
-  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "PasswordAuthentication=no" -p $PORT $USER@$IP 'sh' </config/custom/getairos.sh 2>>$LOG >/tmp/$IP.tmp
+  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "PasswordAuthentication=no" -o "LogLevel=error" -p $PORT $USER@$IP 'sh' </config/custom/getairos.sh 2>>$LOG >/tmp/$IP.tmp
   result=$?
-  echo "Closing connection   "$IP"..." >>$LOG
-  echo "Result-Code: "$result >>$LOG
   if [ $result -eq 0 ] && [ -s /tmp/$IP.tmp ]; then
     dos2unix /tmp/$IP.tmp
     sed -i 's/Content-Type: application\/json//g' /tmp/$IP.tmp
@@ -23,7 +21,22 @@ for IP in $(echo "${ANTENNEN[@]}" | awk {'print $3'}); do
     jq -M -r '.host.devmodel' /tmp/$IP.tmp >>$LOG 2>>$LOG
     mv /tmp/$IP.tmp /tmp/$IP.json 2>>$LOG
   else
-    echo "error: something went wrong" >>$LOG
+    echo "error "$result": something went wrong" >>$LOG
   fi
-  echo "" >>$LOG
 done
+
+## combine all antennas to a single json array
+LIST=$(find /tmp/10.*.json)
+t=$(echo "$LIST" | wc -l)
+echo -n "{" >/tmp/10-all.json
+for i in $LIST; do
+  t=$(($t-1))
+  IP=$(basename $i .json)
+  echo '"'$IP'":' >>/tmp/10-all.json
+  cat $i >>/tmp/10-all.json 2>>$LOG
+  [ $t -eq 0 ] || echo -n "," >>/tmp/10-all.json
+done
+echo '}' >>/tmp/10-all.json
+
+## validate
+jq '.' /tmp/10-all.json >/dev/null 2>>$LOG

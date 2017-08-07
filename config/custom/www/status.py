@@ -57,10 +57,17 @@ def show_airos():
     print         # blank line, end of headers
     try: 
         f = open('/tmp/10-all.json', 'r')
-        print f.read()
+        data = json.loads(f.read())
+        print json.dumps(data)
         f.close()
-    except IOError: 
-        print '{"return":"IOError"}'
+    except IOError as (errno, strerror):
+        string= "I/O error({0}): {1}".format(errno, strerror)
+        print '{"return":"'+string+'"}'
+    except ValueError:
+        print '{"return":"ValueError"}'
+    except:
+        string="Unexpected error:", sys.exc_info()[0]
+        print '{"return":"'+string+'"}'
 
 def show_status():
     # get ubnt-discover
@@ -180,6 +187,14 @@ def show_html():
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
 
+    # get AirOS-Data
+    try: 
+        f=open('/tmp/10-all.json', 'r')
+        airos=json.loads(f.read())
+        f.close()
+    except:
+        airos={}
+
     # start to print content
     print("Content-Type: text/html")
     print("X-Powered-By: cpo/bmk-v4.7")
@@ -235,8 +250,45 @@ def show_html():
     print """</dd>
                       <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>
-                        <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead><tbody>"""
+                        <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td><td><b>Wireless</b></td></tr></thead><tbody>"""
     for key,device in enumerate(sorted(data['devices'], key=ip4_to_integer)):
+        try:    
+            stationcount=str(airos[device['ipv4']]['wireless']['count'])
+            frequency=airos[device['ipv4']]['wireless']['frequency']
+            frequency.replace("MHz","")
+            frequency.strip(" ")
+            frequency=int(frequency)
+            chanbw=airos[device['ipv4']]['wireless']['chanbw']
+            try:    
+                center1=airos[device['ipv4']]['wireless']['center1_freq']
+                plusminus=""
+                if (center1>frequency): 
+                    plusminus="upper"
+                if (center1<=frequency): 
+                    plusminus="lower"
+                freq_start=center1-(chanbw/2)
+                freq_end=center1+(chanbw/2)
+                
+            except: 
+                opmode=airos[device['ipv4']]['wireless']['opmode']
+                opmode=opmode.lower()
+                plusminus=""
+                freq_start=frequency-(chanbw/2)
+                freq_end=frequency+(chanbw/2)
+                if (opmode.find('plus') >0) : 
+                    plusminus="upper"
+                    freq_end=freq_end+chanbw
+                if (opmode.find('minus') >0): 
+                    plusminus="lower"
+                    freq_start=freq_start-chanbw
+            
+        except: 
+            stationcount="?"
+            frequency="?"
+            plusminus="?"
+            freq_start="?"
+            freq_end="?"
+        
         print "<tr>"
         print "<td>"+device['hwaddr']+"</td>"
         print "<td>"+device['ipv4']+"</td>"
@@ -246,6 +298,7 @@ def show_html():
         print "<td>"+format_wmode(device['wmode'])+"</td>"
         print "<td>"+device['essid']+"</td>"
         print "<td>"+parse_firmware(device['fwversion'])+"</td>"
+        print "<td>"+stationcount+"@"+freq_start+"-"+freq_start+"("+chanbw+")</td>"
         print "</tr>"
 
     print """</tbody></table></dd>

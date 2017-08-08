@@ -7,6 +7,14 @@
 log="/var/log/0xffletsrenew.log"
 echo "Renew procedure started $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
 
+# avoid 2 parallel runs of renewal
+if [ -f $log ] &&
+   [ $(tail -n 1 $log 2>/dev/null | grep "procedure ended" | wc -l) -eq 0 ] &&
+   [ $(find $log -mmin +1 | wc -l) -eq 0 ]; then
+    echo "Renewal running already, exit!" >>$log
+    exit;
+fi
+
 #feature request
 #for renewal, custom lighttps must run on port 80
 #if not, move ports, renew, and switch back to previous ports

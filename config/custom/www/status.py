@@ -186,8 +186,9 @@ def show_html():
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
-
+    
     # get AirOS-Data
+    band_outdoor={"5490":0,"5500":0,"5510":0,"5520":0,"5530":0,"5540":0,"5550":0,"5560":0,"5570":0,"5580":0,"5590":0,"5600":0,"5610":0,"5620":0,"5630":0,"5640":0,"5650":0,"5660":0,"5670":0,"5680":0,"5690":0,"5700":0,"5710":0}
     try: 
         f=open('/tmp/10-all.json', 'r')
         airos=json.loads(f.read())
@@ -239,7 +240,7 @@ def show_html():
                     </div>
                     <div class="panel panel-default">
                         <div class="panel-body"><b>FREI?</b></div>
-                        <div class="panel-footer">FunkFeuer ist offen f&uuml;r jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu &Uuml;berbr&uuml;cken und so Infrastruktur und Wissen zur Verf&uuml;gung zu stellen. Teilnahme Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon &Uuml;berall (ungef&auml;r) empfangen kann (bitte beachte, dass manchmal H&auml;user oder &Auml;hnliches im Weg sind, dann geht's nur &uuml;ber Umwege).</div>
+                        <div class="panel-footer">FunkFeuer ist offen f&uuml;r jeden und jede, der/die Interesse hat und bereit ist mitzuarbeiten. Es soll dabei ein nicht reguliertes Netzwerk entstehen, welches das Potential hat, den digitalen Graben zwischen den sozialen Schichten zu &Uuml;berbr&uuml;cken und so Infrastruktur und Wissen zur Verf&uuml;gung zu stellen. Zur Teilnahme an FunkFeuer braucht man einen WLAN Router (gibt's ab 60 Euro) oder einen PC, das OLSR Programm, eine IP Adresse von FunkFeuer, etwas Geduld und Motivation. Auf unserer Karte ist eingezeichnet, wo man FunkFeuer schon &Uuml;berall (ungef&auml;r) empfangen kann (bitte beachte, dass manchmal H&auml;user oder &Auml;hnliches im Weg sind, dann geht's nur &uuml;ber Umwege).</div>
                     </div>
                 </div>
 <!-- Status TAB -->
@@ -252,6 +253,7 @@ def show_html():
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top>
                         <!--td><b>HW Address</b></td--><td><b>Local IP</b></td><td><b>Hostname</b></td>
                         <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td><td><b>Wireless</b></td></tr></thead><tbody>"""
+    warn_frequency=0
     for key,device in enumerate(sorted(data['devices'], key=ip4_to_integer)):
         try:
             stationcount=str(airos[device['ipv4']]['wireless']['count'])
@@ -287,6 +289,14 @@ def show_html():
                 if (opmode.find('minus') >0): 
                     freq_end=freq_end-((chanbw-chwidth)/2)
                     freq_start=freq_start-((chanbw-chwidth)/2)
+            
+            #add info to frequency-list
+            for mhz,used in band_outdoor.items():
+                # do not mind "head-on-head" channels
+                if (freq_start+1 < int(mhz)  and int(mhz) < freq_end-1):
+                    band_outdoor[mhz]=band_outdoor[mhz]+1
+                
+                if (band_outdoor[mhz]>1): warn_frequency=1
             
             if (stationcount>="1"):
                 stationtext=""
@@ -339,8 +349,17 @@ def show_html():
         print "<td>"+parse_firmware(device['fwversion'])+"</td>"
         print "<td style=\"font-size:60%\">"+wirelessdata+"</td>"
         print "</tr>"
-
-    print """</tbody></table></dd>
+    
+    print """</tbody></table>"""
+    
+    if (warn_frequency>0):
+        print "<span style='color:red;'><b>Overlapping frequency!</b> Check "
+        for mhz,used in band_outdoor.items():
+            if (used > 1): print "<u>"+str(mhz)+"</u>MHz:"+str(used)+" "
+        
+        print "</span><br><br>"    
+    
+    print """</dd>
                       <dt>IPv4 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
     print "<a href=\"https://"+defaultv4host+"\" target=_blank>"+format_hostname(defaultv4host)+"</a> "
     print "(<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a>) via "+defaultv4dev

@@ -289,14 +289,19 @@ def show_html():
                 stationtext=""
                 for stationnr,station in enumerate(airos[device['ipv4']]['connections']):
                     try:
-                        hostmac=station['remote']['mac']
+                        hostmac=station['mac']
                     except:
                         hostmac="?"
                     
                     try:
+                        hostname=station['name']
+                    except:
+                        hostname=hostmac
+                    
+                    try:
                         hostremote=station['remote']['hostname']
                     except:
-                        hostremote=hostmac
+                        hostremote=hostname
                     
                     try:
                         tx=str(int(station['tx']))

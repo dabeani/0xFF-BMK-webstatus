@@ -253,20 +253,23 @@ def show_html():
                         <!--td><b>HW Address</b></td--><td><b>Local IP</b></td><td><b>Hostname</b></td>
                         <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td><td><b>Wireless</b></td></tr></thead><tbody>"""
     for key,device in enumerate(sorted(data['devices'], key=ip4_to_integer)):
-        try:    
+        try:
             stationcount=str(airos[device['ipv4']]['wireless']['count'])
             frequency=str(airos[device['ipv4']]['wireless']['frequency'])
             frequency=frequency.replace("MHz","")
             frequency=frequency.strip(" ")
             frequency=int(frequency)
             chanbw=airos[device['ipv4']]['wireless']['chanbw']
-            try:    
+            try:
                 center1=airos[device['ipv4']]['wireless']['center1_freq']
                 freq_start=center1-(chanbw/2)
                 freq_end=center1+(chanbw/2)
                 opmode=airos[device['ipv4']]['wireless']['mode']
+                opmode.replace("sta-","")
+                opmode.replace("ap-","")
                 mixed=airos[device['ipv4']]['wireless']['compat_11n']
                 if (mixed == 1): opmode=opmode+"-mixed"
+                if (mixed == 0): opmode=opmode+"-ac"
             
             except: 
                 opmode=airos[device['ipv4']]['wireless']['opmode']

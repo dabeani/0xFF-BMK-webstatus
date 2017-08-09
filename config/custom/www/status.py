@@ -285,20 +285,33 @@ def show_html():
                     freq_end=freq_end-((chanbw-chwidth)/2)
                     freq_start=freq_start-((chanbw-chwidth)/2)
             
-            stationtext=""
             if (stationcount>="1"):
+                stationtext=""
                 for stationnr,station in enumerate(airos[device['ipv4']]['connections']):
                     try:
+                        hostmac=station['remote']['mac']
+                    except:
+                        hostmac="?"
+                    
+                    try:
                         hostremote=station['remote']['hostname']
+                    except:
+                        hostremote=hostmac
+                    
+                    try:
                         tx=str(int(station['tx']))
                         rx=str(int(station['rx']))
                         signal=str(station['signal'])
-                        stationtext=stationtext+hostremote+ ": "+tx+"/"+rx+" ("+signal+")<br>"
                     except:
-                        stationtext=stationtext
+                        tx="0"
+                        rx="0"
+                        signal="0"
+                    
+                    stationtext=stationtext+hostremote+ ": "+tx+"/"+rx+" ("+signal+")<br>"
             
             else:
                 stationtext="no wifi connections"
+            
             wirelessdata=str(freq_start)+"-"+str(freq_end)+" ("+str(chanbw)+") "+opmode+"<br>"+stationtext
             
         except: 

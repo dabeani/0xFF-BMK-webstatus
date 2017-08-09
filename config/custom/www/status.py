@@ -295,11 +295,13 @@ def show_html():
                     
                     try:
                         hostname=station['name']
+                        if (hostname==""): hostname=hostmac
                     except:
                         hostname=hostmac
                     
                     try:
                         hostremote=station['remote']['hostname']
+                        if (hostremote==""): hostremote=hostmac
                     except:
                         hostremote=hostname
                     

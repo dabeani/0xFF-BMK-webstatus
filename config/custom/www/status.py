@@ -2,6 +2,11 @@
 #version=4.7
 
 #load settings
+ipranges=[
+  ['193.238.156.0','193.238.159.255'],
+  ['185.194.20.0','185.194.23.255'],
+  ['78.41.112.0','78.41.119.255']
+]
 interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100'
 get_nslookup_from_nodedb=1
 show_link_to_adminlogin=0
@@ -35,39 +40,49 @@ if (GET.get('get') is None):
 if (GET.get('get') == ""):
     GET["get"]="default"
 
+def convert_ipv4(ip):
+    return tuple(int(n) for n in ip.split('.'))
+
+def check_ipv4_in(addr, start, end):
+    return convert_ipv4(start) < convert_ipv4(addr) < convert_ipv4(end)
+
+# check if client is out of defined ip ranges
+try: 
+    clientip=os.environ["REMOTE_ADDR"]
+    authorized=False
+    for ip in ipranges:
+        authorized=check_ipv4_in(clientip, ip[0], ip[1])
+        if (authorized): break
+except KeyError: 
+    # allow if unknown ip or local runenvironment
+    authorized=True
+    clientip="unknown"
+
 def show_test():
-    exec_command="/usr/bin/traceroute -4 -w 1 -q 1 subway.funkfeuer.at"
-    args = shlex.split(exec_command)
-    data = subprocess.check_output(args)
-    lines=data.split('\n')
-    for key,line in enumerate(lines):
-        if (key == 0): continue
-        if (len(line) == 0): continue
-        print key, ": ", line,
-        traceline=line.split()
-        print traceline[0] #HOP
-        print traceline[1] #HOST
-        print traceline[2].strip("()") #IP
-        print traceline[3],"ms" #PING
+    print authorized+" ("+clientip+")"
 
 def show_airos():
     # return output
     print("Content-Type: text/json")
     print("X-Powered-By: cpo/bmk-v4.7")
     print         # blank line, end of headers
-    try: 
-        f = open('/tmp/10-all.json', 'r')
-        data = json.loads(f.read())
-        print json.dumps(data)
-        f.close()
-    except IOError as (errno, strerror):
-        string= "I/O error({0}): {1}".format(errno, strerror)
-        print '{"return":"'+string+'"}'
-    except ValueError:
-        print '{"return":"ValueError"}'
-    except:
-        string="Unexpected error:", sys.exc_info()[0]
-        print '{"return":"'+string+'"}'
+    if (authorized):
+        try: 
+            f = open('/tmp/10-all.json', 'r')
+            data = json.loads(f.read())
+            print json.dumps(data)
+            f.close()
+        except IOError as (errno, strerror):
+            string= "I/O error({0}): {1}".format(errno, strerror)
+            print '{"return":"'+string+'"}'
+        except ValueError:
+            print '{"return":"ValueError"}'
+        except:
+            string="Unexpected error:", sys.exc_info()[0]
+            print '{"return":"'+string+'"}'
+    
+    else:
+        print '{"return":"not-authorized"}'
 
 def show_status():
     # get ubnt-discover
@@ -332,7 +347,8 @@ def show_html():
             else:
                 stationtext="no wifi connections"
             
-            wirelessdata=str(freq_start)+"-"+str(freq_end)+" ("+str(chanbw)+") "+opmode+"<br>"+stationtext
+            wirelessdata=stationtext
+            if (authorized): wirelessdata=str(freq_start)+"-"+str(freq_end)+" ("+str(chanbw)+") "+opmode+"<br>"+wirelessdata
             
         except: 
             wirelessdata=""
@@ -352,7 +368,7 @@ def show_html():
     
     print """</tbody></table>"""
     
-    if (warn_frequency>0):
+    if (authorized and warn_frequency>0):
         print "<span style='color:red;'><b>Overlapping frequency!</b> Check "
         for mhz,used in band_outdoor.items():
             if (used > 1): print "<u>"+str(mhz)+"</u>MHz:"+str(used)+" "

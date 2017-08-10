@@ -60,7 +60,7 @@ except KeyError:
 
 if (authorized==False):
     try: 
-        ua=os.environ["HTTP_USER_AGENT"]
+        agent=os.environ["HTTP_USER_AGENT"]
         import re
         iphone=r'.*iPhone.*OS (.{2,8}) like'
         uamatch = re.match( iphone, agent, re.M|re.I)
@@ -68,13 +68,12 @@ if (authorized==False):
            #print "iPhone - iOS version "+ uamatch.group(1).replace("_",".")
            authorized=True
     except:
-        ua=""
+        agent=""
 
 def show_test():
-    print authorized+" ("+clientip+")"
-    if uamatch:
-        print " iPhone-iOS "+ uamatch.group(1).replace("_",".")
-
+    print str(authorized)+" ("+clientip+") "
+    if (uamatch):
+        print "iOS:"+uamatch.group(1).replace("_",".")
 
 def show_airos():
     # return output

@@ -277,11 +277,13 @@ def show_html():
             <ul class="nav nav-tabs" role="tablist">
                 <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                 <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
-                <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
-                <li role="presentation"><a href="#">"""
-    print ip+" - "+hostname
-    print """</a></li>
-            </ul><br>
+                <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>"""
+    print '                <li role="presentation"><a href="#">'+ip+" - "+hostname+'</a></li>'
+    if (str(show_link_to_adminlogin)=="1"):
+        port=443
+        print '                <li role="presentation"><a href="https://'+hostname+':'+str(port)+'/"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Login</a></li>'
+    
+    print """            </ul><br>
             <div class="tab-content">
 <!-- Main TAB -->
                 <div role="tabpanel" class="tab-pane" id="main">

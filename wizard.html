@@ -1,0 +1,269 @@
+<!--
+
+EdgeMAX Wizard "0xFF-BMK-Webstatus-LetsEncrypt" created 02/2017 by CPO/BMK for FunkFeuer.at
+Works on EdgeRouter and EdgeRouter X / X-SFP (system version 1.9.0+)
+versioninfo=201708111
+^-- use version identifier as number: YYYYMMDDX whereas X can be intraday-version
+autoupdate=201708111
+^-- set autoupdate the same version identifier to allow autoupdates
+
+
+-->
+<div class="instructions">
+    <h3>0xFF-BMK-Webstatus with Let's Encrypt setup</h3>
+</div>
+<legend style="position:absolute;right:0px;padding:5px;">
+    <center>EdgeMAX Wizard "0xFF-BMK-Webstatus-LetsEncrypt"<br>created 02/2017 by CPO/BMK for FunkFeuer.at<br>
+    Version 20170811/bmk4.7</center>
+</legend>
+<div style="padding:15px;border: 1px solid lightgray;width:648px">
+  <table border="0">
+    <tr><td style="vertical-align:middle">Package Status:</td><td><input style="right:10px" id="pkgstatus" name="pkgstatus" type="text" size="60" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">Update Info:</td>   <td><input style="right:10px" id="updatestatus" name="updatestatus" type="text" size="60" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">BMK-webstatus:</td> <td><input style="right:10px" id="wsstatus" name="wsstatus" type="text" size="60" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">Let's Encrypt:</td> <td><input style="right:10px" id="lestatus" name="lestatus" type="text" size="60" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">Certificates:</td>  <td><input style="right:10px" id="cestatus" name="cestatus" type="text" size="60" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">Orig-Server-Ports:</td><td>
+       <input style="right:10px" id="orighttpport"  name="orighttpport"  type="number" size="6" />
+       <input style="right:10px" id="orighttpsport" name="orighttpsport" type="number" size="6" /> (WebGUI!!)
+    </td></tr>
+    <tr><td style="vertical-align:middle">Custom-Server-Ports:</td><td>
+       <input style="right:10px" id="customhttpport"  name="customhttpport"  type="number" size="6" /> 
+       <input style="right:10px" id="customhttpsport" name="customhttpsport" type="number" size="6" />
+    </td></tr>
+    <tr><td style="vertical-align:middle" colspan=2>
+       Several changes are applied with restarting the lighttpd. This will result in the error message "apply failed". <b>Reload the full WebUI after this!</b><br>
+       &nbsp;<br>
+    </td></tr>
+    <tr><td style="vertical-align:middle">Current DNS</td><td><input style="right:10px" id="currentfqdn" name="currentfqdn" type="text" size="70" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">Domain-Key FQDN</td><td><input style="right:10px" id="domainfqdn" name="domainfqdn" type="text" size="70" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">Certificate FQDN</td><td><input style="right:10px" id="certfqdn" name="certfqdn" type="text" size="70" disabled /> </td></tr>
+    <tr><td style="vertical-align:middle">Certificate Validity</td><td>
+                                          <input style="right:10px" id="certfrom" name="certfrom" type="text" size="20" disabled /> 
+                                       to <input style="right:10px" id="certuntil" name="certuntil" type="text" size="20" disabled /> 
+                                          <input style="right:10px" id="certexpire" name="certexpire" type="text" size="15" disabled /> </td></tr>
+    <tr><td style="vertical-align:middle">SSH-Port for AirOS:</td>  <td><input style="right:10px" id="sshport" name="sshport" type="number" size="6" /></td></tr>
+    <tr><td style="vertical-align:middle">SSH-User for AirOS:</td>  <td><input style="right:10px" id="sshuser" name="sshuser" type="text" size="20" /></td></tr>
+    <tr><td style="vertical-align:middle">SSH-Port EdgeOS:</td>  <td><input style="right:10px" id="ssherport" name="ssherport" type="number" size="6" /></td></tr>
+    <tr><td style="vertical-align:middle">SSH-User EdgeOS:</td>  <td><input style="right:10px" id="ssheruser" name="ssheruser" type="text" size="20" /></td></tr>
+  </table>
+</div>
+
+<fieldset id="cefiles" name="cefiles" class="primary expanded">
+    <legend>Let's Encrypt files</legend>
+    <div class="addable" data-min="0" data-max="10" data-object="cefiles" data-objectify="1">
+        <div class="addable-template" style="padding-top:0px;">
+            <div class="multi">
+                <div>File      <input id="name" name="name" size="50" disabled /></div>
+                <div>Status    <input name="status" size="10" disabled /></div>
+            </div>
+        </div>
+        <div class="addable-container"></div>
+        <!-- although hidden, this add-button needs to exist! //-->
+        <button type="button" class="addable-add" style="position:absolute;right:0px;opacity:0.0;filter:alpha(opacity=0);" disabled></button>
+    </div>
+</fieldset>
+
+<fieldset id="wsfiles" name="wsfiles" class="primary closed">
+    <legend>BMK-WebStatus php files</legend>
+    <div class="addable" data-min="0" data-max="99" data-object="wsfiles" data-objectify="1">
+        <span><b><u>Files checked</u></b></span>
+        <div class="addable-template" style="padding-top:0px;">
+            <div class="multi">
+                <div>File-Name <input id="name" name="name" size="50" disabled /></div>
+                <div>Status    <input name="status" size="10" disabled /></div>
+            </div>
+        </div>
+        <div class="addable-container"></div>
+        <!-- although hidden, this add-button needs to exist! //-->
+        <button type="button" class="addable-add" style="position:absolute;right:0px;opacity:0.0;filter:alpha(opacity=0);" disabled></button>
+    </div>
+</fieldset>
+
+<fieldset id="lefiles" name="lefiles" class="primary closed">
+    <legend>Let's Encrypt files</legend>
+    <div class="addable" data-min="0" data-max="99" data-object="lefiles" data-objectify="1">
+        <span><b><u>Files checked</u></b></span>
+        <div class="addable-template" style="padding-top:0px;">
+            <div class="multi">
+                <div>File-Name <input id="name" name="name" size="50" disabled /></div>
+                <div>Status    <input name="status" size="10" disabled /></div>
+            </div>
+        </div>
+        <div class="addable-container"></div>
+        <!-- although hidden, this add-button needs to exist! //-->
+        <button type="button" class="addable-add" style="position:absolute;right:0px;opacity:0.0;filter:alpha(opacity=0);" disabled></button>
+    </div>
+</fieldset>
+
+<fieldset id="allfiles" name="allfiles" class="primary closed">
+    <legend>File-Liste overall</legend>
+    <div class="addable" data-min="0" data-max="99" data-object="allfiles" data-objectify="1">
+        <span><b><u>Files found</u></b></span>
+        <div class="addable-template" style="padding-top:0px;">
+            <div class="multi">
+                <div>File-Name <input id="name" name="name" size="50" disabled /></div>
+                <div>Status    <input name="status" size="10" disabled /></div>
+            </div>
+        </div>
+        <div class="addable-container"></div>
+        <!-- although hidden, this add-button needs to exist! //-->
+        <button type="button" class="addable-add" style="position:absolute;right:0px;opacity:0.0;filter:alpha(opacity=0);" disabled></button>
+    </div>
+</fieldset>
+
+<fieldset id="bmkconfig" name="bmkconfig" class="primary closed">
+    <legend>Configuration BMK-Webstatus-Page</legend>
+  <table border="0">
+    <tr><td style="vertical-align:middle">Interface-List:</td>  <td><input style="right:10px" id="bmkinferfacelist" name="bmkinferfacelist" type="text" size="70" /></td></tr>
+    <tr><td style="vertical-align:middle">Traceroute-Dest.:</td><td><input style="right:10px" id="bmktracerouteip" name="bmktracerouteip" type="text" size="30" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">Traceroute6-Dest.:</td><td><input style="right:10px" id="bmktraceroute6ip" name="bmktraceroute6ip" type="text" size="30" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">IP-Ranges:</td><td><input style="right:10px" id="bmkipranges" name="bmkipranges" type="text" size="70" disabled /></td></tr>
+    <tr><td style="vertical-align:middle">IP-Addresses:</td><td><input style="right:10px" id="bmkipaddresses" name="bmkipaddresses" type="text" size="70" disabled /></td></tr>
+    <tr><td colspan="2"><div><span><input id="bmkallowiphones" name="bmkallowiphones" type="checkbox" disabled />&nbsp;</span></div><div><span class="text" data-infotip='Show detailled AirOS-Data on iPhones disregarding their client IP'> Allow iPhones</span></div></td></tr>
+    <tr><td colspan="2"><div><span><input id="bmkadminlink"    name="bmkadminlink"    type="checkbox" disabled />&nbsp;</span></div><div><span class="text" data-infotip='Include a Link to Loginpage on Statuspage. If disabled, your administrator will need to know the tcp-port to Admin-Interface'> Show link to admin login page</span></div></td></tr>
+    <tr><td colspan="2"><div><span><input id="bmknodedblookup" name="bmknodedblookup" type="checkbox" disabled />&nbsp;</span></div><div><span class="text" data-infotip='Loads node information (ip to name/node lookup) from official map API  to show node count at routing table and node/device names in details'> Load node data for name lookup and route/node count</span></div></td></tr>
+  </table>
+</fieldset>
+
+<div style="padding:15px;border: 1px solid lightgray;width:648px">
+    <input id="routerrsakey" name="routerrsakey" type="hidden" disabled />
+    <input id="routername" name="routername" type="hidden" disabled />
+  <table border="0">
+    <tr><td><div><span><input id="updatefromgithub" name="updatefromgithub" type="checkbox" />&nbsp;</span></div><div><span class="text" data-infotip='Load and install newest version directly from Github'> Upgrade Wizard from GitHub (online only) on 'Apply'</span></div></td></tr>
+    <tr><td><div><span><input id="autoupdatefromgithub" name="autoupdatefromgithub" type="checkbox" />&nbsp;</span></div><div><span class="text" data-infotip='Runs a daily job checking for updates - installs available auto-updates automatically'> Upgrade Wizard from GitHub <b>automatically</b></span></div></td></tr>
+    <tr><td><div><span><input id="registercert"     name="registercert"     type="checkbox" />&nbsp;</span></div><div><span class="text" data-infotip='Run this job to initially register this domain, or to renew the certificate.'> Register FQDN and renew/install Certificate on 'Apply'</span></div></td></tr>
+    <tr><td><div><span><input id="deployactive"     name="deployactive"     type="checkbox" />&nbsp;</span></div><div><span class="text" data-infotip='Router needs Management-IP 10.x.x.100/24 or 10.x.x.200/24 on the same subnet like AirOS-Antennas! All discovered AirOS-devices will be connected through ssh to get their lighttpd SSL certificate updated. SSH connection will only work, if the routers public key was deployed to AirOS in advance! To do so, run the deploy script or download and deploy the key using WebGUI.'> Try to establish server.pem on local antennas after renewal</span></div></td></tr>
+    <tr><td><div><span class="text"> 
+      <b>[<a download="router.rsa" href="#" id="downloadkey">download keyfile for AirOS</a>]</b> -> In order to establish server.pem on AirOS devices, each target device needs the router's public ssh key registered. Use the download-link to retrieve 
+      the router's key and to add it on AirOS in Settings->Services->Authorized Keys. Alternatively you can run <em>sudo /config/letsencrypt/deploykeys.sh</em> 
+      in CLI to deploy all local antennas at once.
+      </span></div></td></tr>
+    <tr><td><div><span><input id="restartorigenabled"   name="restartorigenabled"   type="checkbox" />&nbsp;</span></div><div><span class="text"> Restart original lighttpd on 'Apply'</span></div></td></tr>
+    <tr><td><div><span><input id="restartcustomenabled" name="restartcustomenabled" type="checkbox" />&nbsp;</span></div><div><span class="text"> Restart custom lighttpd on 'Apply'</span></div></td></tr>
+  </table>
+    <br>
+    Wizard will raise the error "save failed" as webservices will restart and break the response session.
+</div>
+<br><br>
+<script>
+function disable_group(group) {
+    var nodes = document.getElementById(group).getElementsByTagName('*');
+    for(var i=0; i<nodes.length; i++) { 
+        if (nodes[i].name == null) {
+        } else if (nodes[i].name.match(/status/)) {
+            if (nodes[i].value.match(/err/)) {
+                nodes[i].style.color = "red";
+            } else if (nodes[i].value.match(/old|link|missing/)) {
+                nodes[i].style.color = "orange";
+            } else if (nodes[i].value.match(/ok|generate/)) {
+                nodes[i].style.color = "green";
+            }
+        }
+        nodes[i].disabled = true; 
+    }
+}
+function colors() {
+    var input = document.getElementById('pkgstatus');
+    input.style.color = "black";
+    if (input.value.match(/error/)) {
+        input.style.color = "red";
+        //disable();
+    } else if (input.value.match(/success/)) {
+        input.style.color = "green";
+        //enable();
+    }
+    var input = document.getElementById('updatestatus');
+    input.style.color = "black";
+    document.getElementById('updatefromgithub').disabled = true;
+    if (input.value.match(/new version available/)) {
+        document.getElementById('updatefromgithub').disabled = false;
+        input.style.color = "red";
+        //disable();
+    } else if (input.value.match(/up-to-date/)) {
+        input.style.color = "green";
+        //enable();
+    } 
+    document.getElementById('updatestatus').disabled = true;
+    // cert expiary colors
+    var certexpire = document.getElementById('certexpire');
+    var certfrom = document.getElementById('certfrom');
+    var certuntil = document.getElementById('certuntil');
+    certexpire.style.color = "black";
+    certfrom.style.color   = "black";
+    certuntil.style.color  = "black";
+    if(certexpire.value.match(/expired/)) {
+        certexpire.style.color = "red";
+        certfrom.style.color   = "red";
+        certuntil.style.color  = "red";
+    } else if (certexpire.value.match(/left/)) {
+        certexpire.style.color = "green";
+        certfrom.style.color   = "green";
+        certuntil.style.color  = "green";
+    }
+    // FQDN values
+    var currentfqdn = document.getElementById('currentfqdn');
+    var certfqdn = document.getElementById('certfqdn');
+    var domainfqdn = document.getElementById('domainfqdn');
+    certfqdn.style.color   = "black";
+    domainfqdn.style.color = "black";
+    currentfqdn.style.color = "black";
+    if ((certfqdn.value==domainfqdn.value) && (certfqdn.value==currentfqdn.value) && (!(currentfqdn.value.match(/not available/)))) {
+        currentfqdn.style.color = "green";
+        certfqdn.style.color   = "green";
+        domainfqdn.style.color  = "green";
+    } else if (certfqdn.value==domainfqdn.value) {
+        if (certfqdn.value=='not available') {
+            if (currentfqdn.value.match(/not available/)) {
+                currentfqdn.style.color = "orange";
+            }
+        } else {
+            certfqdn.style.color   = "green";
+            domainfqdn.style.color = "green";
+            if (currentfqdn.value.match(/not available/)) {
+                currentfqdn.style.color = "orange";
+            } else {
+                currentfqdn.style.color = "red";
+            }
+        }
+    }
+    certexpire.disabled = true;
+    certfrom.disabled = true;
+    certuntil.disabled = true;
+    currentfqdn.disabled = true;
+    certfqdn.disabled = true;
+    domainfqdn.disabled = true;
+    
+    document.getElementById('pkgstatus').disabled = true;
+    document.getElementById('wsstatus').disabled = true;
+    document.getElementById('lestatus').disabled = true;
+    document.getElementById('cestatus').disabled = true;
+    //document.getElementById('restartorigenabled').disabled = true;
+    //document.getElementById('orighttpport').disabled = true;
+    //document.getElementById('orighttpsport').disabled = true;
+    //document.getElementById('customhttpport').disabled = true;
+    //document.getElementById('customhttpsport').disabled = true;
+    
+    disable_group('cefiles');
+    disable_group('lefiles');
+    disable_group('wsfiles');
+    disable_group('allfiles');
+}
+function validate() {
+}
+document.onchange=function(){
+    var downloadkey = document.getElementById('downloadkey');
+    var routerrsakey = document.getElementById('routerrsakey');
+    var routername = document.getElementById('routername');
+    downloadkey.setAttribute('download',routername.value+'.rsa');
+    downloadkey.setAttribute('href','data:text/plain;charset=utf-8,'+encodeURIComponent(routerrsakey.value));
+    colors();
+    var customhttpport = document.getElementById('customhttpport');
+    var customhttpsport = document.getElementById('customhttpsport');
+    if ((customhttpport.value=='0') ||(customhttpport.value==null))  { customhttpport.disabled=true;}
+    if ((customhttpsport.value=='0')||(customhttpsport.value==null)) { customhttpsport.disabled=true;}
+}
+document.onsubmit=function(){
+    colors();
+}
+</script>

@@ -42,11 +42,26 @@ fi
 
 # establish config from default, if missing - avoid killing a custom setting
 if [ -f "/tmp/settings.inc" ]; then
-        cp /tmp/settings.inc /config/custom/www/settings.inc
-        rm -f /tmp/settings.inc
+    # repair/fill up existing settings.inc with missing parameters
+    sed -i "s/$traceroute_to='78.41.115.228';/$traceroute_to='subway.funkfeuer.at';/" /tmp/settings.inc
+    if [ $(grep -c "\$traceroute6_to='" /tmp/settings.inc) -eq 0 ]; then
+    sed -i "s/?>/\/\/ defines destination for traceroute6: should be internet gateway IPv6\n\$traceroute6_to='subway.funkfeuer.at';\n\n?>/" /tmp/settings.inc
+    fi
+    if [ $(grep -c "\$ipranges='" /tmp/settings.inc) -eq 0 ]; then
+    sed -i "s/?>/\/\/ define ip-ranges to display management data in status.py: IP-IP[,IP-IP] default=3 0xFF-IP-ranges\n\$ipranges='193.238.156.0-193.238.159.255,78.41.112.0-78.41.119.255,185.194.20.0-185.194.23.255';\n\n?>/" /tmp/settings.inc
+    fi
+    if [ $(grep -c "\$ipaddresses='" /tmp/settings.inc) -eq 0 ]; then
+    sed -i "s/?>/\/\/ define ip-addresses to display management data in status.py: IP[,IP] default none\n\$ipaddresses='';\n\n?>/" /tmp/settings.inc
+    fi
+    if [ $(grep -c "\$allowiphones=" /tmp/settings.inc) -eq 0 ]; then
+    sed -i "s/?>/\$allowiphones=1;\n\n?>/" /tmp/settings.inc
+    fi
+    # now restore it to correct folder
+    cp /tmp/settings.inc /config/custom/www/settings.inc
+    rm -f /tmp/settings.inc
 fi
 if [ ! -f "/config/custom/www/settings.inc" ]; then
-        cp /config/custom/www/settings_default.inc /config/custom/www/settings.inc
+    cp /config/custom/www/settings_default.inc /config/custom/www/settings.inc
 fi
 rm -f /config/custom/www/settings_default.inc
 
@@ -99,13 +114,13 @@ tfile=$(mktemp)
 $cmd begin
 ret=0
 if [ $ret == 0 ]; then
-	$cmd set service gui http-port 81 || ret=1
+    $cmd set service gui http-port 81 || ret=1
 fi
 if [ $ret == 0 ]; then
-	$cmd commit || ret=1
+    $cmd commit || ret=1
 fi
 if [ $ret == 0 ]; then
-	$cmd save || ret=1
+    $cmd save || ret=1
 fi
 $cmd end
 exit $ret

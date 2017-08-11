@@ -68,10 +68,10 @@ try:
     for ip in ipranges:
         authorized=check_ipv4_in(clientip, ip[0], ip[1])
         if (authorized): break
-	if (authorized==False):
-		for ip in ipaddresses:
-			authorized=check_ipv4_in(clientip, ip, ip)
-			if (authorized): break
+    if (authorized==False):
+        for ip in ipaddresses:
+            authorized=check_ipv4_in(clientip, ip, ip)
+            if (authorized): break
 except KeyError: 
     # allow if unknown ip or local runenvironment
     authorized=True
@@ -280,8 +280,14 @@ def show_html():
                 <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>"""
     print '                <li role="presentation"><a href="#">'+ip+" - "+hostname+'</a></li>'
     if (str(show_link_to_adminlogin)=="1"):
-        port=443
-        print '                <li role="presentation"><a href="https://'+hostname+':'+str(port)+'/"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Login</a></li>'
+        try:
+            exec_command="grep -E \"https-port\" /config/config.boot"
+            args = shlex.split(exec_command)
+            port = subprocess.check_output(args)
+            port = port.strip(" \n").split(" ")[1]
+            print '                <li role="presentation"><a href="https://'+hostname+':'+str(port)+'/"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Login</a></li>'
+        except:
+            print ""
     
     print """            </ul><br>
             <div class="tab-content">

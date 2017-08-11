@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 #version=4.7
 
-#load settings
+#set defaults
 ipranges=[
   ['193.238.156.0','193.238.159.255'],
-  ['185.194.20.0','185.194.23.255'],
-  ['78.41.112.0','78.41.119.255']
+  ['78.41.112.0','78.41.119.255'],
+  ['185.194.20.0','185.194.23.255']
 ]
+ipaddresses=[]
+allowiphones=1
 interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100'
 get_nslookup_from_nodedb=1
 show_link_to_adminlogin=0
 traceroute_to='subway.funkfeuer.at'
 traceroute6_to='subway.funkfeuer.at'
+#load settings
 for line in open("/config/custom/www/settings.inc"):
     if (line.find("=")==-1): continue
     dat=line.split("=")
@@ -20,6 +23,18 @@ for line in open("/config/custom/www/settings.inc"):
     if (line.find("show_link_to_adminlogin")>0): show_link_to_adminlogin=dat[1].strip(";'\n ")
     if (line.find("traceroute_to")>0): traceroute_to=dat[1].strip(";'\n ")
     if (line.find("traceroute6_to")>0): traceroute6_to=dat[1].strip(";'\n ")
+    if (line.find("allowiphones")>0): allowiphones=dat[1].strip(";'\n ")
+    if (line.find("ipranges")>0): 
+        ipranges=[]
+        list=dat[1].strip(";'\n ").split(",")
+        for pairs in list:
+            #verify if valid ipv4!
+            if (pairs.find("-")>0): 
+                ipranges.append(pairs.split("-"))
+    if (line.find("ipaddresses")>0): 
+        #verify if valid ipv4!
+        if (len(dat[1].strip(";'\n "))>0): ipaddresses=dat[1].strip(";'\n ").split(",")
+        else: ipaddresses=[]
 
 import shlex, subprocess
 import json, os, socket
@@ -53,16 +68,20 @@ try:
     for ip in ipranges:
         authorized=check_ipv4_in(clientip, ip[0], ip[1])
         if (authorized): break
+	if (authorized==False):
+		for ip in ipaddresses:
+			authorized=check_ipv4_in(clientip, ip, ip)
+			if (authorized): break
 except KeyError: 
     # allow if unknown ip or local runenvironment
     authorized=True
     clientip="unknown"
 
-if (authorized==False):
+if (authorized==False and str(allowiphones)=="1"):
     try: 
         agent=os.environ["HTTP_USER_AGENT"]
         import re
-        iphone=r'.*iPhone.*OS (.{2,8}) like'
+        iphone=r'.*iPhone.*OS (.{3,8}) like'
         uamatch = re.match( iphone, agent, re.M|re.I)
         if uamatch:
            #print "iPhone - iOS version "+ uamatch.group(1).replace("_",".")
@@ -155,12 +174,17 @@ def ip4_to_integer(s):
 def show_html():
     # local hostname
     try: 
-        # could be IP or hostname
         hostname=os.environ['SERVER_NAME']
+        try:
+            hostname,list,ip=socket.gethostbyaddr(hostname)
+            ip=ip[0]
+        except socket.error:
+            hostname=hostname
+            ip=""
+    
     except KeyError: 
         hostname=socket.gethostname()
-        ## locally assign name, not fqdn
-
+        ip=""
 
     # host,aliaslist,ipaddrlist=socket.gethostbyattr('78.41.113.155')
     # host=socket.getfqdn('78.41.113.155')
@@ -236,12 +260,15 @@ def show_html():
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=1000, initial-scale=0.5">
     <meta name="description" content="">
-    <meta name="author" content="">
-    <title>"""
-    print hostname
-    print """</title>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-  </head>
+    <meta name="author" content="">"""
+    print '    <title>'+hostname+'</title>'
+    print '    <link rel="shortcut icon" type="image/ico" href="https://'+hostname+'/css/favicon.ico">'
+    print '    <link rel="apple-touch-icon" sizes="114x114" href="https://'+hostname+'/css/apple-touch-icon.png">'
+    print '    <link rel="icon" type="image/png" href="https://'+hostname+'/css/favicon-32x32.png" sizes="32x32">'
+    print '    <link rel="icon" type="image/png" href="https://'+hostname+'/css/favicon-16x16.png" sizes="16x16">'
+    print '    <link rel="icon" type="image/x-icon" href="https://'+hostname+'/css/favicon.ico">'
+    print """    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    </head>
   <body>
 <div class="container">
     <div class="row">
@@ -252,7 +279,7 @@ def show_html():
                 <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
                 <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>
                 <li role="presentation"><a href="#">"""
-    print hostname
+    print ip+" - "+hostname
     print """</a></li>
             </ul><br>
             <div class="tab-content">
@@ -260,7 +287,7 @@ def show_html():
                 <div role="tabpanel" class="tab-pane" id="main">
                     <div class="page-header">
                         <h1>Willkommen auf """
-    print hostname
+    print hostname+" <small>"+ip
     print """</small></h1>
                     </div>
                     <div class="panel panel-default">

@@ -9,7 +9,9 @@ $get_nslookup_from_nodedb=1;       // enables lookup of IPs from cached node dat
 $show_link_to_adminlogin=0;        // enables Link to Routerlogin page (with https-port from config-file)
 $traceroute_to='subway.funkfeuer.at';     // defines destination for traceroute -> should be internet gateway, tunnelserver.funkfeuer.at
 $traceroute6_to='subway.funkfeuer.at';    // defines destination for traceroute6 -> should be internet gateway, tunnelserver.funkfeuer.at
-
+$ipranges='193.238.156.0-193.238.159.255,78.41.112.0-78.41.119.255,185.194.20.0-185.194.23.255';
+$ipaddresses='';
+$allowiphones=1;
 
 // load specific settings
 require 'settings.inc';

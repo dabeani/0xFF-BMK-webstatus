@@ -197,11 +197,14 @@ def show_html():
     
     # get local olsr infos
     import urllib2
-    try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links", timeout = 1).read().strip("\n ")
+    try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/lin", timeout = 1).read().strip("\n ")
     except urllib2.URLError as e:
         print type(e)    #not catch
     except socket.timeout as e:
         print type(e)    #catched
+    except:
+        olsr_links = {}
+    
         
     # get node-db info
     global get_nslookup_from_nodedb
@@ -209,6 +212,8 @@ def show_html():
     except urllib2.URLError:
         get_nslookup_from_nodedb=0
     except socket.timeout:
+        get_nslookup_from_nodedb=0
+    except:
         get_nslookup_from_nodedb=0
 
     if (str(get_nslookup_from_nodedb)=="1"):

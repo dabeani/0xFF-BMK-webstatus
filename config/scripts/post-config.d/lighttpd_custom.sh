@@ -64,3 +64,30 @@ fi
 sudo /sbin/start-stop-daemon --start --quiet \
       --pidfile /var/run/lighttpd_custom.pid \
       --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf
+
+# after FW-update, ssh keys for root and for users are gone
+# if exists, copy the keys back to users directories
+# key to root user as well (needed for wizard)
+if [ ! -d /root/.ssh ]; then
+  mkdir /root/.ssh
+fi
+if [ ! -f /root/.ssh/id_rsa ] && [ ! -f /root/.ssh/id_rsa.pub ]; then
+  cp /config/letsencrypt/id_rsa /root/.ssh/id_rsa
+  cp /config/letsencrypt/id_rsa.pub /root/.ssh/id_rsa.pub
+fi
+# fuer alle admin-user bereitstellen
+userlist=$(grep -E "^        user |^            level " /config/config.boot | sed 'N;s/\n/ /' | grep "level admin" | awk {'print $2'})
+#userlist="ubnt"
+for user in $userlist; do
+  if [ -d /home/$user ] && [ ! -f /home/$user/.ssh/id_rsa ] && [ ! -f /home/$user/.ssh/id_rsa.pub ]; then
+    if [ ! -d /home/$user/.ssh ]; then
+      mkdir /home/$user/.ssh
+    fi
+    cp /config/letsencrypt/id_rsa /home/$user/.ssh/id_rsa
+    cp /config/letsencrypt/id_rsa.pub /home/$user/.ssh/id_rsa.pub
+    chown $user:users /home/$user/.ssh/id_rsa
+    chown $user:users /home/$user/.ssh/id_rsa.pub
+  fi
+  [ $(grep -c "alias ll=" /home/$user/.profile) -eq 0 ] && echo "alias ll=\"ls -al\"" >>/home/$user/.profile
+done
+

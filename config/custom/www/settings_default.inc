@@ -10,10 +10,10 @@ $get_nslookup_from_nodedb=1;
 $show_link_to_adminlogin=0;
 
 // defines destination for traceroute: should be internet gateway, tunnelserver.funkfeuer.at
-$traceroute_to='subway.funkfeuer.at';
+$traceroute_to='r01krypta.bb.funkfeuer.at';
 
 // defines destination for traceroute6: should be internet gateway IPv6
-$traceroute6_to='subway.funkfeuer.at';
+$traceroute6_to='r01krypta.bb.funkfeuer.at';
 
 // define ip-ranges to display management data in status.py: IP-IP[,IP-IP] default=3 0xFF-IP-ranges
 $ipranges='193.238.156.0-193.238.159.255,78.41.112.0-78.41.119.255,185.194.20.0-185.194.23.255'; 

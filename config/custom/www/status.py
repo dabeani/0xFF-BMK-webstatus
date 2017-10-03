@@ -12,8 +12,8 @@ allowiphones=1
 interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100'
 get_nslookup_from_nodedb=1
 show_link_to_adminlogin=0
-traceroute_to='subway.funkfeuer.at'
-traceroute6_to='subway.funkfeuer.at'
+traceroute_to='r01krypta.bb.funkfeuer.at'
+traceroute6_to='r01krypta.bb.funkfeuer.at'
 #load settings
 for line in open("/config/custom/www/settings.inc"):
     if (line.find("=")==-1): continue
@@ -197,14 +197,11 @@ def show_html():
     
     # get local olsr infos
     import urllib2
-    try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/lin", timeout = 1).read().strip("\n ")
+    try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/links", timeout = 1).read().strip("\n ")
     except urllib2.URLError as e:
         print type(e)    #not catch
     except socket.timeout as e:
         print type(e)    #catched
-    except:
-        olsr_links = {}
-    
         
     # get node-db info
     global get_nslookup_from_nodedb
@@ -212,8 +209,6 @@ def show_html():
     except urllib2.URLError:
         get_nslookup_from_nodedb=0
     except socket.timeout:
-        get_nslookup_from_nodedb=0
-    except:
         get_nslookup_from_nodedb=0
 
     if (str(get_nslookup_from_nodedb)=="1"):

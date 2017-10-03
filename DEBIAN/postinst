@@ -56,6 +56,8 @@ if [ -f "/tmp/settings.inc" ]; then
     if [ $(grep -c "\$allowiphones=" /tmp/settings.inc) -eq 0 ]; then
     sed -i "s/?>/\$allowiphones=1;\n\n?>/" /tmp/settings.inc
     fi
+    #subway is dead, put here its repacement r01krypta
+    sed -i "s/subway.funkfeuer.at/r01krypta.bb.funkfeuer.at/" /tmp/settings.inc
     # now restore it to correct folder
     cp /tmp/settings.inc /config/custom/www/settings.inc
     rm -f /tmp/settings.inc

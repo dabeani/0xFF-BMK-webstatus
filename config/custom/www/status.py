@@ -12,8 +12,8 @@ allowiphones=1
 interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100'
 get_nslookup_from_nodedb=1
 show_link_to_adminlogin=0
-traceroute_to='r01krypta.bb.funkfeuer.at'
-traceroute6_to='r01krypta.bb.funkfeuer.at'
+traceroute_to='78.41.115.36'
+traceroute6_to='78.41.115.36'
 #load settings
 for line in open("/config/custom/www/settings.inc"):
     if (line.find("=")==-1): continue

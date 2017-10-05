@@ -527,7 +527,7 @@ def show_html():
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>
                         <td><b>Ping</b></td></tr></thead><tbody>
 """
-    exec_command="/usr/bin/traceroute -4 -w 1 -q 1 subway.funkfeuer.at"
+    exec_command="/usr/bin/traceroute -4 -w 1 -q 1 "+traceroute_to
     args = shlex.split(exec_command)
     data = subprocess.check_output(args).strip("\n ")
     lines=data.split('\n')

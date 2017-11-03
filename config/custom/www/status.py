@@ -115,7 +115,7 @@ def show_airos():
             print '{"return":"'+string+'"}'
     
     else:
-        print '{"return":"not-authorized"}'
+        print '{"return":"not-authorized","ip":"'+clientip+'"}'
 
 def show_status():
     # get ubnt-discover
@@ -198,15 +198,13 @@ def show_html():
     # get local olsr infos
     import urllib2
     try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/lin", timeout = 1).read().strip("\n ")
-    except urllib2.URLError as e:
-        olsr_links={}
-        print type(e)    #not catch
-    except socket.timeout as e:
-        olsr_links={}
-        print type(e)    #catched
     except:
-        olsr_links={}
-        
+        #work around: get neighbors from routing table
+        exec_command="echo 'h e a d l i n e' && /sbin/ip -4 route | grep onlink | awk '!x[$3]++' | awk '{print \"- \"$3\" 0.000 0.000 0.000 0.000\"}'"
+        try: olsr_links=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        except:
+            olsr_links={}
+    
     # get node-db info
     global get_nslookup_from_nodedb
     try: nodedb_raw=urllib2.urlopen("http://ff.cybercomm.at/node_db.json", timeout = 1)

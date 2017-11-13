@@ -56,6 +56,9 @@ if [ -f "/tmp/settings.inc" ]; then
     if [ $(grep -c "\$allowiphones=" /tmp/settings.inc) -eq 0 ]; then
     sed -i "s/?>/\$allowiphones=1;\n\n?>/" /tmp/settings.inc
     fi
+    if [ $(grep -c "\$ubntdiscovertime=" /tmp/settings.inc) -eq 0 ]; then
+    sed -i "s/?>/\$ubntdiscovertime='150';\n\n?>/" /tmp/settings.inc
+    fi
     #subway is dead, put here its repacement r01krypta
     sed -i "s/subway.funkfeuer.at/78.41.115.36/" /tmp/settings.inc
     sed -i "s/r01krypta.bb.funkfeuer.at/78.41.115.36/" /tmp/settings.inc

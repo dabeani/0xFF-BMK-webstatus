@@ -23,4 +23,6 @@ $ipaddresses='';
 
 $allowiphones=1; 
 
+$ubntdiscovertime=150;
+
 ?>

@@ -12,6 +12,7 @@ $traceroute6_to='78.41.115.36';    // defines destination for traceroute6 -> sho
 $ipranges='193.238.156.0-193.238.159.255,78.41.112.0-78.41.119.255,185.194.20.0-185.194.23.255';
 $ipaddresses='';
 $allowiphones=1;
+$ubntdiscovertime=150;
 
 // load specific settings
 require 'settings.inc';
@@ -545,13 +546,13 @@ function get_localips() {
 
 if(isset($get)) {
  if($get == "status") { 
-    $output =json_decode(trim(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j")), true);
+    $output =json_decode(trim(shell_exec("/usr/sbin/ubnt-discover -d".$ubntdiscovertime." -V -i \"".$interface_1100_list."\" -j")), true);
     $output['wizards']=get_version();
     $output['local_ips']=get_localips();
     echo json_encode($output);
  } elseif($get == "devices") {
     //echo shell_exec("/usr/sbin/ubnt-discover -d10 -ibr0.1100");
-    echo shell_exec("/usr/sbin/ubnt-discover -d150 -i \"".$interface_1100_list."\"");
+    echo shell_exec("/usr/sbin/ubnt-discover -d".$ubntdiscovertime." -i \"".$interface_1100_list."\"");
  } elseif($get == "phpinfo") {
     phpinfo();
  }
@@ -682,7 +683,7 @@ $APP["ipv6_status"] = trim(shell_exec("netstat -na | grep ".$APP["IPv6_TXTINFO_P
                           <dt>System Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd><?php echo shell_exec("uptime") ?></dd>
                           <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
                           <?
-                          $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -i \"".$interface_1100_list."\" -j"),true);
+                          $APP["devices_list"]=json_decode(shell_exec("/usr/sbin/ubnt-discover -d".$ubntdiscovertime." -V -i \"".$interface_1100_list."\" -j"),true);
                           if (count($APP["devices_list"]>0)) {
                             echo "<table class=\"table table-hover table-bordered table-condensed\"><thead style=\"background-color:#f5f5f5;\"><tr valign=top><td><b>HW Address</b></td><td><b>Local IP</b></td><td><b>Hostname</b></td>";
                             echo "<td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td></tr></thead>\n";
@@ -778,7 +779,7 @@ document.getElementById('overlay').style.padding='0';
 <?php printLoadingText("Loading Port-Table TAB..."); ?>
                     <div role="tabpanel" class="tab-pane" id="table">
                     <?
-                    $discover = json_decode(shell_exec("/usr/sbin/ubnt-discover -d150 -V -j"), TRUE);
+                    $discover = json_decode(shell_exec("/usr/sbin/ubnt-discover -d".$ubntdiscovertime." -V -j"), TRUE);
                     // show interfaces ethernet detail | grep -E "^eth.|link/ether" | awk '{if ($1~/^eth./) {gsub(":","",$1); print $1;} else {print ",\""$2"\"";}}' | sed 'N;s/\n//'
                     $eth_macs = explode("\n",trim(shell_exec("/opt/vyatta/bin/vyatta-show-interfaces.pl --intf-type=ethernet --action=show | grep -E \"^eth.|link/ether\" | awk '{if ($1~/^eth./) { print $1\",\";} else {print $2;}}' | sed 'N;s/\\n//'")));
                     

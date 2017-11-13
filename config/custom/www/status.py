@@ -14,6 +14,7 @@ get_nslookup_from_nodedb=1
 show_link_to_adminlogin=0
 traceroute_to='78.41.115.36'
 traceroute6_to='78.41.115.36'
+ubntdiscovertime='150'
 #load settings
 for line in open("/config/custom/www/settings.inc"):
     if (line.find("=")==-1): continue
@@ -24,6 +25,7 @@ for line in open("/config/custom/www/settings.inc"):
     if (line.find("traceroute_to")>0): traceroute_to=dat[1].strip(";'\n ")
     if (line.find("traceroute6_to")>0): traceroute6_to=dat[1].strip(";'\n ")
     if (line.find("allowiphones")>0): allowiphones=dat[1].strip(";'\n ")
+    if (line.find("ubntdiscovertime")>0): ubntdiscovertime=dat[1].strip(";'\n ")
     if (line.find("ipranges")>0): 
         ipranges=[]
         list=dat[1].strip(";'\n ").split(",")
@@ -119,7 +121,7 @@ def show_airos():
 
 def show_status():
     # get ubnt-discover
-    exec_command="/usr/sbin/ubnt-discover -d150 -V -i "+interface_list+" -j"
+    exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V -i "+interface_list+" -j"
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
 
@@ -190,7 +192,7 @@ def show_html():
     # host=socket.getfqdn('78.41.113.155')
 
     # get ubnt-discover
-    exec_command="/usr/sbin/ubnt-discover -d150 -V -i "+interface_list+" -j"
+    exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V -i "+interface_list+" -j"
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
     #need sorting by IP last octet: 100..255, 1...99

@@ -140,7 +140,7 @@ def show_status():
 
 def show_connections():
     # get versions of wizards and IP-addresses from seperate shellscript
-    versions = subprocess.check_output("/config/custom/connections.sh")
+    data = subprocess.check_output("/config/custom/connections.sh")
 
     # return output
     print("Content-Type: text/plain")
@@ -580,7 +580,7 @@ def show_html():
 
 if (GET.get('get') == "status"):
     show_status()
-if (GET.get('get') == "connections"):
+elif (GET.get('get') == "connections"):
     show_connections()
 elif (GET.get('get') == "airos"):
     show_airos()

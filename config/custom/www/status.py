@@ -138,6 +138,16 @@ def show_status():
     print         # blank line, end of headers
     print json.dumps(data)
 
+def show_connections():
+    # get versions of wizards and IP-addresses from seperate shellscript
+    versions = subprocess.check_output("/config/custom/connections.sh")
+
+    # return output
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v4.7")
+    print         # blank line, end of headers
+    print data
+
 def parse_firmware(me):
     fw=me.split(".")
     out=str(fw[2])
@@ -570,6 +580,8 @@ def show_html():
 
 if (GET.get('get') == "status"):
     show_status()
+if (GET.get('get') == "connections"):
+    show_connections()
 elif (GET.get('get') == "airos"):
     show_airos()
 elif (GET.get('get') == "test"):

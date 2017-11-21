@@ -79,6 +79,8 @@ except KeyError:
     authorized=True
     clientip="unknown"
 
+authorized_ip=authorized
+
 if (authorized==False and str(allowiphones)=="1"):
     try: 
         agent=os.environ["HTTP_USER_AGENT"]
@@ -101,7 +103,7 @@ def show_airos():
     print("Content-Type: text/json")
     print("X-Powered-By: cpo/bmk-v4.7")
     print         # blank line, end of headers
-    if (authorized):
+    if (authorized_ip):
         try: 
             f = open('/tmp/10-all.json', 'r')
             data = json.loads(f.read())
@@ -132,6 +134,20 @@ def show_status():
     data["local_ips"]=versions["local_ips"]
     data["autoupdate"]=versions["autoupdate"]
 
+    #allow airos-data for monitoring (for autorized IPs only)
+    if (authorized_ip):
+        try: 
+            f = open('/tmp/10-all.json', 'r')
+            airosdata = json.loads(f.read())
+            f.close()
+        except:
+            airosdata={}
+    
+    else:
+        airosdata={}
+
+    data["airosdata"]=airosdata
+
     # return json output
     print("Content-Type: text/json")
     print("X-Powered-By: cpo/bmk-v4.7")
@@ -139,7 +155,7 @@ def show_status():
     print json.dumps(data)
 
 def show_connections():
-    # get versions of wizards and IP-addresses from seperate shellscript
+    # get ports,bridges,vlans from connected/discovered devices
     data = subprocess.check_output("/config/custom/connections.sh")
 
     # return output
@@ -147,6 +163,36 @@ def show_connections():
     print("X-Powered-By: cpo/bmk-v4.7")
     print         # blank line, end of headers
     print data
+
+def show_conn():
+    # get ports,bridges,vlans from connected/discovered devices
+    #get bridges
+    exec_command="/usr/sbin/brctl show | awk '$0~/^br[0-9]/ {print $1}'"
+    bridges=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+
+    #get arp list
+    exec_command="/usr/sbin/arp -e -n | awk '{if ($0!~/incomplete|HWaddress/) {print $5\",\"toupper($3)\",\"$1}}'"
+    arplist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+
+    #get discovered devices as json
+    exec_command="/usr/sbin/ubnt-discover -d 500 -V -j"
+    args = shlex.split(exec_command)
+    devices = json.loads(subprocess.check_output(args))
+
+    #get list of all eth-ports and vlans
+    exec_command="/bin/ip addr show | grep -E \"^[0-9]|link\/ether\" | awk '{gsub(\"@\",\" \",$0); print $1\" \"$2}' | sed '$!N;s/\\n\\s*link\\/ether//;P;D' | awk '($3~/:/ && $2~/eth/){gsub(\":\",\"\",$2); print $2\",\"toupper($3)}' | sort"
+    portlist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+
+    #get local macs
+    #can be skipped -> get local macs from portlist!
+    exec_command="/bin/ip l | grep ether | awk '!x[$2]++ {print toupper($2)}'"
+    locals=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+
+    # return json output
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v4.7")
+    print         # blank line, end of headers
+    print "## Connections ##"
 
 def parse_firmware(me):
     fw=me.split(".")
@@ -332,7 +378,7 @@ def show_html():
                       <dt>mgmt Devices <span class="glyphicon glyphicon-signal" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top>
                         <!--td><b>HW Address</b></td--><td><b>Local IP</b></td><td><b>Hostname</b></td>
-                        <td><b>Product</b></td><td><b>Uptime</b></td><td><b>WMODE</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td><td><b>Wireless</b></td></tr></thead><tbody>"""
+                        <td><b>Product</b></td><td><b>Uptime</b></td><td><b>Mode</b></td><td><b>ESSID</b></td><td><b>Firmware</b></td><td><b>Wireless</b></td></tr></thead><tbody>"""
     warn_frequency=0
     for key,device in enumerate(sorted(data['devices'], key=ip4_to_integer)):
         try:
@@ -343,6 +389,7 @@ def show_html():
             frequency=int(frequency)
             chanbw=airos[device['ipv4']]['wireless']['chanbw']
             try:
+                #works for AirOS8
                 center1=airos[device['ipv4']]['wireless']['center1_freq']
                 freq_start=center1-(chanbw/2)
                 freq_end=center1+(chanbw/2)
@@ -354,6 +401,7 @@ def show_html():
                 if (mixed == 0): opmode=opmode+"-ac"
             
             except: 
+                #works for AirOS5,6
                 opmode=airos[device['ipv4']]['wireless']['opmode']
                 chwidth=airos[device['ipv4']]['wireless']['chwidth']
                 opmode=opmode.lower()
@@ -414,10 +462,19 @@ def show_html():
             
             wirelessdata=stationtext
             if (authorized): wirelessdata=str(freq_start)+"-"+str(freq_end)+" ("+str(chanbw)+") "+opmode+"<br>"+wirelessdata
+
+            try: 
+                temperature=str(airos[device['ipv4']]['host']['temperature'])
+                temperature=' <span class="glyphicon glyphicon-dashboard" aria-hidden="true" style=\"font-size:60%\"></span>'+temperature+'&#176;'
+            except: temperature=""
             
         except: 
-            wirelessdata=""
-        
+            temperature=""
+            if (device['wmode']=='2') or (device['wmode']=='3'):
+                wirelessdata='<span class="glyphicon glyphicon-question-sign" aria-hidden="true">'
+            else:
+                wirelessdata=''
+
         print "<tr>"
         #print "<!--td>"+device['hwaddr']+"</td-->"
         #print "<td title=\""+device['hwaddr']+"\">"+device['ipv4']+"</td>"
@@ -427,16 +484,17 @@ def show_html():
         print "<td>"+format_duration(device['uptime'])+"</td>"
         print "<td>"+format_wmode(device['wmode'])+"</td>"
         print "<td>"+device['essid']+"</td>"
-        print "<td>"+parse_firmware(device['fwversion'])+"</td>"
+        print "<td>"+parse_firmware(device['fwversion'])+temperature+"</td>"
         print "<td style=\"font-size:60%\">"+wirelessdata+"</td>"
         print "</tr>"
+
     
     print """</tbody></table>"""
     
     if (authorized and warn_frequency>0):
         print "<span style='color:red;'><b>Overlapping frequency!</b> Check "
         for mhz,used in band_outdoor.items():
-            if (used > 1): print "<u>"+str(mhz)+"</u>MHz:"+str(used)+" "
+            if (used > 1): print "<u>"+str(mhz)+"</u>MHz="+str(used)+" "
         
         print "</span><br><br>"    
     
@@ -582,6 +640,8 @@ if (GET.get('get') == "status"):
     show_status()
 elif (GET.get('get') == "connections"):
     show_connections()
+elif (GET.get('get') == "conn"):
+    show_conn()
 elif (GET.get('get') == "airos"):
     show_airos()
 elif (GET.get('get') == "test"):

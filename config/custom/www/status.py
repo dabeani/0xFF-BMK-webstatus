@@ -465,12 +465,13 @@ def show_html():
 
             try: 
                 temperature=str(airos[device['ipv4']]['host']['temperature'])
-                temperature=' <span class="glyphicon glyphicon-dashboard" aria-hidden="true" style=\"font-size:60%\"></span>'+temperature+'&#176;'
+                if (temperature=="0"): temperature=""
+                else: temperature=' <span class="glyphicon glyphicon-dashboard" aria-hidden="true" style=\"font-size:80%\"></span>'+temperature+'&#176;'
             except: temperature=""
             
         except: 
             temperature=""
-            if (device['wmode']=='2') or (device['wmode']=='3'):
+            if (device['wmode']==2) or (device['wmode']==3):
                 wirelessdata='<span class="glyphicon glyphicon-question-sign" aria-hidden="true">'
             else:
                 wirelessdata=''

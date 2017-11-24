@@ -8,7 +8,7 @@ disc=$(/usr/sbin/ubnt-discover -d 500 -V -j | jq -M '.devices[]')
 for portstring in $(/bin/ip addr show | grep -E "^[0-9]|link\/ether" | awk '{gsub("@"," ",$0); print $1" "$2}' | sed '$!N;s/\n\s*link\/ether//;P;D' | awk '($3~/:/ && $2~/eth/){gsub(":","",$2); print $2","toupper($3)}' | sort); do
   port=$(echo $portstring | cut -d "," -f1)
   portmac=$(echo $portstring | cut -d "," -f2)
-  echo "Port "$port
+  echo "Port "$port" "$(cat /opt/vyatta/config/active/interfaces/ethernet/$(echo $port | sed 's/\./\/vif\//')/description/node.val 2>/dev/null)
   for bridge in $bridges; do
     [ $(/usr/sbin/brctl show $bridge | grep -wce "$port\$") -eq 0 ] && continue
     bridgeport=$(/usr/sbin/brctl showstp $bridge | grep -E "^$port " | cut -d "(" -f2 | tr -d ")")

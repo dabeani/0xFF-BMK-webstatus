@@ -42,7 +42,7 @@ v6=$(ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} 
 [ ! "$v6" ] && v6="n/a"
 
 #get link local addresses and S/N
-output='"serial":"'$(/usr/sbin/ubnt-hal show-version 2>/dev/null | grep "HW S/N" | awk {'print $3'})'"'
+output='"serial":"'$(ip -6 link show eth0 | grep link/ether | awk {'gsub(":","",$2); print toupper($2)'})'"'
 for line in $(ip -6 -h -br a | grep -oE "^.{0,15}|fe80::.{10,25}\/64"); do
   if [ $(echo $line | grep -ic fe80) -eq 0 ]; then
     interface=$(echo $line | cut -d"@" -f1)

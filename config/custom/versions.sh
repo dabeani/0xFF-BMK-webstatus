@@ -41,7 +41,8 @@ orig=$(if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'} | wc -l
 v6=$(ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} | grep -iv $orig)
 [ ! "$v6" ] && v6="n/a"
 
-#get link local addresses
+#get link local addresses and S/N
+output='"serial":"'$(/usr/sbin/ubnt-hal show-version 2>/dev/null | grep "HW S/N" | awk {'print $3'})'"'
 for line in $(ip -6 -h -br a | grep -oE "^.{0,15}|fe80::.{10,25}\/64"); do
   if [ $(echo $line | grep -ic fe80) -eq 0 ]; then
     interface=$(echo $line | cut -d"@" -f1)
@@ -51,8 +52,7 @@ for line in $(ip -6 -h -br a | grep -oE "^.{0,15}|fe80::.{10,25}\/64"); do
     [ "$linklocal" ] && linklocal=$linklocal","
     linklocal=$linklocal$line
   fi
-  [ "$output" ] && output=$output","
-  output=$output"\"$interface\":\"$linklocal\""
+  output=$output",\"$interface\":\"$linklocal\""
 done
 
 echo -n '{'

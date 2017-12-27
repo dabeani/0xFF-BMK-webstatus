@@ -1,5 +1,5 @@
 #!/bin/bash
-# put version info to getter to support status.py
+# put version info to better to support status.py
 
 #get autoupdate-settings
 [ -L /etc/cron.daily/autoupdatewizards ] && auon="yes" || auon="no"
@@ -26,6 +26,13 @@ done
 bmkwebstatus=$(head -n 12 /config/custom/www/cgi-bin-status*.php 2>/dev/null | grep version= | cut -d'"' -f2 | head -n 1)
 [ ! "$bmkwebstatus" ] && bmkwebstatus="n/a"
 
+#get olsrd4-watchdog setting
+if [ $(grep -c LoadPlugin.*olsrd_watchdog /config/user-data/olsrd4.conf) \> 0 ] && [[ $(grep LoadPlugin.*olsrd_watchdog /config/user-data/olsrd4.conf) != \#* ]]; then
+    olsrd4watchdog="on"
+else
+    olsrd4watchdog="off"
+fi
+
 #get local ips
 v4=$(ip -4 addr show $(awk -F= '/MESH_IF=/ { print $2 }' /config/user-data/olsrd.default | tr -d \") | grep inet | awk {'print $2'} | awk -F/ {'print $1'})
 orig=$(if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'} | wc -l) == "1" ]; then curl -s --connect-timeout 1 http://127.0.0.1:8000/telnet/olsrv2info%20originator 2>/dev/null | grep : | head -n 1; else echo "n/a"; fi)
@@ -34,10 +41,26 @@ orig=$(if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'} | wc -l
 v6=$(ip -6 addr show lo | grep global | awk {'print $2'} | awk -F/ {'print $1'} | grep -iv $orig)
 [ ! "$v6" ] && v6="n/a"
 
+#get link local addresses
+for line in $(ip -6 -h -br a | grep -oE "^.{0,15}|fe80::.{10,25}\/64"); do
+  if [ $(echo $line | grep -ic fe80) -eq 0 ]; then
+    interface=$(echo $line | cut -d"@" -f1)
+    linklocal=""
+    continue
+  else
+    [ "$linklocal" ] && linklocal=$linklocal","
+    linklocal=$linklocal$line
+  fi
+  [ "$output" ] && output=$output","
+  output=$output"\"$interface\":\"$linklocal\""
+done
+
 echo -n '{'
 echo -n '"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle'","bmk-webstatus":"'$bmkwebstatus'","ebtables":"'$ebtables'"},'
 echo -n '"local_ips":{"ipv4":"'$v4'","ipv6":"'$v6'","originator":"'$orig'"},'
-echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$aa'","olsrv1":"'$aa1'","olsrv2":"'$aa2'","0xffwsle":"'$aale'","ebtables":"'$aaebt'"}'
+echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$aa'","olsrv1":"'$aa1'","olsrv2":"'$aa2'","0xffwsle":"'$aale'","ebtables":"'$aaebt'"},'
+echo -n '"olsrd4watchdog":{"state":"'$olsrd4watchdog'"},'
+echo -n '"linklocals":{'$output'}'
 echo    '}'
 
 exit 0

@@ -13,7 +13,7 @@ interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,et
 get_nslookup_from_nodedb=1
 show_link_to_adminlogin=0
 traceroute_to='78.41.115.36'
-traceroute6_to='78.41.115.36'
+traceroute6_to='2a02:60:35:492:1:ffff::1'
 ubntdiscovertime='150'
 #load settings
 for line in open("/config/custom/www/settings.inc"):

@@ -1,4 +1,4 @@
-#!/bin/vbash
+#!/bin/bash
 source /opt/vyatta/etc/functions/script-template
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
 eval $session_env

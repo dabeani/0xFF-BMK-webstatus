@@ -1,4 +1,4 @@
-#!/bin/vbash
+#!/bin/bash
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
 eval $session_env
 cli-shell-api setupSession

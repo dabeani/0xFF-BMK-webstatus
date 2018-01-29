@@ -144,11 +144,11 @@ exit $ret
         orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
         if [ "$orighttpport" == "80" ]; then
             echo "Changing port 80 to 81 failed, trying port_81.sh"
-            /config/scripts/port_81.sh
+            sudo /config/scripts/port_81.sh
             orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
             if [ "$orighttpport" == "80" ]; then
                 echo "Changing port 80 to 81 failed, trying port_81w.sh"
-                /config/scripts/port_81w.sh
+                sudo /config/scripts/port_81w.sh
                 #WTF? 
                 orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
                 if [ "$orighttpport" == "80" ]; then

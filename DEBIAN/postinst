@@ -5,6 +5,8 @@
 #keep cronjob for renewal if existed
 #pre-calculate keys if missing
 
+chmod 755 /config/scripts/port_81.sh
+
 if [ -f /tmp/do_lighttpd_restart ]; then
     restart=$(cat /tmp/do_lighttpd_restart)
    #rm -f /tmp/do_lighttpd_restart
@@ -137,6 +139,11 @@ exit $ret
         output=$(cat $tfile)
         rm -f $tfile
         echo $output
+		orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
+        if [ "$orighttpport" == "80" ]; then
+			echo "Changing port 80 to 81 failed, trying port_81.sh"
+			/config/scripts/port_81.sh
+		fi
     else 
         customhttpport=$(($orighttpport +1))
         sed -i -r 's/server.port.{0,4}=.{0,4}'$orighttpport'/server.port = '$customhttpport'/' /config/custom/lighttpd/conf-enabled/10-ssl.conf
@@ -293,6 +300,7 @@ for user in $userlist; do
   [ $(grep -c "alias ll=" /home/$user/.profile) -eq 0 ] && echo "alias ll=\"ls -al\"" >>/home/$user/.profile
 done
 
+rm /config/scripts/port_81.sh
 echo "postinst installation finished"
 
 exit 0

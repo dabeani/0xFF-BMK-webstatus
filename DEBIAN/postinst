@@ -149,6 +149,17 @@ exit $ret
 			if [ "$orighttpport" == "80" ]; then
 				echo "Changing port 80 to 81 failed, trying port_81w.sh"
 				/config/scripts/port_81w.sh
+
+				#WTF? 
+				orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
+				if [ "$orighttpport" == "80" ]; then
+					echo "Changing port 80 to 81 failed, using at-now to change it"
+					at now -f /config/scripts/port_81.sh
+					#waiting 10sec
+					echo -n "after 10 seconds"
+					sleep 10
+					echo "the orig-port is "$(grep "http-port" /config/config.boot | awk {'print $2;'})
+				fi
 			fi
 		fi
     else 

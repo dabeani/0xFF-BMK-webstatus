@@ -1,4 +1,9 @@
 #!/bin/bash
+source /opt/vyatta/etc/functions/script-template
+session_env=`/bin/cli-shell-api getSessionEnv $PPID`
+eval $session_env
+cli-shell-api setupSession
+
 cmd="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper"
 tfile=$(mktemp)
 (

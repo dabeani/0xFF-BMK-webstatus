@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/vbash
 source /opt/vyatta/etc/functions/script-template
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
 session_env=$(echo $session_env | sed -e 's/active declare/active; declare/')

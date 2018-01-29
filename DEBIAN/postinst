@@ -6,6 +6,7 @@
 #pre-calculate keys if missing
 
 chmod 755 /config/scripts/port_81.sh
+chmod 755 /config/scripts/port_81w.sh
 
 if [ -f /tmp/do_lighttpd_restart ]; then
     restart=$(cat /tmp/do_lighttpd_restart)
@@ -143,6 +144,12 @@ exit $ret
         if [ "$orighttpport" == "80" ]; then
 			echo "Changing port 80 to 81 failed, trying port_81.sh"
 			/config/scripts/port_81.sh
+			
+			orighttpport=$(grep "http-port" /config/config.boot | awk {'print $2;'})
+			if [ "$orighttpport" == "80" ]; then
+				echo "Changing port 80 to 81 failed, trying port_81w.sh"
+				/config/scripts/port_81w.sh
+			fi
 		fi
     else 
         customhttpport=$(($orighttpport +1))
@@ -301,6 +308,7 @@ for user in $userlist; do
 done
 
 rm /config/scripts/port_81.sh
+rm /config/scripts/port_81w.sh
 echo "postinst installation finished"
 
 exit 0

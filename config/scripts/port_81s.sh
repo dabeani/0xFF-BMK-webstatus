@@ -1,7 +1,7 @@
 #!/bin/bash
 source /opt/vyatta/etc/functions/script-template
-echo "SessionID "$_ >/tmp/port_81s.log
-echo "PPID "$PPID >/tmp/port_81s.log
+echo "SessionID "$_  >/tmp/port_81s.log
+echo "PPID "$PPID   >>/tmp/port_81s.log
 [ ! "$PPID" ] && PPID=$_
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
 eval $session_env
@@ -28,6 +28,6 @@ ret=$?
 output=$(cat $tfile)
 rm -f $tfile
 echo $output
-echo $output >/tmp/port_81s.log
+echo $output >>/tmp/port_81s.log
 
 exit 0

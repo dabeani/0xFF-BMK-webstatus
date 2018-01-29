@@ -1,10 +1,9 @@
 #!/bin/bash
 source /opt/vyatta/etc/functions/script-template
-echo "SessionID "$_  >/tmp/port_81s.log
-echo "PPID "$PPID   >>/tmp/port_81s.log
-[ ! "$PPID" ] && PPID=$_
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
-eval $session_env
+session_env=$(echo $session_env | sed -e 's/active declare/active; declare/')
+echo $PPID >/tmp/port_81s.log
+eval $session_env >>/tmp/port_81s.log
 cli-shell-api setupSession
 
 cmd="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper"

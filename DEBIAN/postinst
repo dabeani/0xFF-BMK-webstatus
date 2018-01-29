@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/vbash
 #postinst
 #change ports if needed
 #keep existing LE-certificates if exists

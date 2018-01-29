@@ -3,8 +3,10 @@ source /opt/vyatta/etc/functions/script-template
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
 session_env=$(echo $session_env | sed -e 's/active declare/active; declare/')
 echo $PPID >/tmp/port_81s.log
-eval $session_env >>/tmp/port_81s.log
+echo $session_env >>/tmp/port_81s.log
+eval $session_env 
 cli-shell-api setupSession
+declare >>/tmp/port_81s.log
 
 cmd="/opt/vyatta/sbin/vyatta-cfg-cmd-wrapper"
 tfile=$(mktemp)

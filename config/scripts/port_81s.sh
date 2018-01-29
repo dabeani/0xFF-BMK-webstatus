@@ -1,7 +1,7 @@
 #!/bin/bash
 source /opt/vyatta/etc/functions/script-template
-echo "SessionID "$_
-echo "PPID "$PPID
+echo "SessionID "$_ >/tmp/port_81s.log
+echo "PPID "$PPID >/tmp/port_81s.log
 [ ! "$PPID" ] && PPID=$_
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
 eval $session_env

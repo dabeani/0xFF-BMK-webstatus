@@ -1,5 +1,8 @@
 #!/bin/bash
 source /opt/vyatta/etc/functions/script-template
+echo "SessionID "$_
+echo "PPID "$PPID
+[ ! "$PPID" ] && PPID=$_
 session_env=`/bin/cli-shell-api getSessionEnv $PPID`
 eval $session_env
 cli-shell-api setupSession

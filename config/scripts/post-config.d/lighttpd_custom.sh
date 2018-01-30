@@ -90,4 +90,4 @@ for user in $userlist; do
   fi
   [ $(grep -c "alias ll=" /home/$user/.profile) -eq 0 ] && echo "alias ll=\"ls -al\"" >>/home/$user/.profile
 done
-
+[ $(grep -c "alias ll=" /root/.profile) -eq 0 ] && echo 'echo "alias ll=\"ls -al\"" >>/root/.profile' | sudo at now

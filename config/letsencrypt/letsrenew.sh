@@ -5,6 +5,7 @@
 #does nothing if no domain-registration is prepared from wizard
 
 log="/var/log/0xffletsrenew.log"
+echo "Renew procedure started $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
 
 # avoid 2 parallel runs of renewal
 if [ -f $log ] &&
@@ -13,7 +14,6 @@ if [ -f $log ] &&
     echo "Renewal running already, exit!" >>$log
     exit;
 fi
-echo "Renew procedure started $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
 
 #feature request
 #for renewal, custom lighttps must run on port 80

@@ -211,6 +211,8 @@ then
     restart="A"
     echo "Put cert files to server.pem"
     cp /tmp/server.pem /etc/lighttpd/server.pem
+  else
+    echo "server.pem using LetsEncrypt already contains correct key,certificate"
   fi
   rm -f /tmp/server.pem
 else 
@@ -223,6 +225,8 @@ else
       #2=default /wo LE --> save as backup/working
       echo "Saving current default server.pem file as backup..."
       cp /etc/lighttpd/server.pem /config/letsencrypt/original_server.pem
+    else
+      echo "lighttpd is running fine with non-default server.pem"
     fi
   elif [ -f "/config/letsencrypt/original_server.pem" ]; then
     #if NOT RUNNING
@@ -231,7 +235,12 @@ else
       restart="B"
       echo "Recovering original server.pem file..."
       cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+    else
+      echo "lighttpd not running, server.pem type not recognized"
     fi
+  else
+    #if NOT RUNNING and no pem backup
+    echo "lighttpd not running, no backup server.pem found"
   fi
 fi
 

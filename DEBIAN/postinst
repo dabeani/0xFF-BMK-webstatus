@@ -217,7 +217,7 @@ else
   # if not, recover original server.pem if possible - but only if NEEDED!
   # lighttpd running with current server.pem?
   lightrunning=$(ps aux | grep "/usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf" | grep -vc grep)
-  if [ $(lightrunning) -eq 1 ]; then
+  if [ $lightrunning -eq 1 ]; then
     #if RUNNING:
     if [ $(sudo grep -E "\-BEGIN PRIVATE KEY\-|\-BEGIN CERTIFICATE\-" /etc/lighttpd/server.pem | wc -l) -eq 2 ]; then
       #2=default /wo LE --> save as backup/working

@@ -213,12 +213,25 @@ then
     cp /tmp/server.pem /etc/lighttpd/server.pem
   fi
   rm -f /tmp/server.pem
-elif [ -f "/config/letsencrypt/original_server.pem" ]; then
-  # if not, recover original server.pem if possible
-  if [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) != $(sha1sum /config/letsencrypt/original_server.pem | awk {'print $1'}) ]; then
-    restart="B"
-    echo "Recovering original server.pem file..."
-    cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+else 
+  # if not, recover original server.pem if possible - but only if NEEDED!
+  # lighttpd running with current server.pem?
+  lightrunning=$(ps aux | grep "/usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf" | grep -vc grep)
+  if [ $(lightrunning) -eq 1 ]; then
+    #if RUNNING:
+    if [ $(sudo grep -E "\-BEGIN PRIVATE KEY\-|\-BEGIN CERTIFICATE\-" /etc/lighttpd/server.pem | wc -l) -eq 2 ]; then
+      #2=default /wo LE --> save as backup/working
+      echo "Saving current default server.pem file as backup..."
+      cp /etc/lighttpd/server.pem /config/letsencrypt/original_server.pem
+    fi
+  elif [ -f "/config/letsencrypt/original_server.pem" ]; then
+    #if NOT RUNNING
+    if [ $(sudo grep -E "\-BEGIN " /etc/lighttpd/server.pem | wc -l) -ne 2 ] &&
+       [ $(sudo sha1sum /etc/lighttpd/server.pem | awk {'print $1'}) != $(sha1sum /config/letsencrypt/original_server.pem | awk {'print $1'}) ]; then
+      restart="B"
+      echo "Recovering original server.pem file..."
+      cp /config/letsencrypt/original_server.pem /etc/lighttpd/server.pem
+    fi
   fi
 fi
 

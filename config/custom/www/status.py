@@ -276,7 +276,11 @@ def show_html():
         get_nslookup_from_nodedb=0
 
     if (str(get_nslookup_from_nodedb)=="1"):
-        node_dns=json.loads(nodedb_raw.read())
+        try: node_dns=json.loads(nodedb_raw.read())
+        except:
+            node_dns={}
+            get_nslookup_from_nodedb=0
+    
     else: node_dns={}
 
     # get routing table

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/vbash
 #preinstall
 
 # clean up old files from previous versions
@@ -111,6 +111,15 @@ fi
 if [ -f "/etc/cron.daily/restartservers.sh" ]; then
         rm /etc/cron.daily/restartservers.sh
 fi
+
+#cronjob moved to daily execution
+if [ -L "/etc/cron.monthly/letsrenew" ]; then
+        rm /etc/cron.monthly/letsrenew.sh
+fi
+if [ -f "/etc/cron.monthly/letsrenew" ]; then
+        rm /etc/cron.monthly/letsrenew.sh
+fi
+
 
 # recover original lighttpd.conf
 if [ -L /etc/lighttpd/lighttpd.conf ]; then

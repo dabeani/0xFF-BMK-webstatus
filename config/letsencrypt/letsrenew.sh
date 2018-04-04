@@ -10,8 +10,10 @@ echo "Renew procedure started $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
 #recognize wizard whether cronjob
 [ "$1" ] && [ "$1" == "force" ] && cronjob="" || cronjob=1
 if [ "$cronjob" ]; then
-  #on cronjob, renew only if remaining days < 15-rand(10)
-  #certfqdn certfrom certuntil
+  #renew considered by daily cronjob:
+  #>= 15d remaining: do not renew
+  #>3 and <15d remain: randomized: renew if ($daysleft-$random(10) <= 3)
+  #<= 3d remaining: try daily
   if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ]; then
       EXPIRES=$(openssl x509 -enddate -noout -in /config/letsencrypt/signed.crt | awk -F'=' {'print $2'})
   fi

@@ -7,12 +7,46 @@
 log="/var/log/0xffletsrenew.log"
 echo "Renew procedure started $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
 
+#recognize wizard whether cronjob
+[ "$1" ] && [ "$1" == "force" ] && cronjob="" || cronjob=1
+if [ "$cronjob" ]; then
+  #on cronjob, renew only if remaining days < 15-rand(10)
+  #certfqdn certfrom certuntil
+  if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ]; then
+      EXPIRES=$(openssl x509 -enddate -noout -in /config/letsencrypt/signed.crt | awk -F'=' {'print $2'})
+  fi
+  if [ "$EXPIRES" ]; then 
+    dt1=$(echo "$EXPIRES" | awk {'printf "Sun "$1" "; printf "%02d", $2; print " "$3" "$5" "$4'})
+    t1=$(date --date="$dt1" +%s)
+    t2=$(date +%s)
+    if [ $t1 \> $t2 ]; then 
+      daysleft=$(($(($t1 - $t2))/86400))
+      if [ $daysleft -le 3 ]; then
+        echo "cronjob-mode: certificate expires within $daysleft days, requesting renewal" >>$log
+      elif [ $daysleft -ge 15 ]; then
+        echo "cronjob-mode: certificate valid $daysleft days, no renewal needed, exit 0" >>$log
+        exit 0
+      elif [ $(($daysleft-$(($RANDOM%10)))) -gt 3 ]; then
+        echo "cronjob-mode: certificate valid $daysleft days, randomly skipping renewal, exit 0" >>$log
+        exit 0
+      else
+        echo "cronjob-mode: certificate valid $daysleft days, proceeding with renewal" >>$log
+      fi
+    else
+      echo "cronjob-mode: certificate already expired, requesting renewal" >>$log
+    fi
+  else
+    echo "cronjob-mode: remaining days not available, exit 1" >>$log
+    exit 1
+  fi
+fi
+
 # avoid 2 parallel runs of renewal
 if [ -f $log ] &&
    [ $(tail -n 1 $log 2>/dev/null | grep "procedure ended" | wc -l) -eq 0 ] &&
    [ $(find $log -mmin +1 | wc -l) -eq 0 ]; then
-    echo "Renewal running already, exit!" >>$log
-    exit;
+    echo "Renewal running already, exit 2" >>$log
+    exit 2;
 fi
 
 #feature request

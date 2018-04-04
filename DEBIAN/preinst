@@ -114,10 +114,10 @@ fi
 
 #cronjob moved to daily execution
 if [ -L "/etc/cron.monthly/letsrenew" ]; then
-        rm /etc/cron.monthly/letsrenew.sh
+        rm /etc/cron.monthly/letsrenew
 fi
 if [ -f "/etc/cron.monthly/letsrenew" ]; then
-        rm /etc/cron.monthly/letsrenew.sh
+        rm /etc/cron.monthly/letsrenew
 fi
 
 

@@ -5,6 +5,15 @@
 #does nothing if no domain-registration is prepared from wizard
 
 log="/var/log/0xffletsrenew.log"
+
+# avoid 2 parallel runs of renewal
+if [ -f $log ] &&
+   [ $(tail -n 1 $log 2>/dev/null | grep "procedure ended" | wc -l) -eq 0 ] &&
+   [ $(find $log -mmin +1 | wc -l) -eq 0 ]; then
+    echo "Renewal requested but running already, exit 2, $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
+    exit 2;
+fi
+
 echo "Renew procedure started $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
 
 #recognize wizard whether cronjob
@@ -27,9 +36,11 @@ if [ "$cronjob" ]; then
         echo "cronjob-mode: certificate expires within $daysleft days, requesting renewal" >>$log
       elif [ $daysleft -ge 15 ]; then
         echo "cronjob-mode: certificate valid $daysleft days, no renewal needed, exit 0" >>$log
+        echo "Renew procedure ended $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
         exit 0
       elif [ $(($daysleft-$(($RANDOM%10)))) -gt 3 ]; then
         echo "cronjob-mode: certificate valid $daysleft days, randomly skipping renewal, exit 0" >>$log
+        echo "Renew procedure ended $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
         exit 0
       else
         echo "cronjob-mode: certificate valid $daysleft days, proceeding with renewal" >>$log
@@ -39,16 +50,9 @@ if [ "$cronjob" ]; then
     fi
   else
     echo "cronjob-mode: remaining days not available, exit 1" >>$log
+    echo "Renew procedure ended $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
     exit 1
   fi
-fi
-
-# avoid 2 parallel runs of renewal
-if [ -f $log ] &&
-   [ $(tail -n 1 $log 2>/dev/null | grep "procedure ended" | wc -l) -eq 0 ] &&
-   [ $(find $log -mmin +1 | wc -l) -eq 0 ]; then
-    echo "Renewal running already, exit 2" >>$log
-    exit 2;
 fi
 
 #feature request

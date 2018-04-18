@@ -259,9 +259,11 @@ def show_html():
     import urllib2
     try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/lin", timeout = 1).read().strip("\n ")
     except:
-        #use httpinfo plugin
-        exec_command="echo -e 'T L\\nh e a d l i n e' && /usr/bin/curl -s 127.0.0.1:8080/nodes | sed -n \"/^<h2>Links/,/^<h2>Neighbors/p\" | sed -e 's/[\\/)( <>]/#/g' | awk -F'#' '/all/ {printf \"%-17s%-17s%5s%7s%7s%7s\\n\", $11,$25,$33,$39,$40,$42}'"
-        try: olsr_links=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        #use httpinfo plugin if available
+        try:
+            urllib2.urlopen("http://127.0.0.1:8080/about", timeout = 1).read()
+            exec_command="echo -e 'T L\\nh e a d l i n e' && /usr/bin/curl -s 127.0.0.1:8080/nodes | sed -n \"/^<h2>Links/,/^<h2>Neighbors/p\" | sed -e 's/[\\/)( <>]/#/g' | awk -F'#' '/all/ {printf \"%-17s%-17s%5s%7s%7s%7s\\n\", $11,$25,$33,$39,$40,$42}'"
+            olsr_links=subprocess.check_output(exec_command, shell=True).strip("\n ")
         except:
             #work around: get neighbors from routing table
             exec_command="echo -e 'T L\\nh e a d l i n e' && /sbin/ip -4 route | grep onlink | awk '!x[$3]++' | awk '{print \"- \"$3\" 0.000 0.000 0.000 0.000\"}'"

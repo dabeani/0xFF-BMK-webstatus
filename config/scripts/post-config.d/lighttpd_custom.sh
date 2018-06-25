@@ -10,20 +10,25 @@ if [ ! -d "/var/log/lighttpd_custom" ]; then
   chown www-data:www-data /var/log/lighttpd_custom
 fi
 
-# re-establish monthly renewal if needed
-if [ ! -L /etc/cron.monthly/letsrenew.sh ]; then
-  ln -sf /config/letsencrypt/letsrenew.sh /etc/cron.monthly/letsrenew.sh
+# re-establish renewal if needed
+if [ ! -f /etc/cron.daily/letsrenew ] && [ -f /config/letsencrypt/letsrenew.sh ]; then
+    echo "#!/bin/bash" >/etc/cron.daily/letsrenew
+    echo "/config/letsencrypt/letsrenew.sh" >>/etc/cron.daily/letsrenew
 fi
+chmod 755 /etc/cron.daily/letsrenew
 
 # re-establish daily restart script
-if [ ! -L "/etc/cron.daily/restartservers.sh" ] && [ -f /config/letsencrypt/restartservers.sh ]; then
-    ln -sf /config/letsencrypt/restartservers.sh /etc/cron.daily/restartservers.sh
+if [ ! -f /etc/cron.daily/restartservers ] && [ -f /config/letsencrypt/restartservers.sh ]; then
+    echo "#!/bin/bash" >/etc/cron.daily/restartservers
+    echo "/config/letsencrypt/restartservers.sh" >>/etc/cron.daily/restartservers
 fi
+chmod 755 /etc/cron.daily/restartservers
 
 # re-establish hourly AirOS fetching
 if [ ! -L "/etc/cron.hourly/loopairos" ] && [ -f /config/custom/loopairos.sh ]; then
     ln -sf /config/custom/loopairos.sh /etc/cron.hourly/loopairos
 fi
+chmod 755 /etc/cron.hourly/loopairos
 
 # 1.9.7aplha3 and later has no preinstalled php5 - remove php-setup from config
 # this logic supports only oneway php->python, will not reestablish php-setup later on!

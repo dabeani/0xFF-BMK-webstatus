@@ -289,19 +289,22 @@ def show_html():
     
     else: node_dns={}
 
+    # get default route
+    exec_command="/sbin/ip -4 r get 8.8.8.8 | head -1 | awk '{print $3,$5}'"
+    defroute=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+    defr=defroute[0].split()
+    defaultv4ip=defr[0]
+    defaultv4dev=defr[1]
+    defaultv4host=socket.getfqdn(defaultv4ip)
+
     # get routing table
-    exec_command="/sbin/ip -4 r | grep -v scope | awk '{print $3,$1,$5}'"
+    exec_command="/sbin/ip -4 r | grep -vE 'scope|default' | awk '{print $3,$1,$5}'"
     routinglist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
 
     gatewaylist={}
     nodelist={}
     for route in routinglist:
         line=route.split()
-        if (line[1] == 'default'):
-            defaultv4ip=line[0]
-            defaultv4dev=line[2]
-            defaultv4host=socket.getfqdn(defaultv4ip)
-            continue
         try: gatewaylist[line[0]].extend([str(line[1])])
         except KeyError: gatewaylist[line[0]]=[str(line[1])]
         try: tmp=len(nodelist[line[0]])

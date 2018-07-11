@@ -118,8 +118,23 @@ def show_ipv4():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v4.7")
     print         # blank line, end of headers
-
     exec_command="/sbin/ip -4 a"
+    data=subprocess.check_output(exec_command, shell=True)
+    print data
+    print
+    exec_command="/sbin/ip -4 neigh"
+    data=subprocess.check_output(exec_command, shell=True)
+    print data
+
+def show_ipv6():
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v4.7")
+    print         # blank line, end of headers
+    exec_command="/sbin/ip -6 a"
+    data=subprocess.check_output(exec_command, shell=True)
+    print data
+    print
+    exec_command="/sbin/ip -6 neigh"
     data=subprocess.check_output(exec_command, shell=True)
     print data
 
@@ -653,6 +668,8 @@ elif (GET.get('get') == "connections"):
     show_connections()
 elif (GET.get('get') == "airos"):
     show_airos()
+elif (GET.get('get') == "ipv6"):
+    show_ipv6()
 elif (GET.get('get') == "ipv4"):
     show_ipv4()
 elif (GET.get('get') == "test"):

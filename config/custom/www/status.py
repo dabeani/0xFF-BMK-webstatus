@@ -64,17 +64,25 @@ def check_ipv4_in(addr, start, end):
     return convert_ipv4(start) < convert_ipv4(addr) < convert_ipv4(end)
 
 # check if client is out of defined ip ranges
-try: 
+try:
     clientip=os.environ["REMOTE_ADDR"]
-    authorized=False
-    for ip in ipranges:
-        authorized=check_ipv4_in(clientip, ip[0], ip[1])
-        if (authorized): break
-    if (authorized==False):
-        for ip in ipaddresses:
-            authorized=check_ipv4_in(clientip, ip, ip)
+    try:
+        #check if client is IPv4
+        socket.inet_aton(clientip)
+        authorized=False
+        for ip in ipranges:
+            authorized=check_ipv4_in(clientip, ip[0], ip[1])
             if (authorized): break
-except KeyError: 
+        if (authorized==False):
+            for ip in ipaddresses:
+                authorized=check_ipv4_in(clientip, ip, ip)
+                if (authorized): break
+    
+    except socket.error:
+        #client is not IPv4, maybe IPv6
+        authorized=True
+
+except KeyError:
     # allow if unknown ip or local runenvironment
     authorized=True
     clientip="unknown"
@@ -82,7 +90,7 @@ except KeyError:
 authorized_ip=authorized
 
 if (authorized==False and str(allowiphones)=="1"):
-    try: 
+    try:
         agent=os.environ["HTTP_USER_AGENT"]
         import re
         iphone=r'.*iPhone.*OS (.{3,8}) like'
@@ -92,11 +100,28 @@ if (authorized==False and str(allowiphones)=="1"):
            authorized=True
     except:
         agent=""
+        uamatch=""
+
+else:
+    uamatch=""
 
 def show_test():
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v4.7")
+    print         # blank line, end of headers
+
     print str(authorized)+" ("+clientip+") "
     if (uamatch):
         print "iOS:"+uamatch.group(1).replace("_",".")
+
+def show_ipv4():
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v4.7")
+    print         # blank line, end of headers
+
+    exec_command="/sbin/ip -4 a"
+    data=subprocess.check_output(exec_command, shell=True)
+    print data
 
 def show_airos():
     # return output
@@ -165,36 +190,6 @@ def show_connections():
     print("X-Powered-By: cpo/bmk-v4.7")
     print         # blank line, end of headers
     print data
-
-def show_conn():
-    # get ports,bridges,vlans from connected/discovered devices
-    #get bridges
-    exec_command="/usr/sbin/brctl show | awk '$0~/^br[0-9]/ {print $1}'"
-    bridges=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
-
-    #get arp list
-    exec_command="/usr/sbin/arp -e -n | awk '{if ($0!~/incomplete|HWaddress/) {print $5\",\"toupper($3)\",\"$1}}'"
-    arplist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
-
-    #get discovered devices as json
-    exec_command="/usr/sbin/ubnt-discover -d 500 -V -j"
-    args = shlex.split(exec_command)
-    devices = json.loads(subprocess.check_output(args))
-
-    #get list of all eth-ports and vlans
-    exec_command="/bin/ip addr show | grep -E \"^[0-9]|link\/ether\" | awk '{gsub(\"@\",\" \",$0); print $1\" \"$2}' | sed '$!N;s/\\n\\s*link\\/ether//;P;D' | awk '($3~/:/ && $2~/eth/){gsub(\":\",\"\",$2); print $2\",\"toupper($3)}' | sort"
-    portlist=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
-
-    #get local macs
-    #can be skipped -> get local macs from portlist!
-    exec_command="/bin/ip l | grep ether | awk '!x[$2]++ {print toupper($2)}'"
-    locals=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
-
-    # return json output
-    print("Content-Type: text/plain")
-    print("X-Powered-By: cpo/bmk-v4.7")
-    print         # blank line, end of headers
-    print "## Connections ##"
 
 def parse_firmware(me):
     fw=me.split(".")
@@ -656,10 +651,10 @@ if (GET.get('get') == "status"):
     show_status()
 elif (GET.get('get') == "connections"):
     show_connections()
-elif (GET.get('get') == "conn"):
-    show_conn()
 elif (GET.get('get') == "airos"):
     show_airos()
+elif (GET.get('get') == "ipv4"):
+    show_ipv4()
 elif (GET.get('get') == "test"):
     show_test()
 else:

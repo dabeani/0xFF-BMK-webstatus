@@ -163,7 +163,15 @@ def show_airos():
 
 def show_status():
     # get ubnt-discover
-    exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V -i "+interface_list+" -j"
+    # first: make sure all interfaces exist
+    exec_command="cat /proc/net/dev | awk '/:/ {print $1}' | tr -d ':'"
+    existinginterfaces=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+    search4interfaces=interface_list.split(",")
+    s2 = set(search4interfaces)
+    b3 = [val for val in existinginterfaces if val in s2]
+    interface_list_ok = ",".join(b3)
+
+    exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V -i "+interface_list_ok+" -j"
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
 
@@ -260,7 +268,13 @@ def show_html():
     # host=socket.getfqdn('78.41.113.155')
 
     # get ubnt-discover
-    exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V -i "+interface_list+" -j"
+    exec_command="cat /proc/net/dev | awk '/:/ {print $1}' | tr -d ':'"
+    existinginterfaces=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+    search4interfaces=interface_list.split(",")
+    s2 = set(search4interfaces)
+    b3 = [val for val in existinginterfaces if val in s2]
+    interface_list_ok = ",".join(b3)
+    exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V -i "+interface_list_ok+" -j"
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
     #need sorting by IP last octet: 100..255, 1...99

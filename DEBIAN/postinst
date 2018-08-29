@@ -191,7 +191,6 @@ chmod 755 /config/letsencrypt/acme_tiny.py
 chmod 755 /config/letsencrypt/letsrenew.sh
 chmod 755 /config/letsencrypt/repair.sh
 chmod 755 /config/letsencrypt/restartservers.sh
-chmod 755 /config/custom/bin/ip2dns
 chmod 755 /config/custom/www/status.py
 chmod 755 /config/custom/versions.sh
 chmod 755 /config/custom/connections.sh

@@ -197,6 +197,7 @@ chmod 755 /config/custom/versions.sh
 chmod 755 /config/custom/connections.sh
 chmod 755 /config/custom/loopairos.sh
 chmod 755 /config/custom/getairos.sh
+chmod 755 /config/custom/jsonconvert.py
 # fix erlachp permission issue with user "funkfeuer"
 chmod 777 /config/custom/www/.well-known/acme-challenge
 

@@ -57,5 +57,5 @@ for i in $LIST; do
 done
 echo '}' >>/tmp/10-all.json
 
-## validate
-jq '.' /tmp/10-all.json >/dev/null 2>>$LOG
+## validate (skip on mips64 due to jq bug)
+[ $(uname -m) == "mips64" ] || jq '.' /tmp/10-all.json >/dev/null 2>>$LOG

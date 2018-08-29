@@ -4,7 +4,14 @@
 bridges=$(/usr/sbin/brctl show | awk '$0~/^br[0-9]/ {print $1}')
 arplist=$(/usr/sbin/arp -e -n | awk '{if ($0!~/incomplete|HWaddress/) {print "   "$5"    \t"toupper($3)" \t"$1}}')
 locals=$(/bin/ip l | grep ether | awk '!x[$2]++ {print toupper($2)}')
-disc=$(/usr/sbin/ubnt-discover -d 500 -V -j | jq -M '.devices[]')
+
+if [ $(uname -m) == "mips64" ]; then
+  #jq will hang/crash due to a bug on integer/float values, workaround with string conversion
+  disc=$(/usr/sbin/ubnt-discover -d 500 -V -j | tr '\n' ' ' | /config/custom/jsonconvert.py | jq -M '.devices[]')
+else
+  disc=$(/usr/sbin/ubnt-discover -d 500 -V -j | jq -M '.devices[]')
+fi
+
 for portstring in $(/bin/ip addr show | grep -E "^[0-9]|link\/ether" | awk '{gsub("@"," ",$0); print $1" "$2}' | sed '$!N;s/\n\s*link\/ether//;P;D' | awk '($3~/:/ && $2~/eth/){gsub(":","",$2); print $2","toupper($3)}' | sort); do
   port=$(echo $portstring | cut -d "," -f1)
   portmac=$(echo $portstring | cut -d "," -f2)

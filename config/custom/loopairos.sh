@@ -11,7 +11,7 @@ if [ $(ip -4 addr | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") == "1" ]; then
   LANSEGM=$(ip -4 addr | grep -oE "10\..{3,7}\.[12]0[012345]/.{1,2}" | head -n 1 | awk -F. {'print $1"."$2"."$3"."'})
 elif [ $(ip -4 addr | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") \> 1 ]; then
   # there are several 10.* addresses, try to fetch nodeID from map database
-  nodeid=$(curl -4s --connect-timeout 1 --speed-time 1 http://ff.cybercomm.at/mynodeid.php 2>/dev/null)
+  nodeid=$(curl -4s --connect-timeout 1 --speed-time 1 https://ff.cybercomm.at/mynodeid.php 2>/dev/null)
   if [ "$nodeid" ]; then
     # if found, use node-id
     t=$(printf "%0$((6-${#nodeid}))d%s" 0 $nodeid)

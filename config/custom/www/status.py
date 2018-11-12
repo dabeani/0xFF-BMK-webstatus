@@ -287,14 +287,17 @@ def show_html():
     # local hostname
     try: 
         hostname=os.environ['SERVER_NAME']
+        hostname=hostname.strip("[]")
         try:
             if (iptype == "ipv6"):
                 hostname,list,ip=socket.gethostbyaddr(hostname)
+                hostname=hostname.strip("[]")
                 ip=ip[0]
             else: 
                 ip=socket.gethostbyname(hostname)
-            if (iptype == "ipv4"  and hostname == ip):
+            if (hostname == ip):
                 hostname,list,ip=socket.gethostbyaddr(hostname)
+                hostname=hostname.strip("[]")
                 ip=ip[0]
         
         except:

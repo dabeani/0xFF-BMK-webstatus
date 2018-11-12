@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 #version=4.7
+import shlex, subprocess
+import json, os, socket
 
 #set defaults
 ipranges=[
@@ -8,6 +10,10 @@ ipranges=[
   ['185.194.20.0','185.194.23.255']
 ]
 ipaddresses=[]
+ip6ranges=[
+  ['2a02:60::0','2a02:67:ffff:ffff:ffff:ffff:ffff:ffff']
+]
+ip6addresses=[]
 allowiphones=1
 interface_list='br0.1100,br1,br1.1100,eth0.1100,eth1.1100,eth2.1100,eth3.1100,eth4.1100'
 get_nslookup_from_nodedb=1
@@ -37,9 +43,17 @@ for line in open("/config/custom/www/settings.inc"):
         #verify if valid ipv4!
         if (len(dat[1].strip(";'\n "))>0): ipaddresses=dat[1].strip(";'\n ").split(",")
         else: ipaddresses=[]
-
-import shlex, subprocess
-import json, os, socket
+    if (line.find("ip6ranges")>0): 
+        ip6ranges=[]
+        list=dat[1].strip(";'\n ").split(",")
+        for pairs in list:
+            #verify if valid ipv6!
+            if (pairs.find("-")>0): 
+                ip6ranges.append(pairs.split("-"))
+    if (line.find("ip6addresses")>0): 
+        #verify if valid ipv6!
+        if (len(dat[1].strip(";'\n "))>0): ip6addresses=dat[1].strip(";'\n ").split(",")
+        else: ip6addresses=[]
 
 # get http-get variables
 GET={}
@@ -63,6 +77,9 @@ def convert_ipv4(ip):
 def check_ipv4_in(addr, start, end):
     return convert_ipv4(start) < convert_ipv4(addr) < convert_ipv4(end)
 
+def check_ipv6_in(addr, start, end):
+    return socket.inet_pton(socket.AF_INET6,start) < socket.inet_pton(socket.AF_INET6,addr) < socket.inet_pton(socket.AF_INET6,end)
+
 # check if client is out of defined ip ranges
 try:
     clientip=os.environ["REMOTE_ADDR"]
@@ -70,6 +87,7 @@ try:
         #check if client is IPv4
         socket.inet_aton(clientip)
         authorized=False
+        iptype="ipv4"
         for ip in ipranges:
             authorized=check_ipv4_in(clientip, ip[0], ip[1])
             if (authorized): break
@@ -78,14 +96,30 @@ try:
                 authorized=check_ipv4_in(clientip, ip, ip)
                 if (authorized): break
     
-    except socket.error:
+    except:
         #client is not IPv4, maybe IPv6
-        authorized=True
+        try: 
+            socket.inet_pton(socket.AF_INET6, clientip)
+            authorized=False
+            iptype="ipv6"
+            for ip6 in ip6ranges:
+                authorized=check_ipv6_in(clientip, ip6[0], ip6[1])
+                if (authorized): break
+            if (authorized==False):
+                for ip6 in ip6addresses:
+                    authorized=check_ipv6_in(clientip, ip6, ip6)
+                    if (authorized): break
+        
+        except:
+            #neigher ipv4, nor ipv6
+            iptype="unknown"
+            authorized=True
 
 except KeyError:
     # allow if unknown ip or local runenvironment
     authorized=True
     clientip="unknown"
+    iptype="unknown"
 
 authorized_ip=authorized
 
@@ -254,13 +288,17 @@ def show_html():
     try: 
         hostname=os.environ['SERVER_NAME']
         try:
-            hostname,list,ip=socket.gethostbyaddr(hostname)
-            ip=ip[0]
-        except socket.error:
+            if (iptype == "ipv6"):
+                hostname,list,ip=socket.gethostbyaddr(hostname)
+                ip=ip[0]
+            else: 
+                ip=socket.gethostbyname(hostname)
+        
+        except:
             hostname=hostname
             ip=""
     
-    except KeyError: 
+    except: 
         hostname=socket.gethostname()
         ip=""
 

@@ -21,6 +21,12 @@ $ipranges='193.238.156.0-193.238.159.255,78.41.112.0-78.41.119.255,185.194.20.0-
 // define ip-addresses to display management data in status.py: IP[,IP] default none
 $ipaddresses=''; 
 
+// define ip-ranges to display management data in status.py: IP-IP[,IP-IP] default=3 0xFF-IP-ranges
+$ip6ranges='2a02:60::0-2a02:67:ffff:ffff:ffff:ffff:ffff:ffff'; 
+
+// define ip-addresses to display management data in status.py: IP[,IP] default none
+$ip6addresses=''; 
+
 $allowiphones=1; 
 
 $ubntdiscovertime=150;

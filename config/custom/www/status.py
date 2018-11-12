@@ -297,7 +297,12 @@ def show_html():
     
     # get node-db info
     global get_nslookup_from_nodedb
-    try: nodedb_raw=urllib2.urlopen("http://ff.cybercomm.at/node_db.json", timeout = 1)
+    try: useragent=os.environ["HTTP_USER_AGENT"]
+    except: useragent='status.py-unknown-user-agent'
+    try:
+        #nodedb_raw=urllib2.urlopen("https://ff.cybercomm.at/node_db.json", timeout = 1)
+        req = urllib2.Request("https://ff.cybercomm.at/node_db.json", headers={'User-Agent': useragent})
+        nodedb_raw=urllib2.urlopen(req, timeout = 1)
     except urllib2.URLError:
         get_nslookup_from_nodedb=0
     except socket.timeout:

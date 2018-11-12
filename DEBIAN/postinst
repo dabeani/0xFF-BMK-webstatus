@@ -56,6 +56,12 @@ if [ -f "/tmp/settings.inc" ]; then
     if [ $(grep -c "\$ipaddresses='" /tmp/settings.inc) -eq 0 ]; then
     sed -i "s/?>/\/\/ define ip-addresses to display management data in status.py: IP[,IP] default none\n\$ipaddresses='';\n\n?>/" /tmp/settings.inc
     fi
+    if [ $(grep -c "\$ip6ranges='" /tmp/settings.inc) -eq 0 ]; then
+    sed -i "s/?>/\/\/ define ip6-ranges to display management data in status.py: IP6-IP6[,IP6-IP6] default=0xFF-IP6-ranges\n\$ip6ranges='2a02:60::0-2a02:67:ffff:ffff:ffff:ffff:ffff:ffff';\n\n?>/" /tmp/settings.inc
+    fi
+    if [ $(grep -c "\$ip6addresses='" /tmp/settings.inc) -eq 0 ]; then
+    sed -i "s/?>/\/\/ define ip6-addresses to display management data in status.py: IP6[,IP6] default none\n\$ip6addresses='';\n\n?>/" /tmp/settings.inc
+    fi
     if [ $(grep -c "\$allowiphones=" /tmp/settings.inc) -eq 0 ]; then
     sed -i "s/?>/\$allowiphones=1;\n\n?>/" /tmp/settings.inc
     fi

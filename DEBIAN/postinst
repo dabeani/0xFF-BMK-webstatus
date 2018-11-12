@@ -250,6 +250,19 @@ else
   fi
 fi
 
+#add ca-file to config (also after FW-update)
+if [ -f /config/letsencrypt/chain.pem ]; then
+  for configfile in $(echo "/config/custom/lighttpd/conf-enabled/10-ssl.conf /etc/lighttpd/conf-enabled/10-ssl.conf"); do
+    if [ $(grep -c "ssl\.ca-file" $configfile) -ne 2 ]; then
+      sed -i '/ssl.ca-file/d' $configfile
+      for linenumber in $(grep -n server.pem $configfile | cut -d":" -f1 | sort -r); do
+        sed -i $(($linenumber +1))'i\
+        ssl.ca-file = "/config/letsencrypt/chain.pem"' $configfile
+      done
+    fi
+  done
+fi
+
 ## only if restart=1, in this case try to stop first
 if [ "$restart" ]; then
     echo "Stopping original webserver"
@@ -309,7 +322,7 @@ fi
 
 # prepare ssh keys
 if [ ! -f /config/letsencrypt/id_rsa ] && [ ! -f /config/letsencrypt/id_rsa.pub ]; then
-  echo "preparnig ssh keys"
+  echo "preparing ssh keys"
   ssh-keygen -C "$(hostname)" -f /config/letsencrypt/id_rsa -N ""
   if   [ -d /home/ubnt ]; then user=ubnt
   elif [ -d /home/funkfeuer ]; then user=funkfeuer

@@ -293,6 +293,8 @@ def show_html():
                 ip=ip[0]
             else: 
                 ip=socket.gethostbyname(hostname)
+            if (iptype == "ipv4"  and hostname == ip):
+                hostname,list,ip=socket.gethostbyaddr(hostname)
         
         except:
             hostname=hostname

@@ -254,6 +254,7 @@ fi
 if [ -f /config/letsencrypt/chain.pem ]; then
   for configfile in $(echo "/config/custom/lighttpd/conf-enabled/10-ssl.conf /etc/lighttpd/conf-enabled/10-ssl.conf"); do
     if [ $(grep -c "ssl\.ca-file" $configfile) -ne 2 ]; then
+      [ "$configfile" == "/etc/lighttpd/conf-enabled/10-ssl.conf" ] && restart=1
       sed -i '/ssl.ca-file/d' $configfile
       for linenumber in $(grep -n server.pem $configfile | cut -d":" -f1 | sort -r); do
         sed -i $(($linenumber +1))'i\

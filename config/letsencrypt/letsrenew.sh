@@ -148,6 +148,26 @@ fi
 echo "renewing certificate..." >>$log 2>>$log
 python /config/letsencrypt/acme_tiny.py --account-key /config/letsencrypt/account.key --csr /config/letsencrypt/domain.csr --acme-dir /config/custom/www/.well-known/acme-challenge/ >/config/letsencrypt/signed.crt 2>>$log
 
+#download chain.pem and save it on success
+curl https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem -o /config/letsencrypt/chain.tmp
+if [ $(grep -c "CERTIFICATE" /config/letsencrypt/chain.tmp) -eq 2 ]; then
+  mv /config/letsencrypt/chain.tmp /config/letsencrypt/chain.pem
+else
+  rm /config/letsencrypt/chain.tmp 2>/dev/null
+fi
+#add ca-file to config (also after FW-update)
+if [ -f /config/letsencrypt/chain.pem ]; then
+  for configfile in $(echo "/config/custom/lighttpd/conf-enabled/10-ssl.conf /etc/lighttpd/conf-enabled/10-ssl.conf"); do
+    if [ $(grep -c "ssl\.ca-file" $configfile) -ne 2 ]; then
+      sed -i '/ssl.ca-file/d' $configfile
+      for linenumber in $(grep -n server.pem $configfile | cut -d":" -f1 | sort -r); do
+        sed -i $(($linenumber +1))'i\
+        ssl.ca-file = "/config/letsencrypt/chain.pem"' $configfile
+      done
+    fi
+  done
+fi
+
 ## Restore original port settings, remember restart-need
 if [ "$customhttpport" != "80" ]; then
     #stop custom server

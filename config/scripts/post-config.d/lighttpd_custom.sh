@@ -39,7 +39,20 @@ if [ ! -d /var/run/php5 ] && [ "$(grep -ni conf-enabled/15-fastcgi-php.conf /con
     mv /config/custom/www/cgi-bin-status.php /config/custom/www/cgi-bin-status-dead.php 2>/dev/null
 fi
 
-# re-establish current certificate file, only of domain.key is not of zero file-size
+#add ca-file to config (also after FW-update)
+if [ -f /config/letsencrypt/chain.pem ]; then
+  for configfile in $(echo "/config/custom/lighttpd/conf-enabled/10-ssl.conf /etc/lighttpd/conf-enabled/10-ssl.conf"); do
+    if [ $(grep -c "ssl\.ca-file" $configfile) -ne 2 ]; then
+      sed -i '/ssl.ca-file/d' $configfile
+      for linenumber in $(grep -n server.pem $configfile | cut -d":" -f1 | sort -r); do
+        sed -i $(($linenumber +1))'i\
+        ssl.ca-file = "/config/letsencrypt/chain.pem"' $configfile
+      done
+    fi
+  done
+fi
+
+# re-establish current certificate file, only if domain.key is not of zero file-size
 # original server.pem contains "BEGIN PRIVATE KEY", whereas LE-signed server.pem includes "BEGIN RSA PRIVATE KEY".
 # only renew server.pem file if needed and signature file is >0 bytes
 if [ -f "/config/letsencrypt/signed.crt" ] && [ ! $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ] &&

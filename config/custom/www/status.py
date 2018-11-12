@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#version=4.7
+version="4.8"
 import shlex, subprocess
 import json, os, socket
 
@@ -141,7 +141,7 @@ else:
 
 def show_test():
     print("Content-Type: text/plain")
-    print("X-Powered-By: cpo/bmk-v4.7")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
 
     print str(authorized)+" ("+clientip+") "
@@ -150,7 +150,7 @@ def show_test():
 
 def show_ipv4():
     print("Content-Type: text/plain")
-    print("X-Powered-By: cpo/bmk-v4.7")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     exec_command="/sbin/ip -4 a"
     data=subprocess.check_output(exec_command, shell=True)
@@ -162,7 +162,7 @@ def show_ipv4():
 
 def show_ipv6():
     print("Content-Type: text/plain")
-    print("X-Powered-By: cpo/bmk-v4.7")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     exec_command="/sbin/ip -6 a"
     data=subprocess.check_output(exec_command, shell=True)
@@ -175,7 +175,7 @@ def show_ipv6():
 def show_airos():
     # return output
     print("Content-Type: text/json")
-    print("X-Powered-By: cpo/bmk-v4.7")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     if (authorized_ip):
         try: 
@@ -234,7 +234,7 @@ def show_status():
 
     # return json output
     print("Content-Type: text/json")
-    print("X-Powered-By: cpo/bmk-v4.7")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     print json.dumps(data)
 
@@ -244,7 +244,7 @@ def show_connections():
 
     # return output
     print("Content-Type: text/plain")
-    print("X-Powered-By: cpo/bmk-v4.7")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     print data
 
@@ -401,7 +401,7 @@ def show_html():
 
     # start to print content
     print("Content-Type: text/html")
-    print("X-Powered-By: cpo/bmk-v4.7")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     print """<!DOCTYPE html>
 <html lang="de">

@@ -301,7 +301,7 @@ def show_html():
     except: useragent='status.py-unknown-user-agent'
     try:
         #nodedb_raw=urllib2.urlopen("https://ff.cybercomm.at/node_db.json", timeout = 1)
-        req = urllib2.Request("https://ff.cybercomm.at/node_db.json", headers={'User-Agent': useragent})
+        req = urllib2.Request("https://ff.cybercomm.at/node_db.json", headers={'User-Agent': useragent+' OriginIP/'+clientip})
         nodedb_raw=urllib2.urlopen(req, timeout = 1)
     except urllib2.URLError:
         get_nslookup_from_nodedb=0

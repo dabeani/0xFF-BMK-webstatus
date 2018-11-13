@@ -711,7 +711,7 @@ def show_html():
     print """</dd>
                       <dt>IPv6 OLSR2-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
     #insert olsr-route-layover
-    gatewaylist=()
+    gatewaylist={}
     for key,destinationlist in gatewaylist.items():
         print """<!-- Modal -->
 <div class="modal fade" id="my6Modal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -746,7 +746,7 @@ def show_html():
 </div>
 """
     #insert olsr-node-layover
-    nodelist=()
+    nodelist={}
     for key,destinationlist in nodelist.items():
         print """<!-- Modal -->
 <div class="modal fade" id="my6Modal"""+key.replace(".","")+"""_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -774,7 +774,7 @@ def show_html():
     print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
                         <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
-    lines=()
+    lines={}
     for key,line in enumerate(lines):
         if (key <= 1): continue
         if (len(line) == 0): continue
@@ -803,7 +803,34 @@ def show_html():
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>
                         <td><b>Ping</b></td></tr></thead><tbody>
 """
-    #traceroute here
+    try:
+        exec_command="/usr/bin/traceroute -6 -w 1 -q 1 "+traceroute6_to
+        args = shlex.split(exec_command)
+        data = subprocess.check_output(args).strip("\n ")
+        lines=data.split('\n')
+        for key,line in enumerate(lines):
+            if (key == 0): continue
+            if (len(line) == 0): continue
+            traceline=line.split()
+            hopnumber=traceline[0]
+            hostname=traceline[1]
+            ipv6address=traceline[2].strip("()")
+            if (hostname == ipv6address):
+                try:
+                    ipv4=node_dns['v6-to-v4'][ipv6address]
+                    try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                    except: hostname="("+ipv4+")"
+                except: hostname="unknown"
+            timetotarget=traceline[3]
+            print "<tr><td>"+hopnumber+"</td>", #HOP
+            print "<td><a href=\"https://"+hostname+"\" target=_blank>"+hostname+"</a></td>", #HOST
+            print "<td><a href=\"https://["+ipv6address+"]\" target=_blank>"+ipv6address+"</a></td>", #IP
+            print "<td>"+timetotarget+"ms</td>", #PING
+            print "</tr>"
+        
+    except:
+        print "<tr><td colspan=4>looks like traceroute6 result is not available</td></tr>"
+    
     print """</tbody></table></dd>
                     </dl>
                 </div>

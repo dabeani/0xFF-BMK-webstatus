@@ -813,15 +813,18 @@ def show_html():
             if (len(line) == 0): continue
             traceline=line.split()
             hopnumber=traceline[0]
-            hostname=traceline[1]
-            ipv6address=traceline[2].strip("()")
+            try:hostname=traceline[1]
+            except:hostname=""
+            try:ipv6address=traceline[2].strip("()")
+            except:ipv6address="?"
             if (hostname == ipv6address):
                 try:
                     ipv4=node_dns['v6-to-v4'][ipv6address]
                     try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
                     except: hostname="("+ipv4+")"
                 except: hostname="unknown"
-            timetotarget=traceline[3]
+            try:timetotarget=traceline[3]
+            except:timetotarget="??"
             print "<tr><td>"+hopnumber+"</td>", #HOP
             print "<td><a href=\"https://"+hostname+"\" target=_blank>"+hostname+"</a></td>", #HOST
             print "<td><a href=\"https://["+ipv6address+"]\" target=_blank>"+ipv6address+"</a></td>", #IP
@@ -829,7 +832,7 @@ def show_html():
             print "</tr>"
         
     except:
-        print "<tr><td colspan=4>looks like traceroute6 result is not available</td></tr>"
+        print "<tr><td colspan=4>looks like traceroute6 result to "+traceroute6_to+" is not available</td></tr>"
     
     print """</tbody></table></dd>
                     </dl>

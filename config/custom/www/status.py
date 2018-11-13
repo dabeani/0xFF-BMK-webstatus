@@ -427,6 +427,7 @@ def show_html():
             <ul class="nav nav-tabs" role="tablist">
                 <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                 <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
+                <li role="presentation"><a href="#olsr2" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> OLSRv2</a></li>
                 <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>"""
     print '                <li role="presentation"><a href="#">'+ip+" - "+hostname+'</a></li>'
     if (str(show_link_to_adminlogin)=="1"):
@@ -698,6 +699,111 @@ def show_html():
         print "<td>"+traceline[3]+"ms</td>", #PING
         print "</tr>"
     
+    print """</tbody></table></dd>
+                    </dl>
+                </div>
+<!-- OLSRv2 TAB -->
+                <div role="tabpanel" class="tab-pane" id="olsr2">
+                    <dl class="dl-horizontal">
+                      <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
+    #print "<a href=\"https://"+defaultv4host+"\" target=_blank>"+format_hostname(defaultv4host)+"</a> "
+    #print "(<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a>) via "+defaultv4dev
+    print """</dd>
+                      <dt>IPv6 OLSR2-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
+    #insert olsr-route-layover
+    gatewaylist=()
+    for key,destinationlist in gatewaylist.items():
+        print """<!-- Modal -->
+<div class="modal fade" id="my6Modal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">"""+str(len(destinationlist))+""" routes via <b>"""+key+"""</b></h4>
+      </div>
+      <div class="modal-body">"""
+        for dest in destinationlist:
+            print dest, 
+            try: 
+                n=node_dns[dest]['n']
+                print n, 
+            except KeyError: n=""
+            try: 
+                d=node_dns[dest]['d']
+                print d, 
+            except KeyError: d=""
+
+            print "<br>"
+
+        print """</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+"""
+    #insert olsr-node-layover
+    nodelist=()
+    for key,destinationlist in nodelist.items():
+        print """<!-- Modal -->
+<div class="modal fade" id="my6Modal"""+key.replace(".","")+"""_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title" id="myModalLabel">"""+str(len(destinationlist))+""" nodes via <b>"""+key+"""</b></h4>
+      </div>
+      <div class="modal-body">"""
+        for dest in destinationlist:
+            print dest, 
+            print "<br>"
+
+        print """</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+"""
+    print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
+                        <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+"""
+    lines=()
+    for key,line in enumerate(lines):
+        if (key <= 1): continue
+        if (len(line) == 0): continue
+        link=line.split()
+        print "<tr"
+        if (link[1] == defaultv4ip): print " bgcolor=FFD700"
+        host=socket.getfqdn(link[1])
+        print "><td>"+link[0]+"</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
+        print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
+        print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
+        print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
+        try: 
+            g=gatewaylist[link[1]]
+            g=str(len(g))
+        except KeyError: g="0"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link[1].replace(".","")+"\">"+g+"</button></td>"
+        try: 
+            l=nodelist[link[1]]
+            l=str(len(l))
+        except KeyError: l="0"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link[1].replace(".","")+"_nodes\">"+l+"</button></td>"
+        print "</tr>"
+
+    print """</tbody></table></dd>
+                      <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
+                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>
+                        <td><b>Ping</b></td></tr></thead><tbody>
+"""
+    #traceroute here
     print """</tbody></table></dd>
                     </dl>
                 </div>

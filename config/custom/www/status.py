@@ -901,7 +901,7 @@ def show_html():
 </div>
 """
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><td><b>IF</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><td><b>Metric-In</b></td><td><b>Metric-Out</b></td> <td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+                        <tr valign=top><td><b>IF</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><!--td><b>Metric-In</b></td--><td><b>Metric-In/Out</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
         for key,link in enumerate(olsr2neighbors):
             #if (key <= 1): continue
@@ -918,8 +918,10 @@ def show_html():
             print "><td>"+link['if']+"</td><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
             if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+format_hostname(hostname)+"</a></td>" #link-hostname
             else: print "<td>"+hostname+"</td>" #link-hostname
-            print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
-            print "<td>"+link['domain_metric_out']+"</td>" 
+            print "<td>"+link['link_mac']+"</td>"
+            print "<td style=\"font-size:60%\" align=right>"+link['domain_metric_in']+"<br>"+link['domain_metric_out']+"</td>"
+            #print "<td align=right>"+link['domain_metric_in']+"</td>" 
+            #print "<td align=right>"+link['domain_metric_out']+"</td>" 
             try: 
                 g=gateway6list[link['link_bindto']]
                 g=str(len(g))
@@ -982,8 +984,13 @@ def show_html():
     duration=round(end_time-start_time,2)
     print """<!-- Contact TAB -->
                 <div role="tabpanel" class="tab-pane" id="contact">
-                    in Arbeit :D...
-                </div>
+                    <div class="page-header">
+                        <h1>Kontakt</h1>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-body"><b>Wer?</b></div>
+                        <div class="panel-footer">...in Arbeit...</div>
+                    </div>
             </div>
         </div>
     </div>

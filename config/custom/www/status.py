@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 version="4.8"
+
 import shlex, subprocess
 import json, os, socket
+from time import time
+start_time = time()
 
 #set defaults
 ipranges=[
@@ -958,6 +961,8 @@ def show_html():
 
 ##END OLSRv2 section
 
+    end_time=time()
+    duration=round(end_time-start_time,2)
     print """<!-- Contact TAB -->
                 <div role="tabpanel" class="tab-pane" id="contact">
                     in Arbeit :D...
@@ -968,7 +973,7 @@ def show_html():
 </div>
 <footer class="footer">
   <div class="container">
-    <p class="text-muted">Page generated with Python.</p>
+    <p class="text-muted">Page generated in """+str(duration)+"""sec with Python.</p>
   </div>
 </footer>
     <script src="/js/jquery.min.js"></script>

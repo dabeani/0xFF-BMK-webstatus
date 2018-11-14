@@ -698,7 +698,7 @@ def show_html():
 
     print """</tbody></table></dd>
                       <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
-                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>
+                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>IP Address</b></td><td><b>Hostname</b></td>
                         <td><b>Ping</b></td></tr></thead><tbody>
 """
     exec_command="/usr/bin/traceroute -4 -w 1 -q 1 "+traceroute_to
@@ -710,8 +710,8 @@ def show_html():
         if (len(line) == 0): continue
         traceline=line.split()
         print "<tr><td>"+traceline[0]+"</td>", #HOP
-        print "<td><a href=\"https://"+traceline[1]+"\" target=_blank>"+format_hostname(traceline[1])+"</a></td>", #HOST
         print "<td><a href=\"https://"+traceline[2].strip("()")+"\" target=_blank>"+traceline[2].strip("()")+"</a></td>", #IP
+        print "<td><a href=\"https://"+traceline[1]+"\" target=_blank>"+format_hostname(traceline[1])+"</a></td>", #HOST
         print "<td>"+traceline[3]+"ms</td>", #PING
         print "</tr>"
     
@@ -928,7 +928,7 @@ def show_html():
         
         print """</tbody></table></dd>
                       <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
-                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>
+                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>IP Address</b></td><td><b>Hostname</b></td>
                         <td><b>Ping</b></td></tr></thead><tbody>
 """
         try:
@@ -949,13 +949,16 @@ def show_html():
                     try:
                         ipv4=node_dns['v6-to-v4'][ipv6address]
                         try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
-                        except: hostname="("+ipv4+")"
+                        except: hostname="unknown("+ipv4+")"
                     except: hostname="unknown"
                 try:timetotarget=traceline[3]
                 except:timetotarget="??"
                 print "<tr><td>"+hopnumber+"</td>", #HOP
-                print "<td><a href=\"https://"+hostname+"\" target=_blank>"+format_hostname(hostname)+"</a></td>", #HOST
                 print "<td><a href=\"https://["+ipv6address+"]\" target=_blank>"+ipv6address+"</a></td>", #IP
+                if (hostname.find("unknown")>0 or hostname.find("?")>0):
+                    print "<td>"+hostname+"</td>", #HOST
+                else:
+                    print "<td><a href=\"https://"+hostname+"\" target=_blank>"+format_hostname(hostname)+"</a></td>", #HOST
                 print "<td>"+timetotarget+"ms</td>", #PING
                 print "</tr>"
             

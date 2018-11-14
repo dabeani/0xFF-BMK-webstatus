@@ -439,7 +439,7 @@ def show_html():
                 <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                 <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
 """
-    if (olsrv2_on): print """                <li role="presentation"><a href="#olsr2" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> OLSRv2</a></li>
+    if (olsr2_on): print """                <li role="presentation"><a href="#olsr2" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> OLSRv2</a></li>
 """
     print """                <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>"""
     print '                <li role="presentation"><a href="#">'+ip+" - "+hostname+'</a></li>'
@@ -747,7 +747,7 @@ def show_html():
             #now try to find correct hostname of default-gateway
             try:
                 for key,link in enumerate(olsr2neighbors['link']):
-                    if (key <= 1): continue
+                    #if (key <= 1): continue
                     if (len(link) == 0): continue
                     if (link['link_bindto'] == defaultv6ip):
                         defaultv6globalip=link['neighbor_originator']
@@ -785,7 +785,7 @@ def show_html():
             except KeyError:
                 n=""
 
-##BEGINN OLSRv2 section
+##BEGIN OLSRv2 section
 
         print """
 <!-- OLSRv2 TAB -->
@@ -859,10 +859,10 @@ def show_html():
 </div>
 """
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><td><b>Metric-In</b></td><td><b>Metric-Out</b></td> <td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+                        <tr valign=top><td><b>IF</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><td><b>Metric-In</b></td><td><b>Metric-Out</b></td> <td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
         for key,link in enumerate(olsr2neighbors['link']):
-            if (key <= 1): continue
+            #if (key <= 1): continue
             if (len(link) == 0): continue
             print "<tr"
             if (link['link_bindto'] == defaultv6ip): print " bgcolor=FFD700"
@@ -873,7 +873,7 @@ def show_html():
                 try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
                 except: hostname="("+ipv4+")"
             except: hostname="(unknown)"
-            print "><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
+            print "><td>"+link['if']+"</td><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
             print "<td><a href=https://"+hostname+" target=_blank>"+hostname+"</a></td>" #link-hostname
             print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
             print "<td>"+link['domain_metric_out']+"</td>" 

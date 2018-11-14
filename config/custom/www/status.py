@@ -735,7 +735,7 @@ def show_html():
 
         #get uptime
         try:
-            exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/systeminfo%20json%time"
+            exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/systeminfo%20json%20time"
             args = shlex.split(exec_command)
             olsr2time = json.loads(subprocess.check_output(args))
         except:
@@ -811,10 +811,10 @@ def show_html():
         except: print "unknown-commit-text"
         print """</dd>
                       <dt>Olsrd2 Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
-        try: print olsr2time['time']['time_system']
+        try: print olsr2time['time'][0]['time_system']
         except: print "unknown-system-time"
         print " | "
-        try: print olsr2time['time']['time_internal']
+        try: print olsr2time['time'][0]['time_internal']
         except: print "unknown-time-internal"
         print """</dd>
                       <dt>Originator <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""

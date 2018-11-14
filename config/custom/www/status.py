@@ -744,18 +744,18 @@ def show_html():
             #now try to find correct hostname of default-gateway
             try:
                 for key,link in enumerate(olsr2neighbors['link']):
-                if (key <= 1): continue
-                if (len(link) == 0): continue
-                if (link['link_bindto'] == defaultv6ip):
-                    defaultv6globalip=link['neighbor_originator']
-                    try:
-                        ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
-                        try: defaultv6host=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
-                        except: defaultv6host="("+ipv4+")"
-                    except: defaultv6host="(unknown)"
-                    break
-                defaultv6host="(not-found-in-olsr2db)"
-                defaultv6globalip=""
+                    if (key <= 1): continue
+                    if (len(link) == 0): continue
+                    if (link['link_bindto'] == defaultv6ip):
+                        defaultv6globalip=link['neighbor_originator']
+                        try:
+                            ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
+                            try: defaultv6host=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                            except: defaultv6host="("+ipv4+")"
+                        except: defaultv6host="(unknown)"
+                        break
+                    defaultv6host="(not-found-in-olsr2db)"
+                    defaultv6globalip=""
             except:
                 defaultv6host="linklokal"
                 defaultv6globalip=""

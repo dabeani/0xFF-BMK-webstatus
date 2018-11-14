@@ -766,7 +766,8 @@ def show_html():
                             ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
                             try: defaultv6host=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
                             except: defaultv6host="("+ipv4+")"
-                        except: defaultv6host="hostname-unknown"
+                        except:
+                            defaultv6host="hostname-unknown"
                         break
                     defaultv6host="hostname-not-found-in-olsr2db"
                     defaultv6globalip="unknown-global-ipv6"
@@ -810,10 +811,10 @@ def show_html():
         except: print "unknown-commit-text"
         print """</dd>
                       <dt>Olsrd2 Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
-        try: print olsr2version['time']['time_system']
+        try: print olsr2time['time']['time_system']
         except: print "unknown-system-time"
         print " | "
-        try: print olsr2version['time']['time_internal']
+        try: print olsr2time['time']['time_internal']
         except: print "unknown-time-internal"
         print """</dd>
                       <dt>Originator <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
@@ -821,8 +822,14 @@ def show_html():
         except: print "unknown-originator"
         print """</dd>
                       <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-        print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> ",
-        if (defaultv6globalip != ""): print "(<a href=\"https://"+defaultv6globalip+"\" target=_blank>"+defaultv6globalip+"</a>, ",
+        if (defaultv6host.find(".")>0): 
+            print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> ",
+        else:
+            print defaultv6host+" ",
+        if (defaultv6globalip != "" and defaultv6globalip.find(":")>0): 
+            print "(<a href=\"https://["+defaultv6globalip+"]\" target=_blank>"+defaultv6globalip+"</a>, ",
+        else if (defaultv6globalip != ""):
+            print "("+defaultv6globalip+", ",
         else: print "(",
         print defaultv6ip+") via "+defaultv6dev
         print """</dd>
@@ -903,7 +910,8 @@ def show_html():
                 except: hostname="("+ipv4+")"
             except: hostname="(unknown)"
             print "><td>"+link['if']+"</td><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
-            print "<td><a href=https://"+hostname+" target=_blank>"+hostname+"</a></td>" #link-hostname
+            if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+hostname+"</a></td>" #link-hostname
+            else: print "<td>"+hostname+"</td>" #link-hostname
             print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
             print "<td>"+link['domain_metric_out']+"</td>" 
             try: 

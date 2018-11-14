@@ -828,7 +828,7 @@ def show_html():
             print defaultv6host+" ",
         if (defaultv6globalip != "" and defaultv6globalip.find(":")>0): 
             print "(<a href=\"https://["+defaultv6globalip+"]\" target=_blank>"+defaultv6globalip+"</a>, ",
-        else if (defaultv6globalip != ""):
+        elif (defaultv6globalip != ""):
             print "("+defaultv6globalip+", ",
         else: print "(",
         print defaultv6ip+") via "+defaultv6dev

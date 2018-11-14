@@ -725,7 +725,7 @@ def show_html():
         defaultv6ip=def6r[0]
         defaultv6dev=def6r[1]
         #defaultv6host=socket.getfqdn(defaultv6ip)
-        defaultv6host="linklokal"
+        #defaultv6host="linklokal"
     
     if (olsr2_on):
         try:
@@ -740,6 +740,26 @@ def show_html():
             exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/nhdpinfo%20json%20link"
             args = shlex.split(exec_command)
             olsr2neighbors = json.loads(subprocess.check_output(args))
+            
+            #now try to find correct hostname of default-gateway
+            try:
+                for key,link in enumerate(olsr2neighbors['link']):
+                if (key <= 1): continue
+                if (len(link) == 0): continue
+                if (link['link_bindto'] == defaultv6ip):
+                    defaultv6globalip=link['neighbor_originator']
+                    try:
+                        ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
+                        try: defaultv6host=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                        except: defaultv6host="("+ipv4+")"
+                    except: defaultv6host="(unknown)"
+                    break
+                defaultv6host="(not-found-in-olsr2db)"
+                defaultv6globalip=""
+            except:
+                defaultv6host="linklokal"
+                defaultv6globalip=""
+
         except:
             olsr2neighbors=()
     
@@ -768,8 +788,10 @@ def show_html():
                 <div role="tabpanel" class="tab-pane" id="olsr2">
                     <dl class="dl-horizontal">
                       <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-    print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> "
-    print "(<a href=\"https://"+default64ip+"\" target=_blank>"+defaultv6ip+"</a>) via "+defaultv6dev
+    print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> ("
+    if (defaultv6globalip !== ""): print "<a href=\"https://"+defaultv6globalip+"\" target=_blank>"+defaultv6globalip+"</a>, "
+    print defaultv6ip
+    print ") via "+defaultv6dev
     print """</dd>
                       <dt>IPv6 OLSR2-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
     #insert olsr2-route-layover

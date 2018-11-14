@@ -901,7 +901,7 @@ def show_html():
 </div>
 """
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><!--td><b>IF</b></td>--<td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+                        <tr valign=top><!--td><b>IF</b></td--><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
         for key,link in enumerate(olsr2neighbors):
             #if (key <= 1): continue

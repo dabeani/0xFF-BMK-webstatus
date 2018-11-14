@@ -757,7 +757,7 @@ def show_html():
             exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/nhdpinfo%20json%20link"
             args = shlex.split(exec_command)
             olsr2neighbors = json.loads(subprocess.check_output(args))
-            olsr2neighbors = sorted(olsr2neighbors['link'],key=sort_by_string)
+            olsr2neighbors = sorted(olsr2neighbors['link'],key=sort_by_ipv6)
             
             #now try to find correct hostname of default-gateway
             try:
@@ -781,6 +781,8 @@ def show_html():
         
         except:
             olsr2neighbors=()
+            defaultv6host="?"
+            defaultv6globalip="?"
         
         # get routing6 table
         exec_command="/sbin/ip -6 r l proto 100 | grep -v 'default' | awk '{print $3,$1,$5}'"

@@ -716,6 +716,17 @@ def show_html():
 """
     #END of STATUS-Tab, not prepare olsrv2 tab
     
+    
+    if (olsr2_on):
+        # get default route
+        exec_command="/sbin/ip -6 r get 2001:4860:4860::8888 | head -1 | awk '{print $5,$7}'"
+        def6route=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+        def6r=def6route[0].split()
+        defaultv6ip=def6r[0]
+        defaultv6dev=def6r[1]
+        #defaultv6host=socket.getfqdn(defaultv6ip)
+        defaultv6host="linklokal"
+    
     if (olsr2_on):
         try:
             exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/olsrv2info%20json%20originator"
@@ -734,7 +745,7 @@ def show_html():
     
     if (olsr2_on):
         # get routing6 table
-        exec_command="/sbin/ip -6 r l proto 100 | grep -v "default" | awk '{print $3,$1,$5}'"
+        exec_command="/sbin/ip -6 r l proto 100 | grep -v 'default' | awk '{print $3,$1,$5}'"
         routing6list=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
         
         gateway6list={}
@@ -757,8 +768,8 @@ def show_html():
                 <div role="tabpanel" class="tab-pane" id="olsr2">
                     <dl class="dl-horizontal">
                       <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-    #print "<a href=\"https://"+defaultv4host+"\" target=_blank>"+format_hostname(defaultv4host)+"</a> "
-    #print "(<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a>) via "+defaultv4dev
+    print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> "
+    print "(<a href=\"https://"+default64ip+"\" target=_blank>"+defaultv6ip+"</a>) via "+defaultv6dev
     print """</dd>
                       <dt>IPv6 OLSR2-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
     #insert olsr2-route-layover
@@ -778,12 +789,12 @@ def show_html():
             print dest,
             try:
                 ipv4=node_dns['v6-to-v4'][dest]
-                try: print node_dns[ipv4]['n']+" "
+                try: print node_dns[ipv4]['n']+" ",
                 except: n=""
             except: n=""
             try:
                 ipv4=node_dns['v6-to-v4'][dest]
-                try: print " "+node_dns[ipv4]['d']
+                try: print " "+node_dns[ipv4]['d'],
                 except: n=""
             except: n=""
             print "<br>"
@@ -824,12 +835,11 @@ def show_html():
     print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
                         <tr valign=top><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><td><b>Metric-In</b></td><td><b>Metric-Out</b></td> <td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
-    for key,line in enumerate(olsr2neighbors['link']):
+    for key,link in enumerate(olsr2neighbors['link']):
         if (key <= 1): continue
-        if (len(line) == 0): continue
-        link=line.split()
+        if (len(link) == 0): continue
         print "<tr"
-        if (link['neighbor_originator'] == defaultv4ip): print " bgcolor=FFD700"
+        if (link['link_bindto'] == defaultv6ip): print " bgcolor=FFD700"
         #host=socket.getfqdn(link[1])
         hostaddr=link['neighbor_originator']
         try:
@@ -842,15 +852,15 @@ def show_html():
         print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
         print "<td>"+link['domain_metric_out']+"</td>" 
         try: 
-            g=gateway6list[link['neighbor_originator']]
+            g=gateway6list[link['link_bindto']]
             g=str(len(g))
         except KeyError: g="0"
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['neighbor_originator'].replace(":","-")+"\">"+g+"</button></td>"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['link_bindto'].replace(":","-")+"\">"+g+"</button></td>"
         try: 
-            l=node6list[link['neighbor_originator']]
+            l=node6list[link['link_bindto']]
             l=str(len(l))
         except KeyError: l="0"
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['neighbor_originator'].replace(":","-")+"_nodes\">"+l+"</button></td>"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['link_bindto'].replace(":","-")+"_nodes\">"+l+"</button></td>"
         print "</tr>"
 
     print """</tbody></table></dd>

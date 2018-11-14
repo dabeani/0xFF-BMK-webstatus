@@ -901,7 +901,7 @@ def show_html():
 </div>
 """
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><td><b>IF</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><!--td><b>Metric-In</b></td--><td><b>Metric-In/Out</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+                        <tr valign=top><!--td><b>IF</b></td>--<td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
         for key,link in enumerate(olsr2neighbors):
             #if (key <= 1): continue
@@ -915,11 +915,13 @@ def show_html():
                 try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
                 except: hostname="("+ipv4+")"
             except: hostname="(unknown)"
-            print "><td>"+link['if']+"</td><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
+            print ">"
+            #print "<td>"+link['if']+"</td>"
+            print "<td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
             if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+format_hostname(hostname)+"</a></td>" #link-hostname
             else: print "<td>"+hostname+"</td>" #link-hostname
-            print "<td>"+link['link_mac']+"</td>"
-            print "<td style=\"font-size:60%\" align=right>"+link['domain_metric_in']+"<br>"+link['domain_metric_out']+"</td>"
+            print "<td align=center>"+link['link_mac']+"</td>"
+            print "<td style=\"font-size:60%\" align=right>In:&nbsp;&nbsp; "+link['domain_metric_in']+"<br>Out: "+link['domain_metric_out']+"</td>"
             #print "<td align=right>"+link['domain_metric_in']+"</td>" 
             #print "<td align=right>"+link['domain_metric_out']+"</td>" 
             try: 

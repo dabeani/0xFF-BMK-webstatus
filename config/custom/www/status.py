@@ -438,8 +438,10 @@ def show_html():
             <ul class="nav nav-tabs" role="tablist">
                 <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                 <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
-                <li role="presentation"><a href="#olsr2" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> OLSRv2</a></li>
-                <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>"""
+"""
+    if (olsrv2_on): print """                <li role="presentation"><a href="#olsr2" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> OLSRv2</a></li>
+"""
+    print """                <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>"""
     print '                <li role="presentation"><a href="#">'+ip+" - "+hostname+'</a></li>'
     if (str(show_link_to_adminlogin)=="1"):
         try:
@@ -714,7 +716,8 @@ def show_html():
                     </dl>
                 </div>
 """
-    #END of STATUS-Tab, not prepare olsrv2 tab
+
+#END of STATUS-Tab, now prepare olsrv2 tab
     
     
     if (olsr2_on):
@@ -726,16 +729,16 @@ def show_html():
         defaultv6dev=def6r[1]
         #defaultv6host=socket.getfqdn(defaultv6ip)
         #defaultv6host="linklokal"
-    
-    if (olsr2_on):
+        
+        #get originator
         try:
             exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/olsrv2info%20json%20originator"
             args = shlex.split(exec_command)
             olsr2originator = json.loads(subprocess.check_output(args))
         except:
             olsr2originator=()
-
-    if (olsr2_on):
+        
+        #get neighbors
         try:
             exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/nhdpinfo%20json%20link"
             args = shlex.split(exec_command)
@@ -752,18 +755,17 @@ def show_html():
                             ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
                             try: defaultv6host=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
                             except: defaultv6host="("+ipv4+")"
-                        except: defaultv6host="(unknown)"
+                        except: defaultv6host="hostname-unknown"
                         break
-                    defaultv6host="(not-found-in-olsr2db)"
-                    defaultv6globalip=""
+                    defaultv6host="hostname-not-found-in-olsr2db"
+                    defaultv6globalip="unknown-global-ipv6"
             except:
                 defaultv6host="linklokal"
-                defaultv6globalip=""
-
+                defaultv6globalip="unknown-global-ipv6"
+        
         except:
             olsr2neighbors=()
-    
-    if (olsr2_on):
+        
         # get routing6 table
         exec_command="/sbin/ip -6 r l proto 100 | grep -v 'default' | awk '{print $3,$1,$5}'"
         routing6list=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
@@ -783,20 +785,22 @@ def show_html():
             except KeyError:
                 n=""
 
-    print """
+##BEGINN OLSRv2 section
+
+        print """
 <!-- OLSRv2 TAB -->
                 <div role="tabpanel" class="tab-pane" id="olsr2">
                     <dl class="dl-horizontal">
                       <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
-    print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> ("
-    if (defaultv6globalip !== ""): print "<a href=\"https://"+defaultv6globalip+"\" target=_blank>"+defaultv6globalip+"</a>, "
-    print defaultv6ip
-    print ") via "+defaultv6dev
-    print """</dd>
+        print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> ",
+        if (defaultv6globalip != ""): print "(<a href=\"https://"+defaultv6globalip+"\" target=_blank>"+defaultv6globalip+"</a>, ",
+        else: print "(",
+        print defaultv6ip+") via "+defaultv6dev
+        print """</dd>
                       <dt>IPv6 OLSR2-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
-    #insert olsr2-route-layover
-    for key,destinationlist in gateway6list.items():
-        print """<!-- Modal -->
+        #insert olsr2-route-layover
+        for key,destinationlist in gateway6list.items():
+            print """<!-- Modal -->
 <div class="modal fade" id="my6Modal"""+key.replace(":","-")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -807,21 +811,21 @@ def show_html():
         <h4 class="modal-title" id="myModalLabel">"""+str(len(destinationlist))+""" routes via <b>"""+key+"""</b></h4>
       </div>
       <div class="modal-body">"""
-        for dest in destinationlist:
-            print dest,
-            try:
-                ipv4=node_dns['v6-to-v4'][dest]
-                try: print node_dns[ipv4]['n']+" ",
+            for dest in destinationlist:
+                print dest,
+                try:
+                    ipv4=node_dns['v6-to-v4'][dest]
+                    try: print node_dns[ipv4]['n']+" ",
+                    except: n=""
                 except: n=""
-            except: n=""
-            try:
-                ipv4=node_dns['v6-to-v4'][dest]
-                try: print " "+node_dns[ipv4]['d'],
+                try:
+                    ipv4=node_dns['v6-to-v4'][dest]
+                    try: print " "+node_dns[ipv4]['d'],
+                    except: n=""
                 except: n=""
-            except: n=""
-            print "<br>"
-
-        print """</div>
+                print "<br>"
+            
+            print """</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
@@ -829,9 +833,9 @@ def show_html():
   </div>
 </div>
 """
-    #insert olsr2-node-layover
-    for key,destinationlist in node6list.items():
-        print """<!-- Modal -->
+        #insert olsr2-node-layover
+        for key,destinationlist in node6list.items():
+            print """<!-- Modal -->
 <div class="modal fade" id="my6Modal"""+key.replace(":","-")+"""_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -842,11 +846,11 @@ def show_html():
         <h4 class="modal-title" id="myModalLabel">"""+str(len(destinationlist))+""" nodes via <b>"""+key+"""</b></h4>
       </div>
       <div class="modal-body">"""
-        for dest in destinationlist:
-            print dest, 
-            print "<br>"
-
-        print """</div>
+            for dest in destinationlist:
+                print dest, 
+                print "<br>"
+            
+            print """</div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
       </div>
@@ -854,77 +858,81 @@ def show_html():
   </div>
 </div>
 """
-    print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
+        print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
                         <tr valign=top><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><td><b>Metric-In</b></td><td><b>Metric-Out</b></td> <td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
-    for key,link in enumerate(olsr2neighbors['link']):
-        if (key <= 1): continue
-        if (len(link) == 0): continue
-        print "<tr"
-        if (link['link_bindto'] == defaultv6ip): print " bgcolor=FFD700"
-        #host=socket.getfqdn(link[1])
-        hostaddr=link['neighbor_originator']
-        try:
-            ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
-            try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
-            except: hostname="("+ipv4+")"
-        except: hostname="(unknown)"
-        print "><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
-        print "<td><a href=https://"+hostname+" target=_blank>"+hostname+"</a></td>" #link-hostname
-        print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
-        print "<td>"+link['domain_metric_out']+"</td>" 
-        try: 
-            g=gateway6list[link['link_bindto']]
-            g=str(len(g))
-        except KeyError: g="0"
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['link_bindto'].replace(":","-")+"\">"+g+"</button></td>"
-        try: 
-            l=node6list[link['link_bindto']]
-            l=str(len(l))
-        except KeyError: l="0"
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['link_bindto'].replace(":","-")+"_nodes\">"+l+"</button></td>"
-        print "</tr>"
-
-    print """</tbody></table></dd>
+        for key,link in enumerate(olsr2neighbors['link']):
+            if (key <= 1): continue
+            if (len(link) == 0): continue
+            print "<tr"
+            if (link['link_bindto'] == defaultv6ip): print " bgcolor=FFD700"
+            #host=socket.getfqdn(link[1])
+            hostaddr=link['neighbor_originator']
+            try:
+                ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
+                try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                except: hostname="("+ipv4+")"
+            except: hostname="(unknown)"
+            print "><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
+            print "<td><a href=https://"+hostname+" target=_blank>"+hostname+"</a></td>" #link-hostname
+            print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
+            print "<td>"+link['domain_metric_out']+"</td>" 
+            try: 
+                g=gateway6list[link['link_bindto']]
+                g=str(len(g))
+            except KeyError: g="0"
+            print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['link_bindto'].replace(":","-")+"\">"+g+"</button></td>"
+            try: 
+                l=node6list[link['link_bindto']]
+                l=str(len(l))
+            except KeyError: l="0"
+            print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['link_bindto'].replace(":","-")+"_nodes\">"+l+"</button></td>"
+            print "</tr>"
+        
+        print """</tbody></table></dd>
                       <dt>Trace to UPLINK <span class="glyphicon glyphicon-stats" aria-hidden="true"></span></dt><dd>
                         <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;"><tr valign=top><td><b>#</b></td><td><b>Hostname</b></td><td><b>IP Address</b></td>
                         <td><b>Ping</b></td></tr></thead><tbody>
 """
-    try:
-        exec_command="/usr/bin/traceroute -6 -w 1 -q 1 "+traceroute6_to
-        args = shlex.split(exec_command)
-        data = subprocess.check_output(args).strip("\n ")
-        lines=data.split('\n')
-        for key,line in enumerate(lines):
-            if (key == 0): continue
-            if (len(line) == 0): continue
-            traceline=line.split()
-            hopnumber=traceline[0]
-            try:hostname=traceline[1]
-            except:hostname=""
-            try:ipv6address=traceline[2].strip("()")
-            except:ipv6address="?"
-            if (hostname == ipv6address):
-                try:
-                    ipv4=node_dns['v6-to-v4'][ipv6address]
-                    try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
-                    except: hostname="("+ipv4+")"
-                except: hostname="unknown"
-            try:timetotarget=traceline[3]
-            except:timetotarget="??"
-            print "<tr><td>"+hopnumber+"</td>", #HOP
-            print "<td><a href=\"https://"+hostname+"\" target=_blank>"+hostname+"</a></td>", #HOST
-            print "<td><a href=\"https://["+ipv6address+"]\" target=_blank>"+ipv6address+"</a></td>", #IP
-            print "<td>"+timetotarget+"ms</td>", #PING
-            print "</tr>"
+        try:
+            exec_command="/usr/bin/traceroute -6 -w 1 -q 1 "+traceroute6_to
+            args = shlex.split(exec_command)
+            data = subprocess.check_output(args).strip("\n ")
+            lines=data.split('\n')
+            for key,line in enumerate(lines):
+                if (key == 0): continue
+                if (len(line) == 0): continue
+                traceline=line.split()
+                hopnumber=traceline[0]
+                try:hostname=traceline[1]
+                except:hostname=""
+                try:ipv6address=traceline[2].strip("()")
+                except:ipv6address="?"
+                if (hostname == ipv6address):
+                    try:
+                        ipv4=node_dns['v6-to-v4'][ipv6address]
+                        try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                        except: hostname="("+ipv4+")"
+                    except: hostname="unknown"
+                try:timetotarget=traceline[3]
+                except:timetotarget="??"
+                print "<tr><td>"+hopnumber+"</td>", #HOP
+                print "<td><a href=\"https://"+hostname+"\" target=_blank>"+hostname+"</a></td>", #HOST
+                print "<td><a href=\"https://["+ipv6address+"]\" target=_blank>"+ipv6address+"</a></td>", #IP
+                print "<td>"+timetotarget+"ms</td>", #PING
+                print "</tr>"
+            
+        except:
+            print "<tr><td colspan=4>looks like traceroute6 result to "+traceroute6_to+" is not available</td></tr>"
         
-    except:
-        print "<tr><td colspan=4>looks like traceroute6 result to "+traceroute6_to+" is not available</td></tr>"
-    
-    print """</tbody></table></dd>
+        print """</tbody></table></dd>
                     </dl>
                 </div>
-<!-- Contact TAB -->
+"""
+
+##END OLSRv2 section
+
+    print """<!-- Contact TAB -->
                 <div role="tabpanel" class="tab-pane" id="contact">
                     in Arbeit :D...
                 </div>

@@ -399,6 +399,17 @@ def show_html():
     except:
         airos={}
 
+    #check olsrd2 to see if its on
+    try:
+        exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/systeminfo%20json%20version"
+        args = shlex.split(exec_command)
+        olsr2version = json.loads(subprocess.check_output(args))
+        #print "Version: "+olsr2version['version'][0]['version_text']+", Commit: "+olsr2version['version'][0]['version_commit']
+        olsr2_on=True
+    except:
+        olsr2version=()
+        olsr2_on=False
+    
     # start to print content
     print("Content-Type: text/html")
     print("X-Powered-By: cpo/bmk-v"+version)
@@ -702,6 +713,46 @@ def show_html():
     print """</tbody></table></dd>
                     </dl>
                 </div>
+"""
+    #END of STATUS-Tab, not prepare olsrv2 tab
+    
+    if (olsr2_on):
+        try:
+            exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/olsrv2info%20json%20originator"
+            args = shlex.split(exec_command)
+            olsr2originator = json.loads(subprocess.check_output(args))
+        except:
+            olsr2originator=()
+
+    if (olsr2_on):
+        try:
+            exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/nhdpinfo%20json%20link"
+            args = shlex.split(exec_command)
+            olsr2neighbors = json.loads(subprocess.check_output(args))
+        except:
+            olsr2neighbors=()
+    
+    if (olsr2_on):
+        # get routing6 table
+        exec_command="/sbin/ip -6 r l proto 100 | grep -v "default" | awk '{print $3,$1,$5}'"
+        routing6list=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
+        
+        gateway6list={}
+        node6list={}
+        for route in routing6list:
+            line=route.split()
+            try: gateway6list[line[0]].extend([str(line[1])])
+            except KeyError: gateway6list[line[0]]=[str(line[1])]
+            try: tmp=len(node6list[line[0]])
+            except KeyError: node6list[line[0]]=[]
+            try:
+                ipv4=node_dns['v6-to-v4'][line[1]]
+                n=node_dns[ipv4]['n']
+                if (n not in node6list[line[0]]): node6list[line[0]].extend([str(n)])
+            except KeyError:
+                n=""
+
+    print """
 <!-- OLSRv2 TAB -->
                 <div role="tabpanel" class="tab-pane" id="olsr2">
                     <dl class="dl-horizontal">
@@ -710,11 +761,10 @@ def show_html():
     #print "(<a href=\"https://"+defaultv4ip+"\" target=_blank>"+defaultv4ip+"</a>) via "+defaultv4dev
     print """</dd>
                       <dt>IPv6 OLSR2-Links <span class="glyphicon glyphicon-link" aria-hidden="true"></span></dt><dd>"""
-    #insert olsr-route-layover
-    gatewaylist={}
-    for key,destinationlist in gatewaylist.items():
+    #insert olsr2-route-layover
+    for key,destinationlist in gateway6list.items():
         print """<!-- Modal -->
-<div class="modal fade" id="my6Modal"""+key.replace(".","")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="my6Modal"""+key.replace(":","-")+"""" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -725,16 +775,17 @@ def show_html():
       </div>
       <div class="modal-body">"""
         for dest in destinationlist:
-            print dest, 
-            try: 
-                n=node_dns[dest]['n']
-                print n, 
-            except KeyError: n=""
-            try: 
-                d=node_dns[dest]['d']
-                print d, 
-            except KeyError: d=""
-
+            print dest,
+            try:
+                ipv4=node_dns['v6-to-v4'][dest]
+                try: print node_dns[ipv4]['n']+" "
+                except: n=""
+            except: n=""
+            try:
+                ipv4=node_dns['v6-to-v4'][dest]
+                try: print " "+node_dns[ipv4]['d']
+                except: n=""
+            except: n=""
             print "<br>"
 
         print """</div>
@@ -745,11 +796,10 @@ def show_html():
   </div>
 </div>
 """
-    #insert olsr-node-layover
-    nodelist={}
-    for key,destinationlist in nodelist.items():
+    #insert olsr2-node-layover
+    for key,destinationlist in node6list.items():
         print """<!-- Modal -->
-<div class="modal fade" id="my6Modal"""+key.replace(".","")+"""_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="my6Modal"""+key.replace(":","-")+"""_nodes" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -772,30 +822,35 @@ def show_html():
 </div>
 """
     print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+                        <tr valign=top><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><td><b>Metric-In</b></td><td><b>Metric-Out</b></td> <td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
-    lines={}
-    for key,line in enumerate(lines):
+    for key,line in enumerate(olsr2neighbors['link']):
         if (key <= 1): continue
         if (len(line) == 0): continue
         link=line.split()
         print "<tr"
-        if (link[1] == defaultv4ip): print " bgcolor=FFD700"
-        host=socket.getfqdn(link[1])
-        print "><td>"+link[0]+"</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
-        print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
-        print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
-        print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
+        if (link['neighbor_originator'] == defaultv4ip): print " bgcolor=FFD700"
+        #host=socket.getfqdn(link[1])
+        hostaddr=link['neighbor_originator']
+        try:
+            ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
+            try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+            except: hostname="("+ipv4+")"
+        except: hostname="(unknown)"
+        print "><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
+        print "<td><a href=https://"+hostname+" target=_blank>"+hostname+"</a></td>" #link-hostname
+        print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
+        print "<td>"+link['domain_metric_out']+"</td>" 
         try: 
-            g=gatewaylist[link[1]]
+            g=gateway6list[link['neighbor_originator']]
             g=str(len(g))
         except KeyError: g="0"
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link[1].replace(".","")+"\">"+g+"</button></td>"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['neighbor_originator'].replace(":","-")+"\">"+g+"</button></td>"
         try: 
-            l=nodelist[link[1]]
+            l=node6list[link['neighbor_originator']]
             l=str(len(l))
         except KeyError: l="0"
-        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link[1].replace(".","")+"_nodes\">"+l+"</button></td>"
+        print "<td align=right><button type=\"button\" class=\"btn btn-primary btn-xs\" data-toggle=\"modal\" data-target=\"#my6Modal"+link['neighbor_originator'].replace(":","-")+"_nodes\">"+l+"</button></td>"
         print "</tr>"
 
     print """</tbody></table></dd>

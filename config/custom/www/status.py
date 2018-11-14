@@ -83,6 +83,9 @@ def check_ipv4_in(addr, start, end):
 def check_ipv6_in(addr, start, end):
     return socket.inet_pton(socket.AF_INET6,start) < socket.inet_pton(socket.AF_INET6,addr) < socket.inet_pton(socket.AF_INET6,end)
 
+def sort_by_ipv6(elem):
+    return socket.inet_pton(socket.AF_INET6,elem['neighbor_originator'])
+
 # check if client is out of defined ip ranges
 try:
     clientip=os.environ["REMOTE_ADDR"]
@@ -754,10 +757,11 @@ def show_html():
             exec_command="/usr/bin/curl -s 127.0.0.1:8000/telnet/nhdpinfo%20json%20link"
             args = shlex.split(exec_command)
             olsr2neighbors = json.loads(subprocess.check_output(args))
+            olsr2neighbors = sorted(olsr2neighbors['link'],key=sort_by_string)
             
             #now try to find correct hostname of default-gateway
             try:
-                for key,link in enumerate(olsr2neighbors['link']):
+                for key,link in enumerate(olsr2neighbors):
                     #if (key <= 1): continue
                     if (len(link) == 0): continue
                     if (link['link_bindto'] == defaultv6ip):
@@ -897,7 +901,7 @@ def show_html():
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
                         <tr valign=top><td><b>IF</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><td><b>Metric-In</b></td><td><b>Metric-Out</b></td> <td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
-        for key,link in enumerate(olsr2neighbors['link']):
+        for key,link in enumerate(olsr2neighbors):
             #if (key <= 1): continue
             if (len(link) == 0): continue
             print "<tr"

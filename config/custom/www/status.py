@@ -823,7 +823,7 @@ def show_html():
         print """</dd>
                       <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
         if (defaultv6host.find(".")>0): 
-            print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> ",
+            print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+format_hostname(defaultv6host)+"</a> ",
         else:
             print defaultv6host+" ",
         if (defaultv6globalip != "" and defaultv6globalip.find(":")>0): 
@@ -910,7 +910,7 @@ def show_html():
                 except: hostname="("+ipv4+")"
             except: hostname="(unknown)"
             print "><td>"+link['if']+"</td><td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
-            if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+hostname+"</a></td>" #link-hostname
+            if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+format_hostname(hostname)+"</a></td>" #link-hostname
             else: print "<td>"+hostname+"</td>" #link-hostname
             print "<td>"+link['link_mac']+"</td><td>"+link['domain_metric_in']+"</td>" 
             print "<td>"+link['domain_metric_out']+"</td>" 
@@ -954,7 +954,7 @@ def show_html():
                 try:timetotarget=traceline[3]
                 except:timetotarget="??"
                 print "<tr><td>"+hopnumber+"</td>", #HOP
-                print "<td><a href=\"https://"+hostname+"\" target=_blank>"+hostname+"</a></td>", #HOST
+                print "<td><a href=\"https://"+hostname+"\" target=_blank>"+format_hostname(hostname)+"</a></td>", #HOST
                 print "<td><a href=\"https://["+ipv6address+"]\" target=_blank>"+ipv6address+"</a></td>", #IP
                 print "<td>"+timetotarget+"ms</td>", #PING
                 print "</tr>"

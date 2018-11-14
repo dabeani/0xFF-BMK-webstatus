@@ -798,25 +798,25 @@ def show_html():
         print """
 <!-- OLSRv2 TAB -->
                 <div role="tabpanel" class="tab-pane" id="olsr2">
+                   <dl class="dl-horizontal">
                       <dt>Olsrd2 Version <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
         try: print olsr2version['version'][0]['version_text']
-        except: print="unknown-version-text"
+        except: print "unknown-version-text"
         print " | "
         try: print olsr2version['version'][0]['version_commit']
-        except: print="unknown-commit-text"
+        except: print "unknown-commit-text"
         print """</dd>
                       <dt>Olsrd2 Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
-        try: print olsr2version['time'][0]['time_system']
-        except: print="unknown-system-time"
+        try: print olsr2version['time']['time_system']
+        except: print "unknown-system-time"
         print " | "
-        try: print olsr2version['time'][0]['time_internal']
-        except: print="unknown-time-internal"
+        try: print olsr2version['time']['time_internal']
+        except: print "unknown-time-internal"
         print """</dd>
                       <dt>Originator <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
         try: print olsr2originator['originator'][1]['originator']
-        except: print="unknown-originator"
+        except: print "unknown-originator"
         print """</dd>
-                   <dl class="dl-horizontal">
                       <dt>IPv6 Default-Route <span class="glyphicon glyphicon-transfer" aria-hidden="true"></span></dt><dd>"""
         print "<a href=\"https://"+defaultv6host+"\" target=_blank>"+defaultv6host+"</a> ",
         if (defaultv6globalip != ""): print "(<a href=\"https://"+defaultv6globalip+"\" target=_blank>"+defaultv6globalip+"</a>, ",

@@ -915,14 +915,16 @@ def show_html():
                 try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
                 except: hostname="unknown("+ipv4+")"
             except: hostname="unknown"
-            if (hostname.find("unknown")>0 or hostname.find("?")>0):
-                id=int(node_dns['v6-to-id'][hostaddr])
-                for key,line in node_dns.items():
-                    try:
-                        if (int(line['i']) == id):
-                            hostname="unknown("+line['n']+")"
-                            break
-                    except: continue
+            if (hostname.find("unknown")>=0 or hostname.find("?")>=0):
+                try:
+                    id=int(node_dns['v6-to-id'][hostaddr])
+                    for key,line in node_dns.items():
+                        try:
+                            if (int(line['i']) == id):
+                                hostname="unknown("+line['n']+")"
+                                break
+                        except: continue
+                except: id=0
             print ">"
             #print "<td>"+link['if']+"</td>"
             print "<td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
@@ -971,18 +973,19 @@ def show_html():
                     except: hostname="unknown"
                 try:timetotarget=traceline[3]
                 except:timetotarget="??"
-                if (hostname.find("unknown")>0 or hostname.find("?")>0):
-                    id=int(node_dns['v6-to-id'][ipv6address])
-                    for key,line in node_dns.items():
-                        try:
-                            if (int(line['i']) == id):
-                                hostname="unknown("+line['n']+")"
-                                break
-                        except: continue
-                
+                if (hostname.find("unknown")>=0 or hostname.find("?")>0):
+                    try:
+                        id=int(node_dns['v6-to-id'][ipv6address])
+                        for key,line in node_dns.items():
+                            try:
+                                if (int(line['i']) == id):
+                                    hostname="unknown("+line['n']+")"
+                                    break
+                            except: continue
+                    except: id=0
                 print "<tr><td>"+hopnumber+"</td>", #HOP
                 print "<td><a href=\"https://["+ipv6address+"]\" target=_blank>"+ipv6address+"</a></td>", #IP
-                if (hostname.find("unknown")>0 or hostname.find("?")>0):
+                if (hostname.find("unknown")>=0 or hostname.find("?")>0):
                     print "<td>"+hostname+"</td>", #HOST
                 else:
                     print "<td><a href=\"https://"+hostname+"\" target=_blank>"+format_hostname(hostname)+"</a></td>", #HOST

@@ -801,7 +801,48 @@ def show_html():
                 n=node_dns[ipv4]['n']
                 if (n not in node6list[line[0]]): node6list[line[0]].extend([str(n)])
             except KeyError:
-                n=""
+                if (line[1].find("/">0):  #this looks like a HNA address
+                    try: 
+                        router=node_dns['v6-hna-at'][line[1]]
+                        try:
+                            ipv4=node_dns['v6-to-v4'][router]
+                            try: 
+                                n=node_dns[ipv4]['n']
+                                if (n not in node6list[line[0]]): node6list[line[0]].extend([str(n)])
+                            except:
+                                try:
+                                    id=int(node_dns['v6-to-id'][router])
+                                    for key,item in node_dns.items():
+                                        try:
+                                            if (int(item['i']) == id):
+                                                n=item['n']
+                                                if (n not in node6list[line[0]]): node6list[line[0]].extend([str(n)])
+                                                break
+                                        except: continue
+                                except: n=""
+                        except:
+                            try:
+                                id=int(node_dns['v6-to-id'][router])
+                                for key,item in node_dns.items():
+                                    try:
+                                        if (int(item['i']) == id):
+                                            n=item['n']
+                                            if (n not in node6list[line[0]]): node6list[line[0]].extend([str(n)])
+                                            break
+                                    except: continue
+                            except: n=""
+                    except: n=""
+                else:
+                    try:
+                        id=int(node_dns['v6-to-id'][line[1]])
+                        for key,item in node_dns.items():
+                            try:
+                                if (int(item['i']) == id):
+                                    n=item['n']
+                                    if (n not in node6list[line[0]]): node6list[line[0]].extend([str(n)])
+                                    break
+                            except: continue
+                    except: n=""
 
 ##BEGIN OLSRv2 section
 
@@ -855,16 +896,63 @@ def show_html():
       <div class="modal-body">"""
             for dest in destinationlist:
                 print dest,
-                try:
-                    ipv4=node_dns['v6-to-v4'][dest]
-                    try: print node_dns[ipv4]['n']+" ",
+                if (dest.find("/">0):  #this looks like a HNA address
+                    try: 
+                        router=node_dns['v6-hna-at'][dest]
+                        print "hna@"+router+" ",
+                        try:
+                            ipv4=node_dns['v6-to-v4'][router]
+                            try: print node_dns[ipv4]['n']+" ",
+                            except:
+                                try:
+                                    id=int(node_dns['v6-to-id'][router])
+                                    for key,line in node_dns.items():
+                                        try:
+                                            if (int(line['i']) == id):
+                                                print line['n'],
+                                                break
+                                        except: continue
+                                except: n=""
+                        except:
+                            try:
+                                id=int(node_dns['v6-to-id'][router])
+                                for key,line in node_dns.items():
+                                    try:
+                                        if (int(line['i']) == id):
+                                            print line['n'],
+                                            break
+                                    except: continue
+                            except: n=""
                     except: n=""
-                except: n=""
-                try:
-                    ipv4=node_dns['v6-to-v4'][dest]
-                    try: print " "+node_dns[ipv4]['d'],
+                else:  #it is just an IP
+                    try:
+                        ipv4=node_dns['v6-to-v4'][dest]
+                        try: print node_dns[ipv4]['n']+" ",
+                        except:
+                            try:
+                                id=int(node_dns['v6-to-id'][dest])
+                                for key,line in node_dns.items():
+                                    try:
+                                        if (int(line['i']) == id):
+                                            print line['n'],
+                                            break
+                                    except: continue
+                            except: n=""
+                    except:
+                        try:
+                            id=int(node_dns['v6-to-id'][dest])
+                            for key,line in node_dns.items():
+                                try:
+                                    if (int(line['i']) == id):
+                                        print line['n'],
+                                        break
+                                except: continue
+                        except: n=""
+                    try:
+                        ipv4=node_dns['v6-to-v4'][dest]
+                        try: print " "+node_dns[ipv4]['d'],
+                        except: n=""
                     except: n=""
-                except: n=""
                 print "<br>"
             
             print """</div>

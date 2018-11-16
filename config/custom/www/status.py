@@ -902,7 +902,10 @@ def show_html():
                         print "hna@"+router+" ",
                         try:
                             ipv4=node_dns['v6-to-v4'][router]
-                            try: print node_dns[ipv4]['n']+" ",
+                            try:
+                                print node_dns[ipv4]['n']+" ",
+                                try: print " "+node_dns[ipv4]['d'],
+                                except: n=""
                             except:
                                 try:
                                     id=int(node_dns['v6-to-id'][router])

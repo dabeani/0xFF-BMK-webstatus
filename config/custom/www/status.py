@@ -289,6 +289,12 @@ def ip4_to_integer(s):
     l=i[0].rjust(3,'0')+i[1].rjust(3,'0')+i[2].rjust(3,'0')+i[3].rjust(3,'0')
     return int(l)
 
+def whois_v6(addr, what):
+    #what=node | device | fqdn
+    #get IPv6 and return hostname
+    global node_dns;
+    return addr
+
 def show_html():
     # local hostname
     try: 

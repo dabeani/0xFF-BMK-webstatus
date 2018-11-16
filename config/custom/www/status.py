@@ -801,7 +801,7 @@ def show_html():
                 n=node_dns[ipv4]['n']
                 if (n not in node6list[line[0]]): node6list[line[0]].extend([str(n)])
             except KeyError:
-                if (line[1].find("/">0):  #this looks like a HNA address
+                if (line[1].find("/")>0):  #this looks like a HNA address
                     try: 
                         router=node_dns['v6-hna-at'][line[1]]
                         try:
@@ -896,7 +896,7 @@ def show_html():
       <div class="modal-body">"""
             for dest in destinationlist:
                 print dest,
-                if (dest.find("/">0):  #this looks like a HNA address
+                if (dest.find("/")>0):  #this looks like a HNA address
                     try: 
                         router=node_dns['v6-hna-at'][dest]
                         print "hna@"+router+" ",

@@ -691,8 +691,14 @@ def show_html():
         host=socket.getfqdn(link[1])
         print "><td>"+link[0]+"</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
         print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
-        print "<td>"+link[2]+"</td><td>"+link[3]+"</td>" #hyst, lq
-        print "<td>"+link[4]+"</td><td>"+link[5]+"</td>" #nlq, cost
+        try:print "<td>"+link[2]+"</td>" #hyst
+        except:print "<td>err</td>" #hyst
+        try:print "<td>"+link[3]+"</td>" #lq
+        except:print "<td>err</td>" #lq
+        try:print "<td>"+link[4]+"</td>" #nlq
+        except:print "<td>err</td>" #nlq
+        try:print "<td>"+link[5]+"</td>" #cost
+        except:print "<td>err</td>" #cost
         try: 
             g=gatewaylist[link[1]]
             g=str(len(g))

@@ -1,6 +1,8 @@
 #!/bin/bash
 LOG=/var/log/0xffloopairos.log
 
+INTERFACES=$(grep interface_1100_list /config/custom/www/settings.inc | awk -F "'" '{print $2}')
+
 PORT=$(grep -i port= /config/letsencrypt/deploysetting.dat 2>/dev/null | cut -d= -f2)
 [ "$PORT" ] || PORT=22
 USER=$(grep -i user= /config/letsencrypt/deploysetting.dat 2>/dev/null | cut -d= -f2)
@@ -24,7 +26,9 @@ elif [ $(ip -4 addr | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") \> 1 ]; then
     LANSEGM=$(ip -4 addr | grep -oE "10\..{3,7}\.[12]0[012345]/.{1,2}" | tail -n 1 | awk -F. {'print $1"."$2"."$3"."'})
   fi
 fi
-ANTENNEN=$(/usr/sbin/ubnt-discover | grep -E "P5B|NB5|N5B|P5C|N5C|N5N|AG5|B5N|LM5|L5C|LB5|R5C" | grep $LANSEGM)
+[ "$INTERFACES" ] &&
+ ANTENNEN=$(/usr/sbin/ubnt-discover -i "$INTERFACES" | grep -E "P5B|NB5|N5B|P5C|N5C|N5N|AG5|B5N|LM5|L5C|LB5|R5C" | grep $LANSEGM) ||
+ ANTENNEN=$(/usr/sbin/ubnt-discover                  | grep -E "P5B|NB5|N5B|P5C|N5C|N5N|AG5|B5N|LM5|L5C|LB5|R5C" | grep $LANSEGM)
 echo "${ANTENNEN[@]}" >>$LOG
 
 for IP in $(echo "${ANTENNEN[@]}" | awk {'print $3'}); do

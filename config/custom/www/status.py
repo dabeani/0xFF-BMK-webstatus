@@ -165,6 +165,14 @@ def show_ipv4():
     exec_command="/sbin/ip -4 neigh"
     data=subprocess.check_output(exec_command, shell=True)
     print data
+    print
+    exec_command="/sbin/ip -4 l | grep -vE '^ ' | awk '{print $2}' | sed 's/[:@].*$//g' | sort"
+    data=subprocess.check_output(exec_command, shell=True)
+    print data
+    print
+    exec_command="/usr/sbin/brctl show"
+    data=subprocess.check_output(exec_command, shell=True)
+    print data
 
 def show_ipv6():
     print("Content-Type: text/plain")
@@ -175,6 +183,10 @@ def show_ipv6():
     print data
     print
     exec_command="/sbin/ip -6 neigh"
+    data=subprocess.check_output(exec_command, shell=True)
+    print data
+    print
+    exec_command="/sbin/ip -6 l | grep -vE '^ ' | awk '{print $2}' | sed 's/[:@].*$//g' | sort"
     data=subprocess.check_output(exec_command, shell=True)
     print data
 

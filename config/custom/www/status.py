@@ -882,6 +882,7 @@ def show_html():
         except: print "unknown-commit-text"
         print """</dd>
                       <dt>Olsrd2 Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
+        #if (olsr2version['version'][0]['version_commit'] == "v0.15.1-96-g8397c64e") -> uptime / 333
         try: print olsr2time['time'][0]['time_system']
         except: print "unknown-system-time"
         print " | "
@@ -1016,7 +1017,10 @@ def show_html():
 </div>
 """
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><!--td><b>IF</b></td--><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td><td><b>Remote MAC</b></td><!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+                        <tr valign=top><!--td><b>IF</b></td--><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td>"""
+                        
+        if (authorized): print "<td><b>Remote MAC</b></td>"
+        print """<!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
         for key,link in enumerate(olsr2neighbors):
             #if (key <= 1): continue
@@ -1045,7 +1049,7 @@ def show_html():
             print "<td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
             if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+format_hostname(hostname)+"</a></td>" #link-hostname
             else: print "<td>"+hostname+"</td>" #link-hostname
-            print "<td align=center>"+link['link_mac']+"</td>"
+            if (authorized): print "<td align=center>"+link['link_mac']+"</td>"
             print "<td style=\"font-size:60%\" align=right>In:&nbsp;&nbsp; "+link['domain_metric_in']+"<br>Out: "+link['domain_metric_out']+"</td>"
             #print "<td align=right>"+link['domain_metric_in']+"</td>" 
             #print "<td align=right>"+link['domain_metric_out']+"</td>" 

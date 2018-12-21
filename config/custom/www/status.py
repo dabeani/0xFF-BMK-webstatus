@@ -886,8 +886,25 @@ def show_html():
         try: print olsr2time['time'][0]['time_system']
         except: print "unknown-system-time"
         print " | "
-        try: print olsr2time['time'][0]['time_internal']
-        except: print "unknown-time-internal"
+        try: 
+            uptime=olsr2time['time'][0]['time_internal']
+            print uptime
+            if uptime.endswith("K"):    uptime = float(uptime.rstrip("K")) * 1000
+            elif uptime.endswith("M"):  uptime = float(uptime.rstrip("M")) * 1000000
+            elif uptime.endswith("G"):  uptime = float(uptime.rstrip("G")) * 1000000000
+            elif uptime.endswith("T"):  uptime = float(uptime.rstrip("T")) * 1000000000000
+            try: if (olsr2version['version'][0]['version_commit'] == "v0.15.1-96-g8397c64e"): uptime = float(uptime) / 333
+            except: uptime=uptime
+            try: print " | "+format_duration(int(uptime))
+            except: uptime=uptime
+            try:
+                from datetime import datetime, timedelta
+                x = datetime.now() - timedelta(seconds=uptime)
+                print " | "+x.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                uptime=uptime
+        except:
+            print "unknown-time-internal"
         print """</dd>
                       <dt>Originator <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
         try: print olsr2originator['originator'][1]['originator']

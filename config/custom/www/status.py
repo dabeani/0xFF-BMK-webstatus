@@ -893,7 +893,8 @@ def show_html():
             elif uptime.endswith("M"):  uptime = float(uptime.rstrip("M")) * 1000000
             elif uptime.endswith("G"):  uptime = float(uptime.rstrip("G")) * 1000000000
             elif uptime.endswith("T"):  uptime = float(uptime.rstrip("T")) * 1000000000000
-            try: if (olsr2version['version'][0]['version_commit'] == "v0.15.1-96-g8397c64e"): uptime = float(uptime) / 333
+            try:
+                if (olsr2version['version'][0]['version_commit'] == "v0.15.1-96-g8397c64e"): uptime = float(uptime) / 333
             except: uptime=uptime
             try: print " | "+format_duration(int(uptime))
             except: uptime=uptime

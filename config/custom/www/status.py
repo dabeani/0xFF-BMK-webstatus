@@ -697,7 +697,7 @@ def show_html():
 </div>
 """
     print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
+                        <tr valign=top><td><b>Intf</b></td><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
     lines=olsr_links.split('\n')
     #if (link_local_column =='ip'):
@@ -731,7 +731,7 @@ def show_html():
                 except: local_ip=""
                 ip_int[link[0]]=local_ip
         
-        loc_string=local_ip+", "+local_int
+        loc_string=local_int+"</td><td>"+local_ip
         
         print "<tr"
         if (link[1] == defaultv4ip): print " bgcolor=FFD700"
@@ -740,12 +740,10 @@ def show_html():
         
         #local interface/ip
         try: print loc_string
-        except: print link[0]
+        except: print "&nbsp;</td><td>"+link[0]
         
         print "</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
         print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
-        try:print "<td>"+link[2]+"</td>" #hyst
-        except:print "<td>err</td>" #hyst
         try:print "<td>"+link[3]+"</td>" #lq
         except:print "<td>err</td>" #lq
         try:print "<td>"+link[4]+"</td>" #nlq
@@ -1076,7 +1074,7 @@ def show_html():
 </div>
 """
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><!--td><b>IF</b></td--><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td>"""
+                        <tr valign=top><td><b>IF</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td>"""
                         
         if (authorized): print "<td><b>Remote MAC</b></td>"
         print """<!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
@@ -1104,7 +1102,7 @@ def show_html():
                         except: continue
                 except: id=0
             print ">"
-            #print "<td>"+link['if']+"</td>"
+            print "<td>"+link['if']+"</td>"
             print "<td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
             if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+format_hostname(hostname)+"</a></td>" #link-hostname
             else: print "<td>"+hostname+"</td>" #link-hostname

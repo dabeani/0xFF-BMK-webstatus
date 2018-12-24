@@ -349,19 +349,25 @@ def show_html():
     
     # get local olsr infos
     import urllib2
-    try: olsr_links = urllib2.urlopen("http://127.0.0.1:2006/lin", timeout = 1).read().strip("\n ")
+    try: 
+        olsr_links = urllib2.urlopen("http://127.0.0.1:2006/lin", timeout = 1).read().strip("\n ")
+        link_local_column='ip'
     except:
         #use httpinfo plugin if available
         try:
             urllib2.urlopen("http://127.0.0.1:8080/about", timeout = 1).read()
             exec_command="echo -e 'T L\\nh e a d l i n e' && /usr/bin/curl -s 127.0.0.1:8080/nodes | sed -n \"/^<h2>Links/,/^<h2>Neighbors/p\" | sed -e 's/[\\/)( <>]/#/g' | awk -F'#' '/all/ {printf \"%-17s%-17s%5s%7s%7s%7s\\n\", $11,$25,$33,$39,$40,$42}'"
             olsr_links=subprocess.check_output(exec_command, shell=True).strip("\n ")
+            link_local_column='ip'
         except:
             #work around: get neighbors from routing table
-            exec_command="echo -e 'T L\\nh e a d l i n e' && /sbin/ip -4 route | grep onlink | awk '!x[$3]++' | awk '{print \"- \"$3\" 0.000 0.000 0.000 0.000\"}'"
-            try: olsr_links=subprocess.check_output(exec_command, shell=True).strip("\n ")
+            exec_command="echo -e 'T L\\nh e a d l i n e' && /sbin/ip -4 route | grep onlink | awk '!x[$3]++' | awk '{print $5\" \"$3\" 0.000 0.000 0.000 0.000\"}'"
+            try: 
+                olsr_links=subprocess.check_output(exec_command, shell=True).strip("\n ")
+                link_local_column='int'
             except:
                 olsr_links={}
+                link_local_column='none'
     
     # get node-db info
     global get_nslookup_from_nodedb
@@ -694,14 +700,49 @@ def show_html():
                         <tr valign=top><td><b>Local IP</b></td><td><b>Remote IP</b></td><td><b>Remote Hostname</b></td><td><b>Hyst.</b></td><td><b>LQ</b></td><td><b>NLQ</b></td><td><b>Cost</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
     lines=olsr_links.split('\n')
+    #if (link_local_column =='ip'):
+    #    key,ip in enumerate(lines):
+    #elif (link_local_column =='int'):
+    #else:
+    ip_int={}
     for key,line in enumerate(lines):
         if (key <= 1): continue
         if (len(line) == 0): continue
         link=line.split()
+        if (link_local_column =='ip'):
+            try:
+                local_ip=link[0]
+                local_int=ip_int[link[0]]
+            except:
+                local_ip=link[0]
+                exec_command="ip -4 -o a | grep "+local_ip+" | head -1 | awk '{print $2}'"
+                try: local_int=subprocess.check_output(exec_command, shell=True).strip("\n ")
+                except: local_int=""
+                ip_int[link[0]]=local_int
+        
+        elif (link_local_column =='int'):
+            try:
+                local_int=link[0]
+                local_ip=ip_int[link[0]]
+            except:
+                local_int=link[0]
+                exec_command="ip -4 -o a s "++local_int" | head -1 | awk '{print $4}' | cut -d/ -f1"
+                try: local_ip=subprocess.check_output(exec_command, shell=True).strip("\n ")
+                except: local_ip=""
+                ip_int[link[0]]=local_ip
+        
+        loc_string=local_ip+", "+local_int
+        
         print "<tr"
         if (link[1] == defaultv4ip): print " bgcolor=FFD700"
         host=socket.getfqdn(link[1])
-        print "><td>"+link[0]+"</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
+        print "><td>"
+        
+        #local interface/ip
+        try: print loc_string
+        except: print link[0]
+        
+        print "</td><td><a href=\"https://"+link[1]+"\" target=_blank>"+link[1]+"</a></td>" #link-ip
         print "<td><a href=https://"+host+" target=_blank>"+format_hostname(host)+"</a></td>" #link-hostname
         try:print "<td>"+link[2]+"</td>" #hyst
         except:print "<td>err</td>" #hyst

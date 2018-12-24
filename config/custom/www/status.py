@@ -726,7 +726,7 @@ def show_html():
                 local_ip=ip_int[link[0]]
             except:
                 local_int=link[0]
-                exec_command="ip -4 -o a s "++local_int" | head -1 | awk '{print $4}' | cut -d/ -f1"
+                exec_command="ip -4 -o a s "+local_int+" | head -1 | awk '{print $4}' | cut -d/ -f1"
                 try: local_ip=subprocess.check_output(exec_command, shell=True).strip("\n ")
                 except: local_ip=""
                 ip_int[link[0]]=local_ip

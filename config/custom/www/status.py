@@ -193,6 +193,7 @@ def show_ipv6():
 def show_olsrd():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v"+version)
+    print("X-Data-Fields: 1-olsrd_version,2-olsrd_starttime,3-olsrd_uptime,4-router_systemtime,5-router_starttime,6-router_uptime")
     print         # blank line, end of headers
     #olsrd version
     try:
@@ -201,13 +202,20 @@ def show_olsrd():
     except:
         olsrd_version=""
     print olsrd_version
-    
+    #olsrd uptime
     try:
         exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'
         start_time=subprocess.check_output(exec_command, shell=True).strip("\n ")
     except:
         start_time=""
     print start_time
+    #router uptime
+    try:
+        exec_command='s=$(awk -F\'.\' \'{print $1}\' /proc/uptime) && d=$(date +%s) && echo -e "$(expr $d - $s 2>/dev/null)\n$s"'
+        router_uptime=subprocess.check_output(exec_command, shell=True).strip("\n ")
+    except:
+        router_uptime=""
+    print router_uptime
 
 def show_airos():
     # return output

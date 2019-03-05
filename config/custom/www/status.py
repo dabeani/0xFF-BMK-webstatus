@@ -190,6 +190,25 @@ def show_ipv6():
     data=subprocess.check_output(exec_command, shell=True)
     print data
 
+def show_olsrd():
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v"+version)
+    print         # blank line, end of headers
+    #olsrd version
+    try:
+        exec_command='/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"'
+        olsrd_version=subprocess.check_output(exec_command, shell=True).strip("\n ")
+    except:
+        olsrd_version=""
+    print olsrd_version
+    
+    try:
+        exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'
+        start_time=subprocess.check_output(exec_command, shell=True).strip("\n ")
+    except:
+        start_time=""
+    print start_time
+
 def show_airos():
     # return output
     print("Content-Type: text/json")
@@ -346,6 +365,13 @@ def show_html():
     args = shlex.split(exec_command)
     data = json.loads(subprocess.check_output(args))
     #need sorting by IP last octet: 100..255, 1...99
+    
+    #olsrd version
+    #grep -oEm1 "olsr.org - .{144}" /usr/sbin/olsrd | sed -e 's/[\x00-\x08\x0B\x0C\x0E-\x1F]/~/g'
+    #curl -s 127.0.0.1:2006/ver
+    #curl -s 78.41.119.41:8080/config | grep -oP "^Version: .*$|System time: .*\<\/em\>\<br\>|Olsrd uptime: .*$" | sed -e 's/<[^>]*>//g'
+    #curl -s 127.0.0.1:9090/version | jq -r '.'
+    #/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"
     
     # get local olsr infos
     import urllib2
@@ -1074,7 +1100,7 @@ def show_html():
 </div>
 """
         print """                        <table class="table table-hover table-bordered table-condensed"><thead style="background-color:#f5f5f5;">
-                        <tr valign=top><td><b>IF</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td>"""
+                        <tr valign=top><td><b>Intf</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td>"""
                         
         if (authorized): print "<td><b>Remote MAC</b></td>"
         print """<!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
@@ -1219,6 +1245,8 @@ elif (GET.get('get') == "ipv6"):
     show_ipv6()
 elif (GET.get('get') == "ipv4"):
     show_ipv4()
+elif (GET.get('get') == "olsrd"):
+    show_olsrd()
 elif (GET.get('get') == "test"):
     show_test()
 else:

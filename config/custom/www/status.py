@@ -58,6 +58,10 @@ for line in open("/config/custom/www/settings.inc"):
         if (len(dat[1].strip(";'\n "))>0): ip6addresses=dat[1].strip(";'\n ").split(",")
         else: ip6addresses=[]
 
+#add local hosts
+ipaddresses.extend(['127.0.0.1'])
+ip6addresses.extend(['::0'])
+
 # get http-get variables
 GET={}
 if (os.getenv("QUERY_STRING") is None):
@@ -236,9 +240,9 @@ def show_jsoninfo():
     if (authorized_ip):
         try:
             if (GET.get('q') is None):
-                q="ver"
+                q="version"
             elif (GET.get('q') == ""):
-                q="ver"
+                q="version"
             else:
                 q=GET.get('q')
             

@@ -206,7 +206,8 @@ def show_olsrd():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v"+version)
     if (authorized_ip):
-        print("X-Data-Fields: 1-olsrd_version,2-olsrd_startTime,3-olsrd_uptime,4-router_systemTime,5-router_startTime,6-router_uptime")
+        print("X-Data-Fields_A: 1-olsrd_version,2-olsrd_startTime,3-olsrd_uptime,4-router_systemTime,5-router_startTime,6-router_uptime")
+        print("X-Data-Fields_B: 7-olsrd_ver,8-olsrd_descriptor,9-olsrd_dev_gitsha,10-olsrd_builddate,11-olsrd_release,12-olsrd_sourcehash,13-olsrd_confighash,14-olsrd_configtime")
         print         # blank line, end of headers
         #olsrd version (line 1) - no NL
         try:
@@ -229,7 +230,20 @@ def show_olsrd():
         except:
             router_uptime="\n"
         print router_uptime
-    
+        #olsrd-binary data (line 7,8,9,10,11,12), needs 5NL
+        try:
+            exec_command="grep -oEm1 \"olsr.org - .{185}\" /usr/sbin/olsrd | sed -e 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/~/g' | awk -F~ '{print \"ver:\"$1\"\\ndsc:\"$3\"\\ndev:\"$5\"\\ndat:\"$6\"\\nrel:\"$9\"\\nsrc:\"$12}'"
+            olsrd_binary=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        except:
+            olsrd_binary="ver:\ndsc:\ndev:\ndat:\nrel:\nsrc:"
+        print olsrd_binary
+        #olsrd_confighash and last_changed_timestamt (line 13,14), needs 1 NL
+        try:
+            exec_command="c=$(awk -F\"-f \" '/DAEMON_OPTS/{print $2}' /etc/default/olsrd | tr -d \\\") && sed -e 's/[ \\t]*#.*$//' -e '/^[ ]*$/d' -e 's/[ \\t][ \\t]*/ /ig' -e 's/^ //ig' $c | md5sum | cut -f1 -d' ' && stat -c %Z $c"
+            olsrd_confighash=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        except:
+            olsrd_confighash="\n"
+        print olsrd_confighash
     else:
         print         # blank line, end of headers
         print 'not-authorized, '+clientip+', '+agent
@@ -417,7 +431,7 @@ def show_html():
     #need sorting by IP last octet: 100..255, 1...99
     
     #olsrd version
-    #grep -oEm1 "olsr.org - .{190}" /usr/sbin/olsrd | sed -e 's/[\x00-\x08\x0B\x0C\x0E-\x1F]/~/g' -e 's/~~*/~/g'
+    #grep -oEm1 "olsr.org - .{185}" /usr/sbin/olsrd | sed -e 's/[\x00-\x08\x0B\x0C\x0E-\x1F]/~/g' | awk -F~ '{print "ver:"$1"\ndsc:"$3"\ndev:"$5"\ndat:"$6"\nrel:"$9"\nsrc:"$12}'
     #  1=version 2=gitDescriptor 3=gitSha 4=releaseVersion 5=sourceHash
     #curl -s 127.0.0.1:2006/ver
     #curl -s 78.41.119.41:8080/config | grep -oP "^Version: .*$|System time: .*\<\/em\>\<br\>|Olsrd uptime: .*$" | sed -e 's/<[^>]*>//g'

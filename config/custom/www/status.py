@@ -60,7 +60,7 @@ for line in open("/config/custom/www/settings.inc"):
 
 #add local hosts
 ipaddresses.extend(['127.0.0.1'])
-ip6addresses.extend(['::0'])
+ip6addresses.extend(['::1'])
 
 # get http-get variables
 GET={}
@@ -153,7 +153,9 @@ def show_test():
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
 
-    print str(authorized)+" ("+clientip+") "+agent
+    print str(authorized)+" ("+clientip+")"
+    try: print "Agent:"+str(agent)
+    except: print "Agent:unknown"
     if (uamatch):
         print "iOS:"+uamatch.group(1).replace("_",".")
 

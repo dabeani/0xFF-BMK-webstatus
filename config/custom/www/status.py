@@ -234,9 +234,16 @@ def show_jsoninfo():
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     if (authorized_ip):
-        try: 
+        try:
+            if (GET.get('q') is None):
+                q="ver"
+            elif (GET.get('q') == ""):
+                q="ver"
+            else:
+                q=GET.get('q')
+            
             import urllib2
-            data = json.loads(urllib2.urlopen("http://127.0.0.1:9090/", timeout = 1).read().strip("\n "))
+            data = json.loads(urllib2.urlopen("http://127.0.0.1:9090/"+str(q), timeout = 1).read().strip("\n "))
             print json.dumps(data)
         except:
             string="Unexpected error:", sys.exc_info()[0]

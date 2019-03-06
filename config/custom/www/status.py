@@ -253,7 +253,7 @@ def show_jsoninfo():
             print '{"return":"'+string+'"}'
     
     else:
-        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent'"}'
+        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'
 
 
 def show_airos():
@@ -277,7 +277,7 @@ def show_airos():
             print '{"return":"'+string+'"}'
     
     else:
-        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent'"}'
+        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'
 
 def show_status():
     # get ubnt-discover

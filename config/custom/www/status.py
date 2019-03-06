@@ -140,7 +140,6 @@ if (authorized==False and str(allowiphones)=="1"):
         iphone=r'.*iPhone.*OS (.{3,8}) like'
         uamatch = re.match( iphone, agent, re.M|re.I)
         if uamatch:
-           #print "iPhone - iOS version "+ uamatch.group(1).replace("_",".")
            authorized=True
     except:
         agent=""
@@ -154,7 +153,7 @@ def show_test():
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
 
-    print str(authorized)+" ("+clientip+") "
+    print str(authorized)+" ("+clientip+") "+agent
     if (uamatch):
         print "iOS:"+uamatch.group(1).replace("_",".")
 
@@ -179,7 +178,7 @@ def show_ipv4():
         data=subprocess.check_output(exec_command, shell=True)
         print data
     else:
-        print 'not-authorized, '+clientip
+        print 'not-authorized, '+clientip+', '+agent
 
 def show_ipv6():
     print("Content-Type: text/plain")
@@ -198,7 +197,7 @@ def show_ipv6():
         data=subprocess.check_output(exec_command, shell=True)
         print data
     else:
-        print 'not-authorized, '+clientip
+        print 'not-authorized, '+clientip+', '+agent
 
 def show_olsrd():
     print("Content-Type: text/plain")
@@ -206,31 +205,31 @@ def show_olsrd():
     if (authorized_ip):
         print("X-Data-Fields: 1-olsrd_version,2-olsrd_startTime,3-olsrd_uptime,4-router_systemTime,5-router_startTime,6-router_uptime")
         print         # blank line, end of headers
-        #olsrd version
+        #olsrd version (line 1) - no NL
         try:
             exec_command='/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"'
             olsrd_version=subprocess.check_output(exec_command, shell=True).strip("\n ")
         except:
             olsrd_version=""
         print olsrd_version
-        #olsrd uptime
+        #olsrd uptime (line 2,3,4) - needs 2NL
         try:
             exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'
             start_time=subprocess.check_output(exec_command, shell=True).strip("\n ")
         except:
-            start_time=""
+            start_time="\n\n"
         print start_time
-        #router uptime
+        #router uptime (line 5,6) - needs 1NL
         try:
             exec_command='s=$(awk -F\'.\' \'{print $1}\' /proc/uptime) && d=$(date +%s) && echo -e "$(expr $d - $s 2>/dev/null)\n$s"'
             router_uptime=subprocess.check_output(exec_command, shell=True).strip("\n ")
         except:
-            router_uptime=""
+            router_uptime="\n"
         print router_uptime
     
     else:
         print         # blank line, end of headers
-        print '{"return":"not-authorized","ip":"'+clientip+'"}'
+        print 'not-authorized, '+clientip+', '+agent
 
 def show_jsoninfo():
     # return output
@@ -254,7 +253,7 @@ def show_jsoninfo():
             print '{"return":"'+string+'"}'
     
     else:
-        print '{"return":"not-authorized","ip":"'+clientip+'"}'
+        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent'"}'
 
 
 def show_airos():
@@ -278,7 +277,7 @@ def show_airos():
             print '{"return":"'+string+'"}'
     
     else:
-        print '{"return":"not-authorized","ip":"'+clientip+'"}'
+        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent'"}'
 
 def show_status():
     # get ubnt-discover

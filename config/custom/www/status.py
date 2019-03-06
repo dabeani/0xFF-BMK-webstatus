@@ -158,64 +158,92 @@ def show_ipv4():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
-    exec_command="/sbin/ip -4 a"
-    data=subprocess.check_output(exec_command, shell=True)
-    print data
-    print
-    exec_command="/sbin/ip -4 neigh"
-    data=subprocess.check_output(exec_command, shell=True)
-    print data
-    print
-    exec_command="/sbin/ip -4 l | grep -vE '^ ' | awk '{print $2}' | sed 's/[:@].*$//g' | sort"
-    data=subprocess.check_output(exec_command, shell=True)
-    print data
-    print
-    exec_command="/usr/sbin/brctl show"
-    data=subprocess.check_output(exec_command, shell=True)
-    print data
+    if (authorized_ip):
+        exec_command="/sbin/ip -4 a"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
+        print
+        exec_command="/sbin/ip -4 neigh"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
+        print
+        exec_command="/sbin/ip -4 l | grep -vE '^ ' | awk '{print $2}' | sed 's/[:@].*$//g' | sort"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
+        print
+        exec_command="/usr/sbin/brctl show"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
+    else:
+        print 'not-authorized, '+clientip
 
 def show_ipv6():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
-    exec_command="/sbin/ip -6 a"
-    data=subprocess.check_output(exec_command, shell=True)
-    print data
-    print
-    exec_command="/sbin/ip -6 neigh"
-    data=subprocess.check_output(exec_command, shell=True)
-    print data
-    print
-    exec_command="/sbin/ip -6 l | grep -vE '^ ' | awk '{print $2}' | sed 's/[:@].*$//g' | sort"
-    data=subprocess.check_output(exec_command, shell=True)
-    print data
+    if (authorized_ip):
+        exec_command="/sbin/ip -6 a"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
+        print
+        exec_command="/sbin/ip -6 neigh"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
+        print
+        exec_command="/sbin/ip -6 l | grep -vE '^ ' | awk '{print $2}' | sed 's/[:@].*$//g' | sort"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
+    else:
+        print 'not-authorized, '+clientip
 
 def show_olsrd():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v"+version)
-    print("X-Data-Fields: 1-olsrd_version,2-olsrd_starttime,3-olsrd_uptime,4-router_systemtime,5-router_starttime,6-router_uptime")
+    if (authorized_ip):
+        print("X-Data-Fields: 1-olsrd_version,2-olsrd_startTime,3-olsrd_uptime,4-router_systemTime,5-router_startTime,6-router_uptime")
+        print         # blank line, end of headers
+        #olsrd version
+        try:
+            exec_command='/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"'
+            olsrd_version=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        except:
+            olsrd_version=""
+        print olsrd_version
+        #olsrd uptime
+        try:
+            exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'
+            start_time=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        except:
+            start_time=""
+        print start_time
+        #router uptime
+        try:
+            exec_command='s=$(awk -F\'.\' \'{print $1}\' /proc/uptime) && d=$(date +%s) && echo -e "$(expr $d - $s 2>/dev/null)\n$s"'
+            router_uptime=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        except:
+            router_uptime=""
+        print router_uptime
+    
+    else:
+        print         # blank line, end of headers
+        print '{"return":"not-authorized","ip":"'+clientip+'"}'
+
+def show_jsoninfo():
+    # return output
+    print("Content-Type: text/json")
+    print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
-    #olsrd version
-    try:
-        exec_command='/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"'
-        olsrd_version=subprocess.check_output(exec_command, shell=True).strip("\n ")
-    except:
-        olsrd_version=""
-    print olsrd_version
-    #olsrd uptime
-    try:
-        exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'
-        start_time=subprocess.check_output(exec_command, shell=True).strip("\n ")
-    except:
-        start_time=""
-    print start_time
-    #router uptime
-    try:
-        exec_command='s=$(awk -F\'.\' \'{print $1}\' /proc/uptime) && d=$(date +%s) && echo -e "$(expr $d - $s 2>/dev/null)\n$s"'
-        router_uptime=subprocess.check_output(exec_command, shell=True).strip("\n ")
-    except:
-        router_uptime=""
-    print router_uptime
+    if (authorized_ip):
+        try: 
+            data = json.loads(urllib2.urlopen("http://127.0.0.1:9090/", timeout = 1).read().strip("\n "))
+            print json.dumps(data)
+        except:
+            string="Unexpected error:", sys.exc_info()[0]
+            print '{"return":"'+string+'"}'
+    
+    else:
+        print '{"return":"not-authorized","ip":"'+clientip+'"}'
+
 
 def show_airos():
     # return output
@@ -375,7 +403,8 @@ def show_html():
     #need sorting by IP last octet: 100..255, 1...99
     
     #olsrd version
-    #grep -oEm1 "olsr.org - .{144}" /usr/sbin/olsrd | sed -e 's/[\x00-\x08\x0B\x0C\x0E-\x1F]/~/g'
+    #grep -oEm1 "olsr.org - .{190}" /usr/sbin/olsrd | sed -e 's/[\x00-\x08\x0B\x0C\x0E-\x1F]/~/g' -e 's/~~*/~/g'
+    #  1=version 2=gitDescriptor 3=gitSha 4=releaseVersion 5=sourceHash
     #curl -s 127.0.0.1:2006/ver
     #curl -s 78.41.119.41:8080/config | grep -oP "^Version: .*$|System time: .*\<\/em\>\<br\>|Olsrd uptime: .*$" | sed -e 's/<[^>]*>//g'
     #curl -s 127.0.0.1:9090/version | jq -r '.'
@@ -1255,6 +1284,8 @@ elif (GET.get('get') == "ipv4"):
     show_ipv4()
 elif (GET.get('get') == "olsrd"):
     show_olsrd()
+elif (GET.get('get') == "jsoninfo"):
+    show_jsoninfo()
 elif (GET.get('get') == "test"):
     show_test()
 else:

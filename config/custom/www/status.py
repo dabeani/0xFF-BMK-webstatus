@@ -153,7 +153,8 @@ def show_test():
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
 
-    print str(authorized)+" ("+clientip+")"
+    print "AuthUa:"+str(authorized)
+    print "AuthIp:"+str(authorized_ip)+" ("+str(clientip)+")"
     try: print "Agent:"+str(agent)
     except: print "Agent:unknown"
     if (uamatch):

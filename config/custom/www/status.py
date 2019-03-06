@@ -235,6 +235,7 @@ def show_jsoninfo():
     print         # blank line, end of headers
     if (authorized_ip):
         try: 
+            import urllib2
             data = json.loads(urllib2.urlopen("http://127.0.0.1:9090/", timeout = 1).read().strip("\n "))
             print json.dumps(data)
         except:

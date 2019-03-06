@@ -82,10 +82,10 @@ def convert_ipv4(ip):
     return tuple(int(n) for n in ip.split('.'))
 
 def check_ipv4_in(addr, start, end):
-    return convert_ipv4(start) < convert_ipv4(addr) < convert_ipv4(end)
+    return convert_ipv4(start) <= convert_ipv4(addr) <= convert_ipv4(end)
 
 def check_ipv6_in(addr, start, end):
-    return socket.inet_pton(socket.AF_INET6,start) < socket.inet_pton(socket.AF_INET6,addr) < socket.inet_pton(socket.AF_INET6,end)
+    return socket.inet_pton(socket.AF_INET6,start) <= socket.inet_pton(socket.AF_INET6,addr) <= socket.inet_pton(socket.AF_INET6,end)
 
 def sort_by_ipv6(elem):
     return socket.inet_pton(socket.AF_INET6,elem['neighbor_originator'])

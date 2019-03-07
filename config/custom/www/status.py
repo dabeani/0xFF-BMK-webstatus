@@ -206,16 +206,20 @@ def show_olsrd():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v"+version)
     if (authorized_ip):
-        print("X-Data-Fields_A: 1-olsrd_version,2-olsrd_startTime,3-olsrd_uptime,4-router_systemTime,5-router_startTime,6-router_uptime")
+        print("X-Data-Fields_A: 1-hostname,2-olsrd_startTime,3-olsrd_uptime,4-router_systemTime,5-router_startTime,6-router_uptime")
         print("X-Data-Fields_B: 7-olsrd_ver,8-olsrd_descriptor,9-olsrd_dev_gitsha,10-olsrd_builddate,11-olsrd_release,12-olsrd_sourcehash,13-olsrd_confighash,14-olsrd_configtime")
         print         # blank line, end of headers
         #olsrd version (line 1) - no NL
-        try:
-            exec_command='/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"'
-            olsrd_version=subprocess.check_output(exec_command, shell=True).strip("\n ")
-        except:
-            olsrd_version=""
-        print olsrd_version
+        #disabled -> reports an error in /var/log/messages
+        #try:
+        #    exec_command='/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"'
+        #    olsrd_version=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        #except:
+        #    olsrd_version=""
+        #print olsrd_version
+        #print local hostname instead
+        try: print(socket.gethostname())
+        except: print ""
         #olsrd uptime (line 2,3,4) - needs 2NL
         try:
             exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'

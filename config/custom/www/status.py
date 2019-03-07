@@ -255,12 +255,18 @@ def show_jsoninfo():
     print         # blank line, end of headers
     if (authorized_ip):
         try:
+            allowedq=['version',        'all','runtime','startup','neighbors','links','routes','hna','mid','topology',
+                      'interfaces','2hop','sgw','pudposition','olsrd.conf','config','plugins','neighbours','gateways'
+            ]
             if (GET.get('q') is None):
-                q="version"
+                q=allowedq[0]
             elif (GET.get('q') == ""):
-                q="version"
+                q=allowedq[0]
             else:
-                q=GET.get('q')
+                if q in allowedq:
+                    q=GET.get('q')
+                else:
+                    q="allowedq[0]
             
             import urllib2
             data = json.loads(urllib2.urlopen("http://127.0.0.1:9090/"+str(q), timeout = 1).read().strip("\n "))

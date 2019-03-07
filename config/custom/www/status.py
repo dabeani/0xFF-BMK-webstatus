@@ -236,7 +236,7 @@ def show_olsrd():
         print router_uptime
         #olsrd-binary data (line 7,8,9,10,11,12), needs 5NL
         try:
-            exec_command="grep -oEm1 \"olsr.org - .{185}\" /usr/sbin/olsrd | sed -e 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/~/g' | awk -F~ '{print \"ver:\"$1\"\\ndsc:\"$3\"\\ndev:\"$5\"\\ndat:\"$6\"\\nrel:\"$9\"\\nsrc:\"$12}'"
+            exec_command="grep -oaEm1 \"olsr.org - .{185}\" /usr/sbin/olsrd | sed -e 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/~/g' | awk -F~ '{print \"ver:\"$1\"\\ndsc:\"$3\"\\ndev:\"$5\"\\ndat:\"$6\"\\nrel:\"$9\"\\nsrc:\"$12}'"
             olsrd_binary=subprocess.check_output(exec_command, shell=True).strip("\n ")
         except:
             olsrd_binary="ver:\ndsc:\ndev:\ndat:\nrel:\nsrc:"

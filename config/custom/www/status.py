@@ -218,14 +218,14 @@ def show_olsrd():
         print olsrd_version
         #olsrd uptime (line 2,3,4) - needs 2NL
         try:
-            exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(TZ=Europe/Vienna date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'
+            exec_command='s=$(stat -c %Z /proc/$(pidof olsrd)/stat) && d=$(date +%s) && echo -e "$s\n$(expr $d - $s 2>/dev/null)\n$d"'
             start_time=subprocess.check_output(exec_command, shell=True).strip("\n ")
         except:
             start_time="\n\n"
         print start_time
         #router uptime (line 5,6) - needs 1NL
         try:
-            exec_command='s=$(awk -F\'.\' \'{print $1}\' /proc/uptime) && d=$(TZ=Europe/Vienna date +%s) && echo -e "$(expr $d - $s 2>/dev/null)\n$s"'
+            exec_command='s=$(awk -F\'.\' \'{print $1}\' /proc/uptime) && d=$(date +%s) && echo -e "$(expr $d - $s 2>/dev/null)\n$s"'
             router_uptime=subprocess.check_output(exec_command, shell=True).strip("\n ")
         except:
             router_uptime="\n"

@@ -263,10 +263,10 @@ def show_jsoninfo():
             elif (GET.get('q') == ""):
                 q=allowedq[0]
             else:
-                if q in allowedq:
+                if GET.get('q') in allowedq:
                     q=GET.get('q')
                 else:
-                    q="allowedq[0]
+                    q=allowedq[0]
             
             import urllib2
             data = json.loads(urllib2.urlopen("http://127.0.0.1:9090/"+str(q), timeout = 1).read().strip("\n "))

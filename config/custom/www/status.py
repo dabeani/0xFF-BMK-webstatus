@@ -78,6 +78,15 @@ if (GET.get('get') is None):
 if (GET.get('get') == ""):
     GET["get"]="default"
 
+if (GET.get('olsrd') == ""):        GET["get"]="olsrd"
+if (GET.get('jsoninfo') == ""):     GET["get"]="jsoninfo"
+if (GET.get('status') == ""):       GET["get"]="status"
+if (GET.get('ipv4') == ""):         GET["get"]="ipv4"
+if (GET.get('ipv6') == ""):         GET["get"]="ipv6"
+if (GET.get('test') == ""):         GET["get"]="test"
+if (GET.get('connections') == ""):  GET["get"]="connections"
+if (GET.get('airos') == ""):        GET["get"]="airos"
+
 def convert_ipv4(ip):
     return tuple(int(n) for n in ip.split('.'))
 
@@ -570,7 +579,7 @@ def show_html():
                 <li role="presentation"><a href="#main" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> &Uuml;bersicht</a></li>
                 <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> Status</a></li>
 """
-    if (olsr2_on): print """                <li role="presentation"><a href="#olsr2" aria-controls="main" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> OLSRv2</a></li>
+    if (olsr2_on): print """                <li role="presentation"><a href="#olsr2" aria-controls="olsr2" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-dashboard" aria-hidden="true"></span> OLSRv2</a></li>
 """
     print """                <li role="presentation"><a href="#contact" aria-controls="contact" role="tab" data-toggle="tab"><span class="glyphicon glyphicon-user" aria-hidden="true"></span> Kontakt</a></li>"""
     print '                <li role="presentation"><a href="#">'+ip+" - "+hostname+'</a></li>'
@@ -1276,6 +1285,8 @@ def show_html():
                     </dl>
                 </div>
 """
+    else:
+        print """<!-- OLSRv2 TAB skipped -->"""
 
 ##END OLSRv2 section
 

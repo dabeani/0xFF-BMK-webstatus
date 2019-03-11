@@ -71,6 +71,7 @@ else:
     for arg in args:
         t=arg.split('=')
         if len(t)>1: k,v=arg.split('='); GET[k]=v
+        elif (len(t)==1): GET[t[0]]=""
 
 if (GET.get('get') is None):
     GET["get"]="default"

@@ -23,7 +23,7 @@ done
 [ ! "$wsle" ] && wsle="n/a" && aale="n/a"
 [ ! "$autoupdate" ] && autoupdate="n/a" && aa="n/a"
 [ ! "$ebtables" ] && ebtables="n/a" && aaebt="n/a"
-bmkwebstatus=$(head -n 12 /config/custom/www/cgi-bin-status*.php 2>/dev/null | grep version= | cut -d'"' -f2 | head -n 1)
+bmkwebstatus=$(head -n 12 /config/custom/www/cgi-bin-status*.php 2>/dev/null | grep -m1 version= | cut -d'"' -f2)
 [ ! "$bmkwebstatus" ] && bmkwebstatus="n/a"
 
 #get olsrd4-watchdog setting
@@ -34,7 +34,8 @@ else
 fi
 
 #get local ips
-v4=$(ip -4 addr show $(awk -F= '/MESH_IF=/ { print $2 }' /config/user-data/olsrd.default | tr -d \") | grep inet | awk {'print $2'} | awk -F/ {'print $1'})
+ints=$(sed -e 's/[ \t]*#.*$//' -e '/^[ ]*$/d' /config/user-data/olsrd4.conf | grep -iw interface | tr -d '"' | tr '[:upper:]' '[:lower:]' | awk '{print $2}'; awk -F= '/MESH_IF=/ { print $2 }' /config/user-data/olsrd.default 2>/dev/null | tr -d \")
+v4=$(ip -4 -o addr show | grep -wE "$ints" | awk {'print $4'} | awk -F/ {'print $1'})
 orig=$(if [ $(ps ax | grep olsrd2.conf | grep -v grep | awk {'print $7'} | wc -l) == "1" ]; then curl -s --connect-timeout 1 http://127.0.0.1:8000/telnet/olsrv2info%20originator 2>/dev/null | grep : | head -n 1; else echo "n/a"; fi)
 [ ! "$orig" ] && orig="n/a"
 [ ! "$v4" ] && v4="n/a"
@@ -60,7 +61,8 @@ echo -n '"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle
 echo -n '"local_ips":{"ipv4":"'$v4'","ipv6":"'$v6'","originator":"'$orig'"},'
 echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$aa'","olsrv1":"'$aa1'","olsrv2":"'$aa2'","0xffwsle":"'$aale'","ebtables":"'$aaebt'"},'
 echo -n '"olsrd4watchdog":{"state":"'$olsrd4watchdog'"},'
-echo -n '"linklocals":{'$output'}'
+echo -n '"linklocals":{'$output'},'
+echo -n '"bootimage":{"md5":"'$(/usr/bin/md5sum /dev/mtdblock2 | cut -f1 -d" ")'"}'
 echo    '}'
 
 exit 0

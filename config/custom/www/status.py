@@ -217,7 +217,8 @@ def show_olsrd():
     print("X-Powered-By: cpo/bmk-v"+version)
     if (authorized_ip):
         print("X-Data-Fields_A: 1-hostname,2-olsrd_startTime,3-olsrd_uptime,4-router_systemTime,5-router_startTime,6-router_uptime")
-        print("X-Data-Fields_B: 7-olsrd_ver,8-olsrd_descriptor,9-olsrd_dev_gitsha,10-olsrd_builddate,11-olsrd_release,12-olsrd_sourcehash,13-olsrd_confighash,14-olsrd_configtime")
+        print("X-Data-Fields_B: 7-olsrd_ver,8-olsrd_descriptor,9-olsrd_dev_gitsha,10-olsrd_builddate,11-olsrd_release,12-olsrd_sourcehash")
+        print("X-Data-Fields_B: 13-olsrd_confighash,14-olsrd_configtime,15-routerosversion")
         print         # blank line, end of headers
         #olsrd version (line 1) - no NL
         #disabled -> reports an error in /var/log/messages
@@ -258,6 +259,14 @@ def show_olsrd():
         except:
             olsrd_confighash="\n"
         print olsrd_confighash
+        #router edgeos version, line 15, not NL
+        try:
+            exec_command="cat /root.dev/version 2>/dev/null | awk '{print $2}'"
+            router_version=subprocess.check_output(exec_command, shell=True).strip("\n ")
+        except:
+            router_version=""
+        print router_version
+        
     else:
         print         # blank line, end of headers
         print 'not-authorized, '+clientip+', '+agent

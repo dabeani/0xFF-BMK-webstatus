@@ -27,7 +27,7 @@ if [ "$cronjob" ]; then
       EXPIRES=$(openssl x509 -enddate -noout -in /config/letsencrypt/signed.crt | awk -F'=' {'print $2'})
   fi
   if [ "$EXPIRES" ]; then 
-    dt1=$(echo "$EXPIRES" | awk {'printf "Sun "$1" "; printf "%02d", $2; print " "$3" "$5" "$4'})
+    dt1=$(echo "$EXPIRES" | awk '{ printf "%04d-%02d-%02d %s\n", $4, (index("JanFebMarAprMayJunJulAugSepOctNovDec",$1)+2)/3, $2, $3}')
     t1=$(date --date="$dt1" +%s)
     t2=$(date +%s)
     if [ $t1 \> $t2 ]; then 

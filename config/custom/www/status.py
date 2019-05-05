@@ -530,12 +530,14 @@ def show_html():
         line=route.split()
         try: gatewaylist[line[0]].extend([str(line[1])])
         except KeyError: gatewaylist[line[0]]=[str(line[1])]
+        except: n=""
         try: tmp=len(nodelist[line[0]])
         except KeyError: nodelist[line[0]]=[]
+        except: n=""
         try: 
             n=node_dns[line[1]]['n']
             if (n not in nodelist[line[0]]): nodelist[line[0]].extend([str(n)])
-        except KeyError: n=""
+        except: n=""
     
     # get uptime
     uptime = subprocess.check_output("uptime").strip("\n ")
@@ -977,8 +979,10 @@ def show_html():
             line=route.split()
             try: gateway6list[line[0]].extend([str(line[1])])
             except KeyError: gateway6list[line[0]]=[str(line[1])]
+            except: n=""
             try: tmp=len(node6list[line[0]])
             except KeyError: node6list[line[0]]=[]
+            except: n=""
             try:
                 ipv4=node_dns['v6-to-v4'][line[1]]
                 n=node_dns[ipv4]['n']
@@ -1026,6 +1030,7 @@ def show_html():
                                     break
                             except: continue
                     except: n=""
+            except: n=""
 
 ##BEGIN OLSRv2 section
 

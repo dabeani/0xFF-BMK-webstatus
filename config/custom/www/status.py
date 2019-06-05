@@ -347,6 +347,8 @@ def show_status():
     data["autoupdate"]=versions["autoupdate"]
     data["linklocals"]=versions["linklocals"]
     data["olsrd4watchdog"]=versions["olsrd4watchdog"]
+    data["bootimage"]=versions["bootimage"]
+    data["homes"]=versions["homes"]
 
     #allow airos-data for monitoring (for autorized IPs only)
     if (authorized_ip):

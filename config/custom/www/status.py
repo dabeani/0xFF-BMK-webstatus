@@ -81,6 +81,7 @@ if (GET.get('get') == ""):
 
 if (GET.get('olsrd') == ""):        GET["get"]="olsrd"
 if (GET.get('jsoninfo') == ""):     GET["get"]="jsoninfo"
+if (GET.get('txtinfo') == ""):      GET["get"]="txtinfo"
 if (GET.get('status') == ""):       GET["get"]="status"
 if (GET.get('ipv4') == ""):         GET["get"]="ipv4"
 if (GET.get('ipv6') == ""):         GET["get"]="ipv6"
@@ -301,6 +302,34 @@ def show_jsoninfo():
     else:
         print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'
 
+def show_txtinfo():
+    # return output
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v"+version)
+    print         # blank line, end of headers
+    if (authorized_ip):
+        try:
+            allowedq=['ver','all','neighbours','sgw','int','gat','top','mid','hna','rou',
+                      'lin','nei','startup','runtime','con'
+            ]
+            if (GET.get('q') is None):
+                q=allowedq[0]
+            elif (GET.get('q') == ""):
+                q=allowedq[0]
+            else:
+                if GET.get('q') in allowedq:
+                    q=GET.get('q')
+                else:
+                    q=allowedq[0]
+            
+            import urllib2
+            print urllib2.urlopen("http://127.0.0.1:2006/"+str(q), timeout = 1).read().strip("\n ")
+        except:
+            string="Unexpected error:", sys.exc_info()[0]
+            print '{"return":"'+string+'"}'
+    
+    else:
+        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'
 
 def show_airos():
     # return output
@@ -1352,6 +1381,8 @@ elif (GET.get('get') == "olsrd"):
     show_olsrd()
 elif (GET.get('get') == "jsoninfo"):
     show_jsoninfo()
+elif (GET.get('get') == "txtinfo"):
+    show_txtinfo()
 elif (GET.get('get') == "test"):
     show_test()
 else:

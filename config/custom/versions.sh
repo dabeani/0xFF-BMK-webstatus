@@ -56,12 +56,16 @@ for line in $(ip -6 -h -br a | grep -oE "^.{0,15}|fe80::.{10,25}\/64"); do
   output=$output",\"$interface\":\"$linklocal\""
 done
 
+#get local users and ssh key names
+logins=$(echo '"'$(for user in $(ls /home); do echo $user:$(echo $(grep "ssh-" /home/$user/.ssh/authorized_keys 2>/dev/null | awk '{print $3}')|sed -e 's/ /,/g'); done|sed -e 's/:$//g')'"'|sed -e 's/ /","/g')
+
 echo -n '{'
 echo -n '"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle'","bmk-webstatus":"'$bmkwebstatus'","ebtables":"'$ebtables'"},'
 echo -n '"local_ips":{"ipv4":"'$v4'","ipv6":"'$v6'","originator":"'$orig'"},'
 echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$aa'","olsrv1":"'$aa1'","olsrv2":"'$aa2'","0xffwsle":"'$aale'","ebtables":"'$aaebt'"},'
 echo -n '"olsrd4watchdog":{"state":"'$olsrd4watchdog'"},'
 echo -n '"linklocals":{'$output'},'
+echo -n '"homes":['$logins'],'
 echo -n '"bootimage":{"md5":"'$(/usr/bin/md5sum /dev/mtdblock2 | cut -f1 -d" ")'"}'
 echo    '}'
 

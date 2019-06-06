@@ -407,6 +407,7 @@ def show_status():
 def show_discover():
     print("Content-Type: text/plain")
     print("X-Powered-By: cpo/bmk-v"+version)
+    print         # blank line, end of headers
     if (authorized_ip):
         try:
             if (GET.get('q') is None):
@@ -418,14 +419,16 @@ def show_discover():
         except:
             interface_list_ok=""
         
-        ubntdiscovertime='900'
-        exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V "+interface_list_ok+" -j"
-        args = shlex.split(exec_command)
-        data = json.loads(subprocess.check_output(args))
-
-        # return output
-        print         # blank line, end of headers
-        print json.dumps(data)
+        try:
+            exec_command="/usr/sbin/ubnt-discover -d 900 -V "+interface_list_ok+" -j"
+            args = shlex.split(exec_command)
+            data = json.loads(subprocess.check_output(args))
+            # return output
+            print json.dumps(data)
+        except subprocess.CalledProcessError as e:
+            print '{"error":"'+e.output+'"}'
+        except:
+            print '{"error":"exception"}'
     
     else:
         print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'

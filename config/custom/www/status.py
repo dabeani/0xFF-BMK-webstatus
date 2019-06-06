@@ -279,7 +279,7 @@ def show_olsrd():
 
 def show_jsoninfo():
     # return output
-    print("Content-Type: text/json")
+    print("Content-Type: application/json")
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     if (authorized_ip):
@@ -338,7 +338,7 @@ def show_txtinfo():
 
 def show_airos():
     # return output
-    print("Content-Type: text/json")
+    print("Content-Type: application/json")
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     if (authorized_ip):
@@ -399,13 +399,13 @@ def show_status():
     data["airosdata"]=airosdata
 
     # return json output
-    print("Content-Type: text/json")
+    print("Content-Type: application/json")
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     print json.dumps(data)
 
 def show_discover():
-    print("Content-Type: text/plain")
+    print("Content-Type: application/json")
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     if (authorized_ip):

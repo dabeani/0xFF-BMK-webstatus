@@ -422,15 +422,11 @@ def show_discover():
         try:
             exec_command="/usr/sbin/ubnt-discover -d 900 -V "+interface_list_ok+" -j"
             args = shlex.split(exec_command)
-            data = json.loads(subprocess.check_output(args))
+            data = json.loads(subprocess.check_output(args, stderr=subprocess.STDOUT))
             # return output
             print json.dumps(data)
         except subprocess.CalledProcessError as e:
-            if e.output.startswith('error: {'):
-                error = json.loads(e.output[7:])
-                print '{"error":"'+error['message']+'"}'
-            else:
-                print '{"error":"exception"}'
+            print '{"error":"'+e.output.strip("\n").replace('"',"'")+'"}'
         except:
             print '{"error":"exception"}'
     

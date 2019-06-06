@@ -414,8 +414,10 @@ def show_discover():
                 interface_list_ok=""
             else:
                 interface_list_ok=" -i "+GET.get('q')
+        except:
+            interface_list_ok=""
         
-        ubntdiscovertime=900
+        ubntdiscovertime='900'
         exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V "+interface_list_ok+" -j"
         args = shlex.split(exec_command)
         data = json.loads(subprocess.check_output(args))
@@ -1404,6 +1406,8 @@ if (GET.get('get') == "status"):
     show_status()
 elif (GET.get('get') == "connections"):
     show_connections()
+elif (GET.get('get') == "discover"):
+    show_discover()
 elif (GET.get('get') == "airos"):
     show_airos()
 elif (GET.get('get') == "ipv6"):

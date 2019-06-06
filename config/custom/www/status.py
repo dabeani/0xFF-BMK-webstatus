@@ -210,6 +210,10 @@ def show_ipv6():
         exec_command="/sbin/ip -6 l | grep -vE '^ ' | awk '{print $2}' | sed 's/[:@].*$//g' | sort"
         data=subprocess.check_output(exec_command, shell=True)
         print data
+        print
+        exec_command="/usr/sbin/brctl show"
+        data=subprocess.check_output(exec_command, shell=True)
+        print data
     else:
         print 'not-authorized, '+clientip+', '+agent
 
@@ -398,6 +402,30 @@ def show_status():
     print("X-Powered-By: cpo/bmk-v"+version)
     print         # blank line, end of headers
     print json.dumps(data)
+
+def show_discover():
+    print("Content-Type: text/plain")
+    print("X-Powered-By: cpo/bmk-v"+version)
+    if (authorized_ip):
+        try:
+            if (GET.get('q') is None):
+                interface_list_ok=""
+            elif (GET.get('q') == ""):
+                interface_list_ok=""
+            else:
+                interface_list_ok=" -i "+GET.get('q')
+        
+        ubntdiscovertime=900
+        exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V "+interface_list_ok+" -j"
+        args = shlex.split(exec_command)
+        data = json.loads(subprocess.check_output(args))
+
+        # return output
+        print         # blank line, end of headers
+        print data
+    
+    else:
+        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'
 
 def show_connections():
     # get ports,bridges,vlans from connected/discovered devices
@@ -1078,7 +1106,9 @@ def show_html():
         print """</dd>
                       <dt>Olsrd2 Uptime <span class="glyphicon glyphicon-time" aria-hidden="true"></span></dt><dd>"""
         #if (olsr2version['version'][0]['version_commit'] == "v0.15.1-96-g8397c64e") -> uptime / 333
-        try: print olsr2time['time'][0]['time_system']
+        try:
+            olsr2timeparts=olsr2time['time'][0]['time_system'].split(".")
+            print olsr2timeparts[0]
         except: print "unknown-system-time"
         print " | "
         try: 
@@ -1088,6 +1118,7 @@ def show_html():
             elif uptime.endswith("M"):  uptime = float(uptime.rstrip("M")) * 1000000
             elif uptime.endswith("G"):  uptime = float(uptime.rstrip("G")) * 1000000000
             elif uptime.endswith("T"):  uptime = float(uptime.rstrip("T")) * 1000000000000
+            elif uptime.endswith("P"):  uptime = float(uptime.rstrip("P")) * 1000000000000000
             try:
                 if (olsr2version['version'][0]['version_commit'] == "v0.15.1-96-g8397c64e"): uptime = float(uptime) / 333
             except: uptime=uptime
@@ -1233,6 +1264,7 @@ def show_html():
                         <tr valign=top><td><b>Intf</b></td><td><b>Remote IPv6</b></td><td><b>Remote Hostname</b></td>"""
                         
         if (authorized): print "<td><b>Remote MAC</b></td>"
+        else: print "<td><b>Link-Status</b></td>"
         print """<!--td><b>Metric-In</b></td--><td><b>Metric</b></td><td><b>routes</b></td><td><b>nodes</b></td></tr></thead><tbody>
 """
         for key,link in enumerate(olsr2neighbors):
@@ -1262,7 +1294,8 @@ def show_html():
             print "<td><a href=\"https://["+hostaddr+"]\" target=_blank>"+hostaddr+"</a></td>" #link-ip
             if (hostname.find(".wien.funkfeuer.at")>0): print "<td><a href=https://"+hostname+" target=_blank>"+format_hostname(hostname)+"</a></td>" #link-hostname
             else: print "<td>"+hostname+"</td>" #link-hostname
-            if (authorized): print "<td align=center>"+link['link_mac']+"</td>"
+            if (authorized): print "<td style=\"font-size:60%\" align=center>"+link['link_mac']+"<br>"+link['link_status']+"</td>"
+            else: print "<td align=center>"+link['link_status']+"</td>"
             print "<td style=\"font-size:60%\" align=right>In:&nbsp;&nbsp; "+link['domain_metric_in']+"<br>Out: "+link['domain_metric_out']+"</td>"
             #print "<td align=right>"+link['domain_metric_in']+"</td>" 
             #print "<td align=right>"+link['domain_metric_out']+"</td>" 

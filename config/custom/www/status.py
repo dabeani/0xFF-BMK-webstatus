@@ -426,7 +426,11 @@ def show_discover():
             # return output
             print json.dumps(data)
         except subprocess.CalledProcessError as e:
-            print '{"error":"'+e.output+'"}'
+            if e.output.startswith('error: {'):
+                error = json.loads(e.output[7:])
+                print '{"error":"'+error['message']+'"}'
+            else:
+                print '{"error":"exception"}'
         except:
             print '{"error":"exception"}'
     

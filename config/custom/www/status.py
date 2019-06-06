@@ -87,6 +87,7 @@ if (GET.get('ipv4') == ""):         GET["get"]="ipv4"
 if (GET.get('ipv6') == ""):         GET["get"]="ipv6"
 if (GET.get('test') == ""):         GET["get"]="test"
 if (GET.get('connections') == ""):  GET["get"]="connections"
+if (GET.get('discover') == ""):     GET["get"]="discover"
 if (GET.get('airos') == ""):        GET["get"]="airos"
 
 def convert_ipv4(ip):
@@ -424,7 +425,7 @@ def show_discover():
 
         # return output
         print         # blank line, end of headers
-        print data
+        print json.dumps(data)
     
     else:
         print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'

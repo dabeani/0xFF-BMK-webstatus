@@ -56,8 +56,14 @@ for line in $(ip -6 -h -br a | grep -oE "^.{0,15}|fe80::.{10,25}\/64"); do
   output=$output",\"$interface\":\"$linklocal\""
 done
 
+#try lookup from /tmp/versions.dat: homes= md5=
+
 #get local users and ssh key names
-logins=$(echo '"'$(for user in $(ls /home); do echo $user:$(echo $(grep "ssh-" /home/$user/.ssh/authorized_keys 2>/dev/null | awk '{print $3}')|sed -e 's/ /,/g'); done|sed -e 's/:$//g')'"'|sed -e 's/ /","/g')
+md5=$(/usr/bin/md5sum /dev/mtdblock2 2>/dev/null | cut -f1 -d" ")
+[ -f /tmp/versions.dat ] && 
+  md5=$(grep "md5=" /tmp/versions.dat | cut -d= -f2) &&
+  logins=$(grep "homes=" /tmp/versions.dat | cut -d= -f2) ||
+  logins=$(echo '"'$(for user in $(ls /home); do echo $user; done)'"'|sed -e 's/ /","/g')
 
 echo -n '{'
 echo -n '"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle'","bmk-webstatus":"'$bmkwebstatus'","ebtables":"'$ebtables'"},'
@@ -66,7 +72,7 @@ echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$a
 echo -n '"olsrd4watchdog":{"state":"'$olsrd4watchdog'"},'
 echo -n '"linklocals":{'$output'},'
 echo -n '"homes":['$logins'],'
-echo -n '"bootimage":{"md5":"'$(/usr/bin/md5sum /dev/mtdblock2 | cut -f1 -d" ")'"}'
+echo -n '"bootimage":{"md5":"'$md5'"}'
 echo    '}'
 
 exit 0

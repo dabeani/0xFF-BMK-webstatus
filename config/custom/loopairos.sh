@@ -7,23 +7,28 @@ PORT=$(grep -i port= /config/letsencrypt/deploysetting.dat 2>/dev/null | cut -d=
 [ "$PORT" ] || PORT=22
 USER=$(grep -i user= /config/letsencrypt/deploysetting.dat 2>/dev/null | cut -d= -f2)
 [ "$USER" ] || USER="ubnt"
+
 ## find correct *local* management vlan
-if [ $(ip -4 addr | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") == "1" ]; then
+SEARCH=$(ip -4 -o addr | grep -E ": "$(echo $INTERFACES | sed 's/,/\|/g'))
+if [ $(echo "$SEARCH" | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") == "1" ]; then
   # easiest: theres only one single ip if range 10.*
-  LANSEGM=$(ip -4 addr | grep -oE "10\..{3,7}\.[12]0[012345]/.{1,2}" | head -n 1 | awk -F. {'print $1"."$2"."$3"."'})
-elif [ $(ip -4 addr | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") \> 1 ]; then
+  LANSEGM=$(echo "$SEARCH" | grep -oE "10\..{3,7}\.[12]0[012345]/.{1,2}" | head -n 1 | awk -F. {'print $1"."$2"."$3"."'})
+elif [ $(echo "$SEARCH" | grep -coE "192\.168\..{3,7}/.{1,2}") == "1" ]; then
+  # easiest2: theres only one single ip if range 192.168.*
+  LANSEGM=$(echo "$SEARCH" | grep -oE "192\.168\..{3,7}/.{1,2}" | head -n 1 | awk -F. {'print $1"."$2"."$3"."'})
+elif [ $(echo "$SEARCH" | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") \> 1 ]; then
   # there are several 10.* addresses, try to fetch nodeID from map database
   nodeid=$(curl -4s --connect-timeout 1 --speed-time 1 https://ff.cybercomm.at/mynodeid.php 2>/dev/null)
   if [ "$nodeid" ]; then
     # if found, use node-id
     t=$(printf "%0$((6-${#nodeid}))d%s" 0 $nodeid)
     LANSEGM="10."$((10#${t:1:3}))"."$((10#${t:4:6}))"."
-  elif [ $(ip -4 addr | grep -coE "10\..{3,7}\.100/.{1,2}") \> 0 ]; then
+  elif [ $(echo "$SEARCH" | grep -coE "10\..{3,7}\.100/.{1,2}") \> 0 ]; then
     # if not found, take lastes address in format 10.*.*.100
-    LANSEGM=$(ip -4 addr | grep -oE "10\..{3,7}\.100/.{1,2}" | tail -n 1 | awk -F. {'print $1"."$2"."$3"."'})
+    LANSEGM=$(echo "$SEARCH" | grep -oE "10\..{3,7}\.100/.{1,2}" | tail -n 1 | awk -F. {'print $1"."$2"."$3"."'})
   else
     # if no 10.*.*.100 exist, take lastes 10.*.*.???
-    LANSEGM=$(ip -4 addr | grep -oE "10\..{3,7}\.[12]0[012345]/.{1,2}" | tail -n 1 | awk -F. {'print $1"."$2"."$3"."'})
+    LANSEGM=$(echo "$SEARCH" | grep -oE "10\..{3,7}\.[12]0[012345]/.{1,2}" | tail -n 1 | awk -F. {'print $1"."$2"."$3"."'})
   fi
 fi
 [ "$INTERFACES" ] &&

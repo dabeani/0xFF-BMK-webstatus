@@ -54,7 +54,7 @@ for IP in $(echo "${ANTENNEN[@]}" | awk {'print $3'}); do
 done
 
 ## combine all antennas to a single json array (only responses from the last 3h)
-LIST=$(find /tmp/10.*.json -mmin -185)
+LIST=$(find /tmp/10.*.json /tmp/192.168*.json -mmin -185 2>/dev/null)
 t=$(echo "$LIST" | wc -l)
 echo -n "{" >/tmp/10-all.json
 for i in $LIST; do

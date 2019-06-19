@@ -13,8 +13,8 @@ SEARCH=$(ip -4 -o addr | grep -E ": "$(echo $INTERFACES | sed 's/,/\|/g'))
 if [ $(echo "$SEARCH" | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") == "1" ]; then
   # easiest: theres only one single ip if range 10.*
   LANSEGM=$(echo "$SEARCH" | grep -oE "10\..{3,7}\.[12]0[012345]/.{1,2}" | head -n 1 | awk -F. {'print $1"."$2"."$3"."'})
-elif [ $(echo "$SEARCH" | grep -coE "192\.168\..{3,7}/.{1,2}") == "1" ]; then
-  # easiest2: theres only one single ip if range 192.168.*
+elif (echo "$SEARCH" | grep -qE "192\.168\..{3,7}/.{1,2}"); then
+  # easiest2: take first ip of range 192.168.*
   LANSEGM=$(echo "$SEARCH" | grep -oE "192\.168\..{3,7}/.{1,2}" | head -n 1 | awk -F. {'print $1"."$2"."$3"."'})
 elif [ $(echo "$SEARCH" | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") \> 1 ]; then
   # there are several 10.* addresses, try to fetch nodeID from map database

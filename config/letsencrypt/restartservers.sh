@@ -7,6 +7,6 @@ sleep 1
 sudo /sbin/start-stop-daemon --start --quiet --pidfile /var/run/lighttpd.pid --exec /usr/sbin/lighttpd -- -f /etc/lighttpd/lighttpd.conf >>/var/log/0xwslerestart.log 2>>/var/log/0xwslerestart.log
 sudo /sbin/start-stop-daemon --start --quiet --pidfile /var/run/lighttpd_custom.pid --exec /usr/sbin/lighttpd -- -f /config/custom/lighttpd/lighttpd_custom.conf >>/var/log/0xwslerestart.log 2>>/var/log/0xwslerestart.log
 
-echo 'homes="'$(for user in $(ls /home); do echo $user:$(echo $(sudo grep "ssh-" /home/$user/.ssh/authorized_keys 2>/dev/null | awk '{print $3}')|sed -e 's/ /,/g'); done|sed -e 's/:$//g')'"'|sed -e 's/ /","/g' >/tmp/versions.dat
+echo 'homes="'$(for user in $(ls /opt/vyatta/config/active/system/login/user); do echo $user:$(echo $(sudo grep "ssh-" /home/$user/.ssh/authorized_keys 2>/dev/null | awk '{print $3}')|sed -e 's/ /,/g'); done|sed -e 's/:$//g')'"'|sed -e 's/ /","/g' >/tmp/versions.dat
 echo 'md5='$(sudo /usr/bin/md5sum /dev/mtdblock2 | cut -f1 -d" ") >>/tmp/versions.dat
 exit 0

@@ -59,6 +59,11 @@ if [ -f /tmp/settings.inc ]; then
     rm /tmp/settings.inc
 fi
 
+#keep old settings 
+if [ -f /config/user-data/letsencrypt_fqdn.dat ]; then
+    mv /config/user-data/letsencrypt_fqdn.dat /tmp/letsencrypt_fqdn.dat
+fi
+
 echo "Stopping Custom Webserver..."
 # stop custom Webserver if running
 if [ -f "/var/run/lighttpd_custom.pid" ]; then

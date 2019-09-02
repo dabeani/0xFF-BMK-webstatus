@@ -14,6 +14,11 @@ if [ -f /tmp/do_lighttpd_restart ]; then
    #rm -f /tmp/do_lighttpd_restart
 fi
 
+#recover old settings 
+if [ -f /tmp/letsencrypt_fqdn.dat ]; then
+    mv /tmp/letsencrypt_fqdn.dat /config/user-data/letsencrypt_fqdn.dat
+fi
+
 echo "Preparing files and directories..."
 # create needed folder for letsencrypt initial setup files
 [ -d /config/letsencrypt/ ] || mkdir -p /config/letsencrypt/

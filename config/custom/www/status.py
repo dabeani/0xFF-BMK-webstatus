@@ -88,6 +88,7 @@ if (GET.get('ipv6') == ""):         GET["get"]="ipv6"
 if (GET.get('test') == ""):         GET["get"]="test"
 if (GET.get('connections') == ""):  GET["get"]="connections"
 if (GET.get('discover') == ""):     GET["get"]="discover"
+if (GET.get('traffic') == ""):      GET["get"]="traffic"
 if (GET.get('airos') == ""):        GET["get"]="airos"
 
 def convert_ipv4(ip):
@@ -101,6 +102,45 @@ def check_ipv6_in(addr, start, end):
 
 def sort_by_ipv6(elem):
     return socket.inet_pton(socket.AF_INET6,elem['neighbor_originator'])
+
+def ip_in_subnetwork(ip_address, subnetwork):
+    (ip_integer, version1) = ip_to_integer(ip_address)
+    (ip_lower, ip_upper, version2) = subnetwork_to_ip_range(subnetwork)
+    if version1 != version2:
+        raise ValueError("incompatible IP versions: "+str(ip_address)+" / "+str(subnetwork))
+    return (ip_lower <= ip_integer <= ip_upper)
+
+def ip_to_integer(ip_address):
+    for version in (socket.AF_INET, socket.AF_INET6):
+        try:
+            ip_hex = socket.inet_pton(version, ip_address)
+            ip_integer = int(binascii.hexlify(ip_hex), 16)
+            return (ip_integer, 4 if version == socket.AF_INET else 6)
+        except:
+            pass
+    raise ValueError("invalid IP address: "+str(ip_address))
+
+def subnetwork_to_ip_range(subnetwork):
+    try:
+        fragments = subnetwork.split('/')
+        network_prefix = fragments[0]
+        netmask_len = int(fragments[1])
+        for version in (socket.AF_INET, socket.AF_INET6):
+            ip_len = 32 if version == socket.AF_INET else 128
+            try:
+                suffix_mask = (1 << (ip_len - netmask_len)) - 1
+                netmask = ((1 << ip_len) - 1) - suffix_mask
+                ip_hex = socket.inet_pton(version, network_prefix)
+                ip_lower = int(binascii.hexlify(ip_hex), 16) & netmask
+                ip_upper = ip_lower + suffix_mask
+                return (ip_lower,
+                        ip_upper,
+                        4 if version == socket.AF_INET else 6)
+            except:
+                pass
+    except:
+        pass
+    raise ValueError("invalid subnetwork: "+str(subnetwork))
 
 # check if client is out of defined ip ranges
 try:
@@ -329,6 +369,107 @@ def show_txtinfo():
             
             import urllib2
             print urllib2.urlopen("http://127.0.0.1:2006/"+str(q), timeout = 1).read().strip("\n ")
+        except:
+            string="Unexpected error:", sys.exc_info()[0]
+            print '{"return":"'+string+'"}'
+    
+    else:
+        print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'
+
+def show_traffic():
+    # return output
+    print("Content-Type: application/json")
+    print("X-Powered-By: cpo/bmk-v"+version)
+    print         # blank line, end of headers
+    if (authorized_ip):
+        try:
+            import binascii
+            current_time = time.time()
+            e={}
+            for trafficfile in os.listdir("/tmp"):
+                if (trafficfile.startswith("traffic-") and trafficfile.endswith(".dat")):
+                    creation_time = os.path.getctime(os.path.join("/tmp", trafficfile))
+                    if (current_time - creation_time) // (24 * 3600) >= 2: continue
+                    file = open(os.path.join("/tmp", trafficfile), "r")
+                    #print "### file "+trafficfile+"###"
+                    export={'ip':{}}
+                    v4in=0
+                    v4out=0
+                    v6in=0
+                    v6out=0
+                    ranges=[]
+                    addresses=[]
+                    for LINE in file.readlines():
+                        TMP = re.split(" ", LINE.strip("\n"))
+                        if   (TMP[0]=='START'): start=TMP[1]
+                        elif (TMP[0]=='START'): start=TMP[1]
+                        elif (TMP[0]=='DURATION'): duration=TMP[1]
+                        elif (TMP[0]=='END'): end=TMP[1]
+                        else:
+                            ip=TMP[0]
+                            DATA = re.split(",", TMP[1])
+                            X=re.split("=", DATA[0])
+                            Y=re.split("=", DATA[1])
+                            if              (X[0]=="IN"):  down=X[1]
+                            elif (X[0]=="OUT"): up=X[1]
+                            if              (Y[0]=="IN"):  down=Y[1]
+                            elif (Y[0]=="OUT"): up=Y[1]
+                            export['ip'][ip] = {'up':int(up), 'down':int(down)}
+                            if "/" in ip: ranges.append(ip)
+                            else: addresses.append(ip)
+                    export['period']={'start':int(start), 'end':int(end), 'duration':int(duration)}
+                    ranges.sort(key = lambda s: s.split("/")[1])  #sort ranges by prefix size
+                    #print ranges
+                    for i in range(len(ranges)):
+                        measure = True
+                        #print str(i) + ": " +ranges[i]
+                        for j in range(0, i):
+                            try:
+                                if (ip_in_subnetwork(ranges[i].split("/")[0].strip(":")+"::1", ranges[j])): measure=False
+                            except: dummy=1
+                        if (measure):
+                            #add figures to totals
+                            #print ranges[i] +" will be measured: " + export['ip'][ranges[i]]['down']+"/"+export['ip'][ranges[i]]['up']
+                            if (ranges[i].startswith("2a02")):
+                                v6in=v6in + int(export['ip'][ranges[i]]['down'])
+                                v6out=v6out + int(export['ip'][ranges[i]]['up'])
+                            else:
+                                v4in=v4in + int(export['ip'][ranges[i]]['down'])
+                                v4out=v4out + int(export['ip'][ranges[i]]['up'])
+                        else:
+                            try: export['ip'][ranges[i]]['in'].append(ranges[j])
+                            except KeyError: export['ip'][ranges[i]]['in']=[ranges[j]]
+                            try: export['ip'][ranges[j]]['child'].append(ranges[i])
+                            except KeyError: export['ip'][ranges[j]]['child']=[ranges[i]]
+                    #loop ip adresses
+                    for i in range(len(addresses)):
+                        measure = True
+                        #print str(i) + ": " +addresses[i]
+                        for j in range(len(ranges)):
+                            try:
+                                if (ip_in_subnetwork(addresses[i], ranges[j])): measure=False
+                            except: dummy=1
+                        if (measure):
+                            #add figures to totals
+                            #print addresses[i] +" will be measured: " + export['ip'][addresses[i]]['down']+"/"+export['ip'][addresses[i]]['up']
+                            if (addresses[i].startswith("2a02")):
+                                v6in=v6in + int(export['ip'][addresses[i]]['down'])
+                                v6out=v6out + int(export['ip'][addresses[i]]['up'])
+                            else:
+                                v4in=v4in + int(export['ip'][addresses[i]]['down'])
+                                v4out=v4out + int(export['ip'][addresses[i]]['up'])
+                        else:
+                            try: export['ip'][addresses[i]]['in'].append(ranges[j])
+                            except KeyError: export['ip'][addresses[i]]['in']=[ranges[j]]
+                            try: export['ip'][ranges[j]]['child'].append(addresses[i])
+                            except KeyError: export['ip'][ranges[j]]['child']=[addresses[i]]
+                    export['totals']={'v4down':v4in, 'v4up': v4out, 'v6down': v6in, 'v6up': v6out,
+                                      'up': v4out+v6out, 'down':v4in+v6in, 'v4': v4in+v4out, 'v6': v6in+v6out,
+                                      'all': v4out+v6out+v4in+v6in}
+                    e[start]=export
+            
+            print json.dumps(e)
+        
         except:
             string="Unexpected error:", sys.exc_info()[0]
             print '{"return":"'+string+'"}'
@@ -1424,6 +1565,8 @@ elif (GET.get('get') == "jsoninfo"):
     show_jsoninfo()
 elif (GET.get('get') == "txtinfo"):
     show_txtinfo()
+elif (GET.get('get') == "traffic"):
+    show_traffic()
 elif (GET.get('get') == "test"):
     show_test()
 else:

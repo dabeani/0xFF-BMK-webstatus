@@ -384,7 +384,7 @@ def show_traffic():
     if (authorized_ip):
         try:
             import binascii, re
-            current_time = time.time()
+            current_time = time()
             e={}
             for trafficfile in os.listdir("/tmp"):
                 if (trafficfile.startswith("traffic-") and trafficfile.endswith(".dat")):

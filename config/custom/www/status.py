@@ -2,7 +2,7 @@
 version="4.8"
 
 import shlex, subprocess
-import json, os, socket
+import json, os, socket, sys
 from time import time
 start_time = time()
 
@@ -176,7 +176,7 @@ try:
             #neigher ipv4, nor ipv6
             iptype="unknown"
             authorized=True
-
+    
 except KeyError:
     # allow if unknown ip or local runenvironment
     authorized=True
@@ -196,7 +196,7 @@ if (authorized==False and str(allowiphones)=="1"):
     except:
         agent=""
         uamatch=""
-
+   
 else:
     uamatch=""
 
@@ -383,7 +383,7 @@ def show_traffic():
     print         # blank line, end of headers
     if (authorized_ip):
         try:
-            import binascii
+            import binascii, re
             current_time = time.time()
             e={}
             for trafficfile in os.listdir("/tmp"):
@@ -472,7 +472,7 @@ def show_traffic():
         
         except:
             string="Unexpected error:", sys.exc_info()[0]
-            print '{"return":"'+string+'"}'
+            print '{"return":"'+str(string)+'"}'
     
     else:
         print '{"return":"not-authorized","ip":"'+clientip+'","agent":"'+agent+'"}'

@@ -383,7 +383,7 @@ def show_traffic():
     print         # blank line, end of headers
     if (authorized_ip):
         try:
-            import binascii, re
+            import re
             current_time = time()
             e={}
             for trafficfile in os.listdir("/tmp"):
@@ -1566,6 +1566,7 @@ elif (GET.get('get') == "jsoninfo"):
 elif (GET.get('get') == "txtinfo"):
     show_txtinfo()
 elif (GET.get('get') == "traffic"):
+    import binascii
     show_traffic()
 elif (GET.get('get') == "test"):
     show_test()

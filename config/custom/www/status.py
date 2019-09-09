@@ -407,14 +407,17 @@ def show_traffic():
                         elif (TMP[0]=='END'): end=TMP[1]
                         else:
                             ip=TMP[0]
-                            try: DATA = re.split(",", TMP[1])
-                            except: DATA = ["IN=0","OUT=0"]
-                            X=re.split("=", DATA[0])
-                            Y=re.split("=", DATA[1])
-                            if              (X[0]=="IN"):  down=X[1]
-                            elif (X[0]=="OUT"): up=X[1]
-                            if              (Y[0]=="IN"):  down=Y[1]
-                            elif (Y[0]=="OUT"): up=Y[1]
+                            try:
+                                DATA = re.split(",", TMP[1])
+                                X=re.split("=", DATA[0])
+                                Y=re.split("=", DATA[1])
+                                if              (X[0]=="IN"):  down=X[1]
+                                elif (X[0]=="OUT"): up=X[1]
+                                if              (Y[0]=="IN"):  down=Y[1]
+                                elif (Y[0]=="OUT"): up=Y[1]
+                            except:
+                                up=0
+                                down=0
                             export['ip'][ip] = {'up':int(up), 'down':int(down)}
                             if "/" in ip: ranges.append(ip)
                             else: addresses.append(ip)

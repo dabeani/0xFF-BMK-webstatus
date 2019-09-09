@@ -400,14 +400,15 @@ def show_traffic():
                     ranges=[]
                     addresses=[]
                     for LINE in file.readlines():
-                        TMP = re.split(" ", LINE.strip("\n"))
+                        TMP = re.split(" ", LINE.strip(" \n"))
                         if   (TMP[0]=='START'): start=TMP[1]
                         elif (TMP[0]=='START'): start=TMP[1]
                         elif (TMP[0]=='DURATION'): duration=TMP[1]
                         elif (TMP[0]=='END'): end=TMP[1]
                         else:
                             ip=TMP[0]
-                            DATA = re.split(",", TMP[1])
+                            try: DATA = re.split(",", TMP[1])
+                            except: DATA = ["IN=0","OUT=0"]
                             X=re.split("=", DATA[0])
                             Y=re.split("=", DATA[1])
                             if              (X[0]=="IN"):  down=X[1]

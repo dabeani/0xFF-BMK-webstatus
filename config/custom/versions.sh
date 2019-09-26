@@ -8,6 +8,7 @@
 [ $(grep "wizard-olsrd_v2=yes"   /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aa2="on"   || aa2="off"
 [ $(grep "wizard-0xffwsle=yes"   /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aale="on"  || aale="off"
 [ $(grep "wizard-ebtables=yes"   /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aaebt="on" || aaebt="off"
+[ $(grep "wizard-blockPrivate=yes" /config/user-data/autoupdate.dat 2>/dev/null | wc -l) == 1 ] && aabp="on" || aabp="off"
 
 #get wizard versions
 for i in $(ls /config/wizard/feature/*/wizard-run 2>/dev/null); do
@@ -16,6 +17,7 @@ for i in $(ls /config/wizard/feature/*/wizard-run 2>/dev/null); do
     [ $(head -n 10 $i | grep -l 'OLSRd_V2' | wc -l) == 1 ] && olsrv2=$vers && continue
     [ $(head -n 10 $i | grep -l '0xFF-BMK-Webstatus-LetsEncrypt' | wc -l) == 1 ] && wsle=$vers && continue
     [ $(head -n 10 $i | grep -l 'ER-wizard-ebtables' | wc -l) == 1 ] && ebtables=$vers && continue
+    [ $(head -n 10 $i | grep -l 'ER-wizard-blockPrivate' | wc -l) == 1 ] && blockpriv=$vers && continue
     [ $(head -n 10 $i | grep -l 'ER-wizard-AutoUpdate' | wc -l) == 1 ] && autoupdate=$vers && continue
 done
 [ ! "$olsrv1" ] && olsrv1="n/a" && aa1="n/a"
@@ -23,6 +25,7 @@ done
 [ ! "$wsle" ] && wsle="n/a" && aale="n/a"
 [ ! "$autoupdate" ] && autoupdate="n/a" && aa="n/a"
 [ ! "$ebtables" ] && ebtables="n/a" && aaebt="n/a"
+[ ! "$blockpriv" ] && blockpriv="n/a" && aabp="n/a"
 bmkwebstatus=$(head -n 12 /config/custom/www/cgi-bin-status*.php 2>/dev/null | grep -m1 version= | cut -d'"' -f2)
 [ ! "$bmkwebstatus" ] && bmkwebstatus="n/a"
 
@@ -57,7 +60,6 @@ for line in $(ip -6 -h -br a | grep -oE "^.{0,15}|fe80::.{10,25}\/64"); do
 done
 
 #try lookup from /tmp/versions.dat: homes= md5=
-
 #get local users and ssh key names
 md5=$(/usr/bin/md5sum /dev/mtdblock2 2>/dev/null | cut -f1 -d" ")
 [ -f /tmp/versions.dat ] && 
@@ -66,9 +68,9 @@ md5=$(/usr/bin/md5sum /dev/mtdblock2 2>/dev/null | cut -f1 -d" ")
   logins=$(echo '"'$(for user in $(ls /home); do echo $user; done)'"'|sed -e 's/ /","/g')
 
 echo -n '{'
-echo -n '"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle'","bmk-webstatus":"'$bmkwebstatus'","ebtables":"'$ebtables'"},'
+echo -n '"wizards":{"olsrv1":"'$olsrv1'","olsrv2":"'$olsrv2'","0xffwsle":"'$wsle'","bmk-webstatus":"'$bmkwebstatus'","ebtables":"'$ebtables'","blockpriv":"'$blockpriv'"},'
 echo -n '"local_ips":{"ipv4":"'$v4'","ipv6":"'$v6'","originator":"'$orig'"},'
-echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$aa'","olsrv1":"'$aa1'","olsrv2":"'$aa2'","0xffwsle":"'$aale'","ebtables":"'$aaebt'"},'
+echo -n '"autoupdate":{"installed":"'$autoupdate'","enabled":"'$auon'","aa":"'$aa'","olsrv1":"'$aa1'","olsrv2":"'$aa2'","0xffwsle":"'$aale'","ebtables":"'$aaebt'","blockpriv":"'$aabp'"},'
 echo -n '"olsrd4watchdog":{"state":"'$olsrd4watchdog'"},'
 echo -n '"linklocals":{'$output'},'
 echo -n '"homes":['$logins'],'

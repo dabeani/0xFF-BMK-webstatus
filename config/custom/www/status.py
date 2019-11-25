@@ -516,7 +516,8 @@ def show_status():
 
     exec_command="/usr/sbin/ubnt-discover -d"+ubntdiscovertime+" -V -i "+interface_list_ok+" -j"
     args = shlex.split(exec_command)
-    data = json.loads(subprocess.check_output(args))
+    try: data = json.loads(subprocess.check_output(args))
+    except: data={}
 
     # get versions of wizards and IP-addresses from seperate shellscript
     versions = json.loads(subprocess.check_output("/config/custom/versions.sh"))

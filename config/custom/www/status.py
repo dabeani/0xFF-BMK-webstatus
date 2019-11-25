@@ -1126,8 +1126,10 @@ def show_html():
         exec_command="/sbin/ip -6 r get 2001:4860:4860::8888 | head -1 | awk '{print $5,$7}'"
         def6route=subprocess.check_output(exec_command, shell=True).strip("\n ").split("\n")
         def6r=def6route[0].split()
-        defaultv6ip=def6r[0]
-        defaultv6dev=def6r[1]
+        try: defaultv6ip=def6r[0]
+        except: defaultv6ip='i?'
+        try: defaultv6dev=def6r[1]
+        except: defaultv6dev='d?'
         #defaultv6host=socket.getfqdn(defaultv6ip)
         #defaultv6host="linklokal"
 

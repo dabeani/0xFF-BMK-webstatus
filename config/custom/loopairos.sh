@@ -39,7 +39,7 @@ echo "${ANTENNEN[@]}" >>$LOG
 for IP in $(echo "${ANTENNEN[@]}" | awk {'print $3'}); do
   echo "Fetching status from "$IP"..." >>$LOG
   (grep -qi "user-"$IP"=" /config/letsencrypt/deploysetting.dat) && THISUSER=$(grep -i "user-"$IP"=" /config/letsencrypt/deploysetting.dat | cut -d"=" -f2) || THISUSER=$USER
-  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "PasswordAuthentication=no" -o "LogLevel=error" -p $PORT $THISUSER@$IP 'sh' </config/custom/getairos.sh 2>>$LOG >/tmp/$IP.tmp
+  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -o "PasswordAuthentication=no" -o "LogLevel=error" -o "ServerAliveInterval=5" -p $PORT $THISUSER@$IP 'sh' </config/custom/getairos.sh 2>>$LOG >/tmp/$IP.tmp
   result=$?
   if [ $result -eq 0 ] && [ -s /tmp/$IP.tmp ]; then
     dos2unix /tmp/$IP.tmp

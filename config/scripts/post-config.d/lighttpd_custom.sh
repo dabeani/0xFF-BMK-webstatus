@@ -52,6 +52,16 @@ if [ -f /config/letsencrypt/chain.pem ]; then
   done
 fi
 
+#CPO 2020-01-26: v2.* needs mod_openssl called, v1.10 does not: dynamically add/remove it from config files
+if [ -f /usr/lib/lighttpd/mod_openssl.so ]; then
+    (grep -q mod_openssl /config/custom/lighttpd/conf-enabled/10-ssl.conf) || sed -i '2i\
+server.modules += ("mod_openssl",)' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+else
+    (grep -q mod_openssl /config/custom/lighttpd/conf-enabled/10-ssl.conf) &&
+      linenumber=$(grep -ni "mod_openssl" /config/custom/lighttpd/conf-enabled/10-ssl.conf | awk -F: {'print $1'}) &&
+      sed -i $linenumber'd' /config/custom/lighttpd/conf-enabled/10-ssl.conf
+fi
+
 # re-establish current certificate file, only if domain.key is not of zero file-size
 # original server.pem contains "BEGIN PRIVATE KEY", whereas LE-signed server.pem includes "BEGIN RSA PRIVATE KEY".
 # only renew server.pem file if needed and signature file is >0 bytes

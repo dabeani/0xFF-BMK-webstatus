@@ -655,8 +655,9 @@ def show_html():
         hostname=socket.gethostname()
         ip=""
 
-    # host,aliaslist,ipaddrlist=socket.gethostbyattr('78.41.113.155')
-    # host=socket.getfqdn('78.41.113.155')
+    #decode idn-a labels in hostname
+    unicode_string = hostname.decode('idna')
+    hostname = unicode_string.encode('utf-8')
 
     # get ubnt-discover
     exec_command="cat /proc/net/dev | awk '/:/ {print $1}' | tr -d ':'"
@@ -674,7 +675,7 @@ def show_html():
     #grep -oEm1 "olsr.org - .{185}" /usr/sbin/olsrd | sed -e 's/[\x00-\x08\x0B\x0C\x0E-\x1F]/~/g' | awk -F~ '{print "ver:"$1"\ndsc:"$3"\ndev:"$5"\ndat:"$6"\nrel:"$9"\nsrc:"$12}'
     #  1=version 2=gitDescriptor 3=gitSha 4=releaseVersion 5=sourceHash
     #curl -s 127.0.0.1:2006/ver
-    #curl -s 78.41.119.41:8080/config | grep -oP "^Version: .*$|System time: .*\<\/em\>\<br\>|Olsrd uptime: .*$" | sed -e 's/<[^>]*>//g'
+    #curl -s 127.0.0.1:8080/config | grep -oP "^Version: .*$|System time: .*\<\/em\>\<br\>|Olsrd uptime: .*$" | sed -e 's/<[^>]*>//g'
     #curl -s 127.0.0.1:9090/version | jq -r '.'
     #/usr/sbin/olsrd --version 2>/dev/null | grep "olsr.org -" | sed -e"s/[ ]*\*\*\*[ ]*//ig"
     
@@ -987,11 +988,17 @@ def show_html():
             print dest, 
             try: 
                 n=node_dns[dest]['n']
+                if (n.startswith('xn--')):
+                    unicode_string = n.decode('idna')
+                    n = unicode_string.encode('utf-8')
                 print n, 
             except KeyError: n=""
             try: 
                 d=node_dns[dest]['d']
-                print d, 
+                if (d.startswith('xn--')):
+                    unicode_string = d.decode('idna')
+                    d = unicode_string.encode('utf-8')
+                 print d, 
             except KeyError: d=""
 
             print "<br>"
@@ -1018,6 +1025,9 @@ def show_html():
       </div>
       <div class="modal-body">"""
         for dest in destinationlist:
+            if (dest.startswith('xn--')):
+                unicode_string = dest.decode('idna')
+                dest = unicode_string.encode('utf-8')
             print dest, 
             print "<br>"
 

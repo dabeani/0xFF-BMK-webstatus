@@ -998,7 +998,7 @@ def show_html():
                 if (d.startswith('xn--')):
                     unicode_string = d.decode('idna')
                     d = unicode_string.encode('utf-8')
-                 print d, 
+                print d,
             except KeyError: d=""
 
             print "<br>"

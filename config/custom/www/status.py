@@ -91,6 +91,12 @@ if (GET.get('discover') == ""):     GET["get"]="discover"
 if (GET.get('traffic') == ""):      GET["get"]="traffic"
 if (GET.get('airos') == ""):        GET["get"]="airos"
 
+def idna_to_utf8(n):
+    if (n.startswith('xn--')):
+        unicode_string = n.decode('idna')
+        n = unicode_string.encode('utf-8')
+    return n
+
 def convert_ipv4(ip):
     return tuple(int(n) for n in ip.split('.'))
 
@@ -612,6 +618,7 @@ def format_duration(me):
     return str(me/60/60/24)+"d"                  # 2+ tage
 
 def format_hostname(me):
+    me=idna_to_utf8(me)
     dn=me.split(".")
     if (me.find("wien.funkfeuer.at")>=0 and len(dn)==5):
         dn=me.split(".")
@@ -656,8 +663,7 @@ def show_html():
         ip=""
 
     #decode idn-a labels in hostname
-    unicode_string = hostname.decode('idna')
-    hostname = unicode_string.encode('utf-8')
+    hostname = idna_to_utf8(hostname)
 
     # get ubnt-discover
     exec_command="cat /proc/net/dev | awk '/:/ {print $1}' | tr -d ':'"
@@ -988,16 +994,12 @@ def show_html():
             print dest, 
             try: 
                 n=node_dns[dest]['n']
-                if (n.startswith('xn--')):
-                    unicode_string = n.decode('idna')
-                    n = unicode_string.encode('utf-8')
+                n=idna_to_utf8(n)
                 print n, 
             except KeyError: n=""
             try: 
                 d=node_dns[dest]['d']
-                if (d.startswith('xn--')):
-                    unicode_string = d.decode('idna')
-                    d = unicode_string.encode('utf-8')
+                d=idna_to_utf8(d)
                 print d,
             except KeyError: d=""
 
@@ -1025,9 +1027,7 @@ def show_html():
       </div>
       <div class="modal-body">"""
         for dest in destinationlist:
-            if (dest.startswith('xn--')):
-                unicode_string = dest.decode('idna')
-                dest = unicode_string.encode('utf-8')
+            dest=idna_to_utf8(dest)
             print dest, 
             print "<br>"
 
@@ -1176,7 +1176,9 @@ def show_html():
                         defaultv6globalip=link['neighbor_originator']
                         try:
                             ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
-                            try: defaultv6host=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                            try:
+                                defaultv6host=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                                defaultv6host=idna_to_utf8(defaultv6host)
                             except: defaultv6host="("+ipv4+")"
                         except:
                             defaultv6host="hostname-unknown"
@@ -1332,12 +1334,12 @@ def show_html():
                 if (dest.find("/")>0):  #this looks like a HNA address
                     try: 
                         router=node_dns['v6-hna-at'][dest]
-                        print "hna@"+router+" ",
+                        print "hna@"+idna_to_utf8(router)+" ",
                         try:
                             ipv4=node_dns['v6-to-v4'][router]
                             try:
-                                print node_dns[ipv4]['n']+" ",
-                                try: print " "+node_dns[ipv4]['d'],
+                                print idna_to_utf8(node_dns[ipv4]['n'])+" ",
+                                try: print " "+idna_to_utf8(node_dns[ipv4]['d']),
                                 except: n=""
                             except:
                                 try:
@@ -1345,7 +1347,7 @@ def show_html():
                                     for key,line in node_dns.items():
                                         try:
                                             if (int(line['i']) == id):
-                                                print line['n'],
+                                                print idna_to_utf8(line['n']),
                                                 break
                                         except: continue
                                 except: n=""
@@ -1355,7 +1357,7 @@ def show_html():
                                 for key,line in node_dns.items():
                                     try:
                                         if (int(line['i']) == id):
-                                            print line['n'],
+                                            print idna_to_utf8(line['n']),
                                             break
                                     except: continue
                             except: n=""
@@ -1363,14 +1365,14 @@ def show_html():
                 else:  #it is just an IP
                     try:
                         ipv4=node_dns['v6-to-v4'][dest]
-                        try: print node_dns[ipv4]['n']+" ",
+                        try: print idna_to_utf8(node_dns[ipv4]['n'])+" ",
                         except:
                             try:
                                 id=int(node_dns['v6-to-id'][dest])
                                 for key,line in node_dns.items():
                                     try:
                                         if (int(line['i']) == id):
-                                            print line['n'],
+                                            print idna_to_utf8(line['n']),
                                             break
                                     except: continue
                             except: n=""
@@ -1380,13 +1382,13 @@ def show_html():
                             for key,line in node_dns.items():
                                 try:
                                     if (int(line['i']) == id):
-                                        print line['n'],
+                                        print idna_to_utf8(line['n']),
                                         break
                                 except: continue
                         except: n=""
                     try:
                         ipv4=node_dns['v6-to-v4'][dest]
-                        try: print " "+node_dns[ipv4]['d'],
+                        try: print " "+idna_to_utf8(node_dns[ipv4]['d']),
                         except: n=""
                     except: n=""
                 print "<br>"
@@ -1413,6 +1415,7 @@ def show_html():
       </div>
       <div class="modal-body">"""
             for dest in destinationlist:
+                dest=idna_to_utf8(dest)
                 print dest, 
                 print "<br>"
             
@@ -1440,7 +1443,9 @@ def show_html():
             hostaddr=link['neighbor_originator']
             try:
                 ipv4=node_dns['v6-to-v4'][link['neighbor_originator']]
-                try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                try:
+                    hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
+                    hostname=idna_to_utf8(hostname)
                 except: hostname="unknown("+ipv4+")"
             except: hostname="unknown"
             if (hostname.find("unknown")>=0 or hostname.find("?")>=0):
@@ -1500,6 +1505,7 @@ def show_html():
                         try: hostname=node_dns[ipv4]['d']+"."+node_dns[ipv4]['n']+".wien.funkfeuer.at"
                         except: hostname="unknown("+ipv4+")"
                     except: hostname="unknown"
+                else:hostname=idna_to_utf8(hostname)
                 try:timetotarget=traceline[3]
                 except:timetotarget="??"
                 if (hostname.find("unknown")>=0 or hostname.find("?")>0):

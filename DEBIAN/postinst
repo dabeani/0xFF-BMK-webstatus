@@ -289,6 +289,8 @@ if [ "$restart" ]; then
                     rm /var/run/lighttpd.pid
             fi
     fi
+    running=$(ps aux | grep /etc/lighttpd/lighttpd.conf | grep www-data | awk '{print $2}')
+    [ "$running" ] && sudo kill $running
     echo "Fire up original webserver..."
     # start original EdgeOS webserver
     sudo /sbin/start-stop-daemon --start --quiet \

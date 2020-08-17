@@ -49,9 +49,13 @@ if [ "$cronjob" ]; then
       echo "cronjob-mode: certificate already expired, requesting renewal" >>$log
     fi
   else
-    echo "cronjob-mode: remaining days not available, exit 1" >>$log
-    echo "Renew procedure ended $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
-    exit 1
+    if [ -f "/config/letsencrypt/signed.crt" ] && [ $(stat -c %s /config/letsencrypt/signed.crt) -eq 0 ]; then
+      echo "cronjob-mode: signed.crt is zero length file, requesting renewal" >>$log
+    else
+      echo "cronjob-mode: remaining days not available, exit 1" >>$log
+      echo "Renew procedure ended $(date +%Y-%m-%d/%H:%M:%S.%N)" >>$log
+      exit 1
+    fi
   fi
 fi
 

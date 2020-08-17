@@ -124,7 +124,7 @@ if [ "$orighttpport" == "80" ]; then
         rm -f /var/run/lighttpd.pid
     fi
     running=$(ps aux | grep /etc/lighttpd/lighttpd.conf | grep www-data | awk '{print $2}')
-    [ "$running" ] && sudo kill $running && sleep 1
+    [ "$running" ] && sudo kill $running
     #remember to restart!
     restart="A"
 fi
@@ -208,7 +208,7 @@ then
         rm -f /var/run/lighttpd.pid
     fi
     running=$(ps aux | grep /etc/lighttpd/lighttpd.conf | grep www-data | awk '{print $2}')
-    [ "$running" ] && sudo kill $running && sleep 1
+    [ "$running" ] && sudo kill $running
   fi 
   sudo /sbin/start-stop-daemon --start --quiet \
         --pidfile /var/run/lighttpd.pid \

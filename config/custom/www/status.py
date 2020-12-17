@@ -1169,6 +1169,8 @@ def show_html():
             
             #now try to find correct hostname of default-gateway
             try:
+                defaultv6host="hostname-not-found-without-neighbors"
+                defaultv6globalip="unknown-global-ipv6-without-neighbors"
                 for key,link in enumerate(olsr2neighbors):
                     #if (key <= 1): continue
                     if (len(link) == 0): continue

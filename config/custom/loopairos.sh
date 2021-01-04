@@ -32,8 +32,8 @@ elif [ $(echo "$SEARCH" | grep -coE "10\..{3,7}\.[12]0[012345]/.{1,2}") \> 1 ]; 
   fi
 fi
 [ "$INTERFACES" ] &&
- ANTENNEN=$(/usr/sbin/ubnt-discover -i "$INTERFACES" | awk '$4 ~ "[NL]B[25]|[PNB][B25][BLNE]|[PRNL][25]C|AG5|LM5|LAP|Loco5AC"' | grep $LANSEGM) ||
- ANTENNEN=$(/usr/sbin/ubnt-discover                  | awk '$4 ~ "[NL]B[25]|[PNB][B25][BLNE]|[PRNL][25]C|AG5|LM5|LAP|Loco5AC"' | grep $LANSEGM)
+ ANTENNEN=$(/usr/sbin/ubnt-discover -i "$INTERFACES" | awk '$4 ~ "[NL]B[25]|[PNB][B25][BLNE]|[PRNL][25]C|AG5|LM5|LAP|Loco5AC|AF(24|60)"' | grep $LANSEGM) ||
+ ANTENNEN=$(/usr/sbin/ubnt-discover                  | awk '$4 ~ "[NL]B[25]|[PNB][B25][BLNE]|[PRNL][25]C|AG5|LM5|LAP|Loco5AC|AF(24|60)"' | grep $LANSEGM)
 echo "${ANTENNEN[@]}" >>$LOG
 
 for IP in $(echo "${ANTENNEN[@]}" | awk {'print $3'}); do
